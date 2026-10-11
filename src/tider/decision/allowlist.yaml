@@ -1,9 +1,15 @@
 # Lo ÚNICO que Tider puede ejecutar solo. Todo lo demás se escala o va a PR.
 namespaces: [otel-demo]
+# Infraestructura compartida: nunca se actúa sola sobre estos deployments. VERIFICAR los nombres reales del chart.
+protected_deployments: [otel-collector, flagd, kafka, opensearch, prometheus, jaeger, grafana]
+limits:
+  cooldown_minutes: 30        # ni otra acción sobre el mismo deployment ni re-procesar la misma alerta en esta ventana
+  max_actions_per_hour: 3     # presupuesto global de acciones automáticas
+# El deployment objetivo siempre debe ser el componente de origen o estar en la cadena de propagación.
 runbook:
   rollout-restart: { min_confidence: 0.75 }
-  rollout-undo:    { min_confidence: 0.85, requires_evidence_kind: deploy }
-  scale:           { min_confidence: 0.75, max_replicas: 5 }
+  rollout-undo:    { min_confidence: 0.85, max_rollout_age_minutes: 120 }   # exige deployment_status con un rollout reciente
+  scale:           { min_confidence: 0.75, max_replicas: 5 }                # exige deployment_status: solo hacia arriba y sin HPA
 pr:
   manifests: { min_confidence: 0.70 }
   app:       { min_confidence: 0.80 }

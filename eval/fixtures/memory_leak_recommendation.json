@@ -1,8 +1,27 @@
 {
-  "prom_range": "[{\"metric\":{\"pod\":\"recommendation-7c9d\"},\"min\":210000000,\"max\":498000000,\"last\":498000000,\"note\":\"memoria crece de forma monótona en 30 min; limite 512Mi\"}]",
-  "kube_get_pods": "NAME                    READY STATUS  RESTARTS AGE\nrecommendation-7c9d     1/1   Running 3        42m\nfrontend-5b6f           1/1   Running 0        3h\ncart-6d77               1/1   Running 0        3h",
-  "kube_describe": "recommendation-7c9d: Last State: Terminated Reason: OOMKilled Exit Code: 137. Limits memory: 512Mi",
-  "kube_events": "12m Warning OOMKilling pod/recommendation-7c9d Memory cgroup out of memory: Killed process",
-  "rollout_history": "REVISION 1: initial\nREVISION 2: sin cambios recientes (hace 3 días)",
-  "traces_errors": "[{\"spans\":[[\"frontend\",\"GET /api/recommendations\",2400000],[\"recommendation\",\"ListRecommendations\",2300000]]}]"
+  "prom_range": [
+    {"match": {"query": ["memory", "memoria"]}, "out": "[{\"metric\":{\"pod\":\"recommendation-7c9d8f6b4-kx2lp\",\"container\":\"recommendation\"},\"min\":210000000.0,\"max\":498000000.0,\"last\":498000000.0}]"},
+    {"match": {"query": ["cpu"]}, "out": "[{\"metric\":{\"pod\":\"recommendation-7c9d8f6b4-kx2lp\",\"container\":\"recommendation\"},\"min\":0.04,\"max\":0.11,\"last\":0.07}]"},
+    {"match": {"query": ["error"]}, "out": "[{\"metric\":{\"service_name\":\"recommendation\"},\"min\":0.0,\"max\":0.08,\"last\":0.06}]"}
+  ],
+  "prom_query": [
+    {"match": {"query": ["memory", "memoria"]}, "out": "[{\"metric\":{\"pod\":\"recommendation-7c9d8f6b4-kx2lp\",\"container\":\"recommendation\"},\"value\":[1791729427,\"498000000\"]}]"}
+  ],
+  "kube_get_pods": "NAME                             READY   STATUS    RESTARTS      AGE   IP           NODE\nrecommendation-7c9d8f6b4-kx2lp   1/1     Running   3 (12m ago)   3d    10.42.0.31   k3d-tider-server-0\nfrontend-5b6f9d8c7-p4r2t         1/1     Running   0             3d    10.42.0.18   k3d-tider-server-0\ncart-6d77c8b9f5-m8k3s            1/1     Running   0             3d    10.42.0.22   k3d-tider-server-0",
+  "kube_describe": [
+    {"match": {"name": "recommendation"}, "out": "Name:         recommendation-7c9d8f6b4-kx2lp\nNamespace:    otel-demo\nControlled By:  ReplicaSet/recommendation-7c9d8f6b4\nContainers:\n  recommendation:\n    State:          Running\n      Started:      Sun, 11 Oct 2026 13:52:10 +0000\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n    Restart Count:  3\n    Limits:\n      memory:  512Mi\n    Requests:\n      memory:  256Mi"}
+  ],
+  "kube_events": "LAST SEEN   TYPE      REASON       OBJECT                               MESSAGE\n12m         Warning   OOMKilling   node/k3d-tider-server-0              Memory cgroup out of memory: Killed process 4121 (python) in pod recommendation-7c9d8f6b4-kx2lp\n12m         Normal    Started      pod/recommendation-7c9d8f6b4-kx2lp   Started container recommendation",
+  "kube_logs_previous": [
+    {"match": {"pod": "recommendation"}, "out": "INFO recommendation_server: Receive ListRecommendations for product ids:['OLJCESPC7Z', '66VCHSJNUP']\nINFO recommendation_server: Receive ListRecommendations for product ids:['1YMWWN1N4O', 'L9ECAV7KIM']\n(el proceso termina sin traza de error: SIGKILL)"}
+  ],
+  "rollout_history": [
+    {"match": {"deployment": "recommendation"}, "out": "deployment.apps/recommendation\nREVISION  CHANGE-CAUSE\n1         <none>\n2         <none>"}
+  ],
+  "deployment_status": [
+    {"match": {"deployment": "recommendation"}, "out": {"deployment": "recommendation", "replicas": 1, "ready": 1, "revision": 2, "revisions": 2, "last_rollout_age_minutes": 4320, "hpa": null, "images": ["ghcr.io/open-telemetry/demo:recommendation"]}}
+  ],
+  "traces_errors": [
+    {"match": {"service": ["recommendation", "frontend"]}, "out": "[{\"traceID\":\"4bf92f3577b34da6\",\"spans\":[[\"frontend\",\"GET /api/recommendations\",2400000],[\"recommendation\",\"/oteldemo.RecommendationService/ListRecommendations\",2300000]]}]"}
+  ]
 }

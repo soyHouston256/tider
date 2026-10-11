@@ -1,5 +1,11 @@
 # RBAC mínimo de Tider. Dos ServiceAccounts: lector (investigador) y ejecutor (solo acciones de la lista permitida).
 # Todo limitado al namespace del demo. Revisar antes de aplicar en un clúster compartido.
+# Cómo se conectan:
+#  - El pod de Tider corre como tider-reader (serviceAccountName); las herramientas del investigador usan esa credencial.
+#  - El ejecutor usa SOLO el kubeconfig de TIDER_EXECUTOR_KUBECONFIG: montar el ConfigMap tider-executor-kubeconfig en
+#    /etc/tider y el Secret tider-executor-token en /var/run/tider-executor. Sin esa variable, el ejecutor se niega.
+#  - Fuera del clúster (k3d desde la laptop): `kubectl -n otel-demo create token tider-reader` / `tider-executor`
+#    y armar un kubeconfig para cada uno (TIDER_READER_KUBECONFIG / TIDER_EXECUTOR_KUBECONFIG).
 apiVersion: v1
 kind: ServiceAccount
 metadata: { name: tider-reader, namespace: otel-demo }
@@ -18,6 +24,9 @@ rules:
   - apiGroups: ["apps"]
     resources: [deployments, replicasets, statefulsets]
     verbs: [get, list, watch]
+  - apiGroups: ["autoscaling"]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list]           # deployment_status: el decisor no escala a mano lo que maneja un HPA
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -44,3 +53,30 @@ kind: RoleBinding
 metadata: { name: tider-executor, namespace: otel-demo }
 subjects: [{ kind: ServiceAccount, name: tider-executor, namespace: otel-demo }]
 roleRef: { kind: Role, name: tider-executor, apiGroup: rbac.authorization.k8s.io }
+---
+# Token del ejecutor (lo llena el controlador de tokens). Se monta solo para el kubeconfig del ejecutor.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tider-executor-token
+  namespace: otel-demo
+  annotations: { kubernetes.io/service-account.name: tider-executor }
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: tider-executor-kubeconfig, namespace: otel-demo }
+data:
+  kubeconfig: |
+    apiVersion: v1
+    kind: Config
+    clusters:
+      - name: in-cluster
+        cluster: { server: "https://kubernetes.default.svc", certificate-authority: /var/run/tider-executor/ca.crt }
+    users:
+      - name: tider-executor
+        user: { tokenFile: /var/run/tider-executor/token }
+    contexts:
+      - name: executor
+        context: { cluster: in-cluster, user: tider-executor, namespace: otel-demo }
+    current-context: executor

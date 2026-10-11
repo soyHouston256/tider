@@ -1,9 +1,12 @@
-"""Herramientas de SOLO LECTURA. Cada una devuelve {summary, kind, ref}: el investigador cita eso como evidencia."""
+"""Herramientas de SOLO LECTURA. Cada una devuelve {summary, kind, ref, data}: el investigador cita eso como evidencia.
+Un fallo o una consulta vacía NO son evidencia: se marcan kind=error / kind=empty y el juez no los cuenta."""
 from __future__ import annotations
-import json
+import inspect, json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
+
+EMPTY = {"", "[]", "{}", "null"}
 
 
 @dataclass
@@ -11,7 +14,15 @@ class Tool:
     name: str
     description: str
     kind: str
-    fn: Callable[..., str]
+    fn: Callable[..., str | dict]
+
+
+def to_result(out: Any, kind: str, ref: str | None) -> dict:
+    data = out if isinstance(out, dict) else None
+    summary = json.dumps(out, ensure_ascii=False) if data is not None else str(out)
+    if summary.strip() in EMPTY:
+        return {"summary": "sin resultados", "kind": "empty", "ref": ref, "data": None}
+    return {"summary": summary[:3000], "kind": kind, "ref": ref, "data": data}
 
 
 class ToolRegistry:
@@ -24,31 +35,45 @@ class ToolRegistry:
     def describe(self) -> str:
         return "\n".join(f"- {t.name}: {t.description}" for t in self._tools.values())
 
-    def call(self, name: str, **kwargs) -> dict:
-        if name not in self._tools:
-            return {"summary": f"herramienta desconocida: {name}", "kind": "error", "ref": None}
-        t = self._tools[name]
+    def call(self, tool: str, /, **kwargs) -> dict:   # posicional: las herramientas reciben args llamados "name"
+        if tool not in self._tools:
+            return {"summary": f"herramienta desconocida: {tool}", "kind": "error", "ref": None, "data": None}
+        t, ref = self._tools[tool], f"{tool}({json.dumps(kwargs, sort_keys=True)})"
         try:
             out = t.fn(**kwargs)
-        except Exception as e:  # el agente debe poder recuperarse de un error de herramienta
-            out = f"ERROR {type(e).__name__}: {e}"
-        return {"summary": out[:3000], "kind": t.kind, "ref": f"{name}({json.dumps(kwargs, sort_keys=True)})"}
+        except Exception as e:  # el agente se recupera del error, pero un error no respalda ninguna hipótesis
+            return {"summary": f"ERROR {type(e).__name__}: {e}"[:3000], "kind": "error", "ref": ref, "data": None}
+        return to_result(out, t.kind, ref)
 
 
 class FixtureRegistry(ToolRegistry):
-    """Reproduce telemetría grabada: eval/fixtures/<escenario>.json -> {"tool_name": "salida", ...}.
-    Permite evaluar de forma reproducible, sin clúster."""
-    KINDS = {"prom": "metric", "kube": "k8s", "traces": "trace", "logs": "log", "rollout": "deploy"}
+    """Reproduce telemetría grabada (eval/fixtures/<escenario>.json) con las MISMAS herramientas que producción:
+    mismo describe(), mismos tipos y misma firma, así el prompt del eval es el de producción. Formato por herramienta:
+      "tool": "salida" | {...}                                       -> cualquier argumento
+      "tool": [{"match": {"arg": "subcadena" | [alternativas]}, "out": "salida" | {...}}, ...]  -> primera que coincida
+    Herramientas o argumentos sin grabación devuelven "sin resultados" (kind=empty), como una consulta vacía.
+    Se graban con scripts/record_fixture.py."""
 
-    def __init__(self, fixture_path: str | Path):
-        super().__init__()
-        self.data = json.loads(Path(fixture_path).read_text())
+    def __init__(self, fixture_path: str | Path, spec: ToolRegistry | None = None):
+        from . import default_registry
+        super().__init__(list((spec or default_registry())._tools.values()))
+        self.data = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
 
-    def describe(self) -> str:
-        return "\n".join(f"- {name}" for name in self.data)
+    def call(self, tool: str, /, **kwargs) -> dict:
+        if tool not in self._tools:
+            return {"summary": f"herramienta desconocida: {tool}", "kind": "error", "ref": None, "data": None}
+        t, ref = self._tools[tool], f"{tool}({json.dumps(kwargs, sort_keys=True)})"
+        try:
+            inspect.signature(t.fn).bind(**kwargs)   # args inválidos fallan igual que en producción
+        except TypeError as e:
+            return {"summary": f"ERROR TypeError: {e}", "kind": "error", "ref": ref, "data": None}
+        return to_result(self._lookup(self.data.get(tool), kwargs) or "", t.kind, ref)
 
-    def call(self, name: str, **kwargs) -> dict:
-        if name in self.data:
-            kind = self.KINDS.get(name.split("_")[0], "k8s")
-            return {"summary": self.data[name], "kind": kind, "ref": f"{name}({json.dumps(kwargs, sort_keys=True)})"}
-        return {"summary": f"sin datos grabados para {name}", "kind": "error", "ref": None}
+    @staticmethod
+    def _lookup(rec: Any, kwargs: dict) -> Any:
+        if rec is None or isinstance(rec, (str, dict)):
+            return rec
+        def hit(arg: str, want: Any) -> bool:
+            value = str(kwargs.get(arg, "")).lower()
+            return any(str(w).lower() in value for w in (want if isinstance(want, list) else [want]))
+        return next((e["out"] for e in rec if all(hit(a, w) for a, w in e.get("match", {}).items())), None)

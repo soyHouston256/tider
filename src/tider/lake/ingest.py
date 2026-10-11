@@ -33,7 +33,8 @@ def split_markdown(body: str, max_chars: int = 1200) -> list[str]:
     out = []
     for p in parts:
         while len(p) > max_chars:
-            cut = p.rfind("\n", 0, max_chars) or max_chars
+            cut = p.rfind("\n", 1, max_chars)
+            cut = cut if cut > 0 else max_chars   # sin salto de línea a mano: corte duro
             out.append(p[:cut]); p = p[cut:]
         if p.strip():
             out.append(p)
@@ -65,11 +66,13 @@ def load_file(path: Path, base: Path | None = None) -> tuple[Doc, list[Chunk], l
     return doc, chunks, edges
 
 
-def ingest_dir(store, root: str | Path) -> int:
+def ingest_dir(store, root: str | Path, base: str | Path | None = None) -> int:
+    """base fija el doc_id (ruta relativa a base); por defecto, el padre de root (docs/... -> "docs/...")."""
     n, root = 0, Path(root)
+    base = Path(base) if base else root.parent
     for p in sorted(root.rglob("*")):
         if p.suffix in (".md", ".mmd", ".mermaid"):
-            doc, chunks, edges = load_file(p, base=root.parent)
+            doc, chunks, edges = load_file(p, base=base)
             store.upsert(doc, chunks, edges)
             n += 1
     return n

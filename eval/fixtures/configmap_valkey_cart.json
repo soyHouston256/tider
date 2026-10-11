@@ -1,0 +1,29 @@
+{
+  "prom_range": [
+    {"match": {"query": ["error"]}, "out": "[{\"metric\":{\"service_name\":\"cart\"},\"min\":0.0,\"max\":0.62,\"last\":0.62}]"},
+    {"match": {"query": ["cpu"]}, "out": "[{\"metric\":{\"pod\":\"cart-6d77c8b9f5-m8k3s\",\"container\":\"cart\"},\"min\":0.02,\"max\":0.05,\"last\":0.03}]"},
+    {"match": {"query": ["restart"]}, "out": "[{\"metric\":{\"pod\":\"valkey-cart-5d8f7c9b6-q7wzt\",\"container\":\"valkey-cart\"},\"min\":0.0,\"max\":6.0,\"last\":6.0}]"}
+  ],
+  "kube_get_pods": "NAME                          READY   STATUS             RESTARTS      AGE\ncart-6d77c8b9f5-m8k3s         1/1     Running            0             3d\nvalkey-cart-5d8f7c9b6-q7wzt   0/1     CrashLoopBackOff   6 (2m ago)    21m\nfrontend-5b6f9d8c7-p4r2t      1/1     Running            0             3d",
+  "kube_events": "LAST SEEN   TYPE      REASON      OBJECT                              MESSAGE\n21m         Normal    Killing     pod/valkey-cart-5d8f7c9b6-h2x9d     Stopping container valkey-cart\n21m         Normal    Scheduled   pod/valkey-cart-5d8f7c9b6-q7wzt     Successfully assigned otel-demo/valkey-cart-5d8f7c9b6-q7wzt to k3d-tider-server-0\n2m          Warning   BackOff     pod/valkey-cart-5d8f7c9b6-q7wzt     Back-off restarting failed container valkey-cart in pod valkey-cart-5d8f7c9b6-q7wzt",
+  "kube_logs_previous": [
+    {"match": {"pod": "valkey"}, "out": "*** FATAL CONFIG FILE ERROR (Valkey 8.0.1) ***\nReading the configuration file, at line 3\n>>> 'maxmemory-policy allkeys-lrux'\nargument(s) must be one of the following: volatile-lru, allkeys-lru, volatile-lfu, allkeys-lfu, volatile-random, allkeys-random, volatile-ttl, noeviction"}
+  ],
+  "kube_describe": [
+    {"match": {"kind": "configmap", "name": "valkey"}, "out": "Name:         valkey-config\nNamespace:    otel-demo\nData\n====\nvalkey.conf:\n----\nport 6379\nmaxmemory 64mb\nmaxmemory-policy allkeys-lrux"},
+    {"match": {"name": "valkey"}, "out": "Name:         valkey-cart-5d8f7c9b6-q7wzt\nNamespace:    otel-demo\nControlled By:  ReplicaSet/valkey-cart-5d8f7c9b6\nContainers:\n  valkey-cart:\n    Args:  /etc/valkey/valkey.conf\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       Error\n      Exit Code:    1\n    Restart Count:  6\nVolumes:\n  config:\n    Type:      ConfigMap (a volume populated by a ConfigMap)\n    Name:      valkey-config"}
+  ],
+  "rollout_history": [
+    {"match": {"deployment": "valkey"}, "out": "deployment.apps/valkey-cart\nREVISION  CHANGE-CAUSE\n1         <none>\n2         <none>"}
+  ],
+  "deployment_status": [
+    {"match": {"deployment": "valkey"}, "out": {"deployment": "valkey-cart", "replicas": 1, "ready": 0, "revision": 2, "revisions": 2, "last_rollout_age_minutes": 4320, "hpa": null, "images": ["valkey/valkey:8.0.1-alpine"]}},
+    {"match": {"deployment": "cart"}, "out": {"deployment": "cart", "replicas": 1, "ready": 1, "revision": 1, "revisions": 1, "last_rollout_age_minutes": 4320, "hpa": null, "images": ["ghcr.io/open-telemetry/demo:cart"]}}
+  ],
+  "traces_errors": [
+    {"match": {"service": ["cart", "frontend"]}, "out": "[{\"traceID\":\"a1b2c3d4e5f60718\",\"spans\":[[\"frontend\",\"POST /api/cart\",1800000],[\"cart\",\"/oteldemo.CartService/AddItem\",1700000],[\"cart\",\"HSET\",1600000]]}]"}
+  ],
+  "logs_search": [
+    {"match": {"service": "cart"}, "out": "StackExchange.Redis.RedisConnectionException: It was not possible to connect to the redis server(s). UnableToConnect on valkey-cart:6379/Interactive"}
+  ]
+}

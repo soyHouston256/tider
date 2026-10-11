@@ -1,0 +1,21 @@
+{
+  "prom_range": [
+    {"match": {"query": ["restart"]}, "out": "[{\"metric\":{\"pod\":\"ad-6c5b8d7f9-zt4mn\",\"container\":\"ad\"},\"min\":0.0,\"max\":5.0,\"last\":5.0}]"},
+    {"match": {"query": ["error"]}, "out": "[{\"metric\":{\"service_name\":\"ad\"},\"min\":0.0,\"max\":0.01,\"last\":0.0}]"}
+  ],
+  "kube_get_pods": "NAME                 READY   STATUS             RESTARTS      AGE\nad-7f8d9c6b5-tq2wz   1/1     Running            0             2d\nad-6c5b8d7f9-zt4mn   0/1     CrashLoopBackOff   5 (40s ago)   9m\nfrontend-5b6f9d8c7-p4r2t   1/1   Running   0   3d",
+  "kube_events": "LAST SEEN   TYPE      REASON              OBJECT                     MESSAGE\n9m          Normal    ScalingReplicaSet   deployment/ad              Scaled up replica set ad-6c5b8d7f9 to 1\n40s         Warning   BackOff             pod/ad-6c5b8d7f9-zt4mn     Back-off restarting failed container ad in pod ad-6c5b8d7f9-zt4mn",
+  "kube_logs_previous": [
+    {"match": {"pod": "ad-6c5b8d7f9"}, "out": "Exception in thread \"main\" java.lang.NumberFormatException: For input string: \"80a\"\n\tat java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)\n\tat java.base/java.lang.Integer.parseInt(Integer.java:662)\n\tat oteldemo.AdService.start(AdService.java:88)"}
+  ],
+  "kube_describe": [
+    {"match": {"name": "ad-6c5b8d7f9"}, "out": "Name:         ad-6c5b8d7f9-zt4mn\nNamespace:    otel-demo\nControlled By:  ReplicaSet/ad-6c5b8d7f9\nContainers:\n  ad:\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       Error\n      Exit Code:    1\n    Restart Count:  5\n    Environment:\n      AD_PORT:  80a"},
+    {"match": {"kind": "deployment", "name": "ad"}, "out": "Name:                   ad\nNamespace:              otel-demo\nAnnotations:            deployment.kubernetes.io/revision: 7\nReplicas:               1 desired | 1 updated | 2 total | 1 available | 1 unavailable\nPod Template:\n  Containers:\n   ad:\n    Environment:\n      AD_PORT:  80a\nNewReplicaSet:   ad-6c5b8d7f9 (1/1 replicas created)\nOldReplicaSets:  ad-7f8d9c6b5 (1/1 replicas created)"}
+  ],
+  "rollout_history": [
+    {"match": {"deployment": "ad"}, "out": "deployment.apps/ad\nREVISION  CHANGE-CAUSE\n5         <none>\n6         <none>\n7         <none>"}
+  ],
+  "deployment_status": [
+    {"match": {"deployment": "ad"}, "out": {"deployment": "ad", "replicas": 1, "ready": 1, "revision": 7, "revisions": 3, "last_rollout_age_minutes": 9, "hpa": null, "images": ["ghcr.io/open-telemetry/demo:ad"]}}
+  ]
+}
