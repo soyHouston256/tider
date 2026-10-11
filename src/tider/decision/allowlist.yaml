@@ -1,0 +1,9 @@
+# Lo ÚNICO que Tider puede ejecutar solo. Todo lo demás se escala o va a PR.
+namespaces: [otel-demo]
+runbook:
+  rollout-restart: { min_confidence: 0.75 }
+  rollout-undo:    { min_confidence: 0.85, requires_evidence_kind: deploy }
+  scale:           { min_confidence: 0.75, max_replicas: 5 }
+pr:
+  manifests: { min_confidence: 0.70 }
+  app:       { min_confidence: 0.80 }

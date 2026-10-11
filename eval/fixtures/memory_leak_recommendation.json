@@ -1,0 +1,8 @@
+{
+  "prom_range": "[{\"metric\":{\"pod\":\"recommendation-7c9d\"},\"min\":210000000,\"max\":498000000,\"last\":498000000,\"note\":\"memoria crece de forma monótona en 30 min; limite 512Mi\"}]",
+  "kube_get_pods": "NAME                    READY STATUS  RESTARTS AGE\nrecommendation-7c9d     1/1   Running 3        42m\nfrontend-5b6f           1/1   Running 0        3h\ncart-6d77               1/1   Running 0        3h",
+  "kube_describe": "recommendation-7c9d: Last State: Terminated Reason: OOMKilled Exit Code: 137. Limits memory: 512Mi",
+  "kube_events": "12m Warning OOMKilling pod/recommendation-7c9d Memory cgroup out of memory: Killed process",
+  "rollout_history": "REVISION 1: initial\nREVISION 2: sin cambios recientes (hace 3 días)",
+  "traces_errors": "[{\"spans\":[[\"frontend\",\"GET /api/recommendations\",2400000],[\"recommendation\",\"ListRecommendations\",2300000]]}]"
+}

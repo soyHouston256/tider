@@ -1,0 +1,46 @@
+# RBAC mínimo de Tider. Dos ServiceAccounts: lector (investigador) y ejecutor (solo acciones de la lista permitida).
+# Todo limitado al namespace del demo. Revisar antes de aplicar en un clúster compartido.
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: tider-reader, namespace: otel-demo }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: tider-executor, namespace: otel-demo }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: tider-reader, namespace: otel-demo }
+rules:
+  - apiGroups: [""]
+    resources: [pods, pods/log, events, services, configmaps]
+    verbs: [get, list, watch]
+  - apiGroups: ["apps"]
+    resources: [deployments, replicasets, statefulsets]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: { name: tider-executor, namespace: otel-demo }
+rules:
+  - apiGroups: ["apps"]
+    resources: [deployments]
+    verbs: [get, patch]          # rollout restart / undo parchean el deployment
+  - apiGroups: ["apps"]
+    resources: [deployments/scale]
+    verbs: [get, patch, update]
+  - apiGroups: ["apps"]
+    resources: [replicasets]
+    verbs: [get, list]           # rollout undo lee revisiones
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: tider-reader, namespace: otel-demo }
+subjects: [{ kind: ServiceAccount, name: tider-reader, namespace: otel-demo }]
+roleRef: { kind: Role, name: tider-reader, apiGroup: rbac.authorization.k8s.io }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: { name: tider-executor, namespace: otel-demo }
+subjects: [{ kind: ServiceAccount, name: tider-executor, namespace: otel-demo }]
+roleRef: { kind: Role, name: tider-executor, apiGroup: rbac.authorization.k8s.io }

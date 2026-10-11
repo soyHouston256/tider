@@ -1,0 +1,17 @@
+[project]
+name = "tider"
+version = "0.4.0"
+description = "Tider v4: agente RCA con context lake, juez y decisor determinista"
+requires-python = ">=3.11"
+dependencies = [
+  "langgraph>=0.2", "pydantic>=2", "fastapi", "uvicorn", "httpx", "pyyaml",
+]
+[project.optional-dependencies]
+llm = ["anthropic"]
+pg = ["psycopg[binary]>=3.1"]
+dev = ["pytest"]
+[tool.setuptools.packages.find]
+where = ["src"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,8 @@
+{
+  "prom_range": "[{\"metric\":{\"service\":\"cart\"},\"min\":0.0,\"max\":0.62,\"last\":0.62,\"note\":\"tasa de error de cart sube a 62%\"}]",
+  "kube_get_pods": "NAME                READY STATUS            RESTARTS AGE\ncart-6d77           1/1   Running           0        3h\nvalkey-cart-0       0/1   CrashLoopBackOff  6        20m\nfrontend-5b6f       1/1   Running           0        3h",
+  "kube_events": "4m Warning BackOff pod/valkey-cart-0 Back-off restarting failed container",
+  "kube_logs_previous": "valkey-cart: Fatal: can't open config file /etc/valkey/valkey.conf",
+  "rollout_history": "REVISION 5: cambio de ConfigMap valkey-config hace 22 min",
+  "traces_errors": "[{\"spans\":[[\"frontend\",\"POST /api/cart\",1800000],[\"cart\",\"AddItem\",1700000],[\"valkey-cart\",\"HSET\",1600000]]}]"
+}

@@ -1,0 +1,8 @@
+# Solo el context lake (Postgres + pgvector). El clúster y el demo van en k3d/GKE.
+services:
+  pg:
+    image: pgvector/pgvector:pg16
+    environment: { POSTGRES_USER: tider, POSTGRES_PASSWORD: tider, POSTGRES_DB: tider }
+    ports: ["5432:5432"]
+    volumes:
+      - ./src/tider/lake/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro

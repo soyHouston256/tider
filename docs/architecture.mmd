@@ -1,0 +1,23 @@
+---
+type: architecture
+title: Arquitectura OpenTelemetry Demo (Astronomy Shop)
+updated: 2026-10-01
+---
+graph LR
+  FE[frontend] --> CART[cart]
+  FE --> CAT[productcatalog]
+  FE --> REC[recommendation]
+  FE --> AD[ad]
+  FE --> CHK[checkout]
+  FE --> CUR[currency]
+  REC --> CAT
+  CART --> VK[valkey-cart]
+  CHK --> CART
+  CHK --> CAT
+  CHK --> PAY[payment]
+  CHK --> SHIP[shipping]
+  CHK --> EML[email]
+  CHK --> CUR
+  CHK --> KAFKA[kafka]
+  KAFKA --> ACC[accounting]
+  KAFKA --> FRD[fraud-detection]

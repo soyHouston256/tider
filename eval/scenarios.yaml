@@ -1,0 +1,10 @@
+# Cada escenario: alerta de entrada, fixture de telemetría grabada y verdad esperada.
+# Para el piloto en k3d/GKE se generan con scripts/inject_fault.py y se graban con scripts/record_fixture.py
+- id: memory_leak_recommendation
+  fixture: fixtures/memory_leak_recommendation.json
+  alert: { name: HighMemoryUsage, service: recommendation, namespace: otel-demo, annotations: { summary: "memoria alta en recommendation" } }
+  expected: { component: recommendation, reason_keywords: [memoria, memory, leak, fuga, oom], action: "runbook:rollout-restart" }
+- id: valkey_down_cart
+  fixture: fixtures/valkey_down_cart.json
+  alert: { name: CartHighErrorRate, service: cart, namespace: otel-demo, annotations: { summary: "errores 5xx en cart" } }
+  expected: { component: valkey-cart, reason_keywords: [config, configmap, crashloop], action: "runbook:rollout-undo" }
