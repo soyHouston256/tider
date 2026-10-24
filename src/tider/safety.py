@@ -1,23 +1,31 @@
 """Límites con estado que el decisor puro no ve: deduplicación de alertas, enfriamiento por deployment, presupuesto
 global de acciones automáticas e interruptor de apagado. En memoria y con un lock: vale para UNA réplica de Tider;
 con varias, mover este estado a Postgres."""
+
 from __future__ import annotations
-import threading, time
+
+import threading
+import time
 from collections import deque
 from typing import Callable
+
 from .config import autonomy_enabled
 
 
 class Safety:
-    def __init__(self, cooldown_minutes: float = 30, max_actions_per_hour: int = 3,
-                 clock: Callable[[], float] = time.monotonic):
+    def __init__(
+        self,
+        cooldown_minutes: float = 30,
+        max_actions_per_hour: int = 3,
+        clock: Callable[[], float] = time.monotonic,
+    ):
         self.cooldown = cooldown_minutes * 60
         self.max_per_hour = max_actions_per_hour
         self.clock = clock
         self._lock = threading.Lock()
-        self._alerts: dict[str, float] = {}     # alerta -> cuándo se tomó
-        self._targets: dict[str, float] = {}    # deployment -> última acción
-        self._actions: deque[float] = deque()   # acciones de la última hora
+        self._alerts: dict[str, float] = {}  # alerta -> cuándo se tomó
+        self._targets: dict[str, float] = {}  # deployment -> última acción
+        self._actions: deque[float] = deque()  # acciones de la última hora
 
     @classmethod
     def from_policy(cls, cfg: dict) -> "Safety":

@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor Op as Operador
+  participant UI as Consola JS
+  participant API as FastAPI
+  participant S as AnalysisService
+  participant P as EvidenceProvider
+  participant E as LabEngine
+  participant G as Grafo
+  Op->>UI: Elegir escenario / servicio / ventana
+  UI->>API: POST /v1/incidents/analyze
+  API->>API: Validar AnalyzeRequest
+  API->>S: analyze(request)
+  S->>P: load(request)
+  P-->>S: Signal[]
+  S->>S: Asignar IDs S01, S02...
+  S->>E: analyze(request, signals)
+  E->>E: Preparar tools, contexto, política y modelo
+  E->>G: invoke(alert, audit vacío)
+  G-->>E: Hipótesis + veredicto + decisión + audit
+  E->>E: Validar WorkflowResult y generar DecisionStep[]
+  E-->>S: Analysis
+  S->>S: Añadir UUID, duración y fecha<br/>Guardar copia con Lock
+  S-->>API: Analysis
+  API-->>UI: 200 JSON
+  UI-->>Op: Resultado, evidencia y decisiones
+  Note over P,S: Si falla la fuente, se interrumpe antes del motor.
+  Note over E,API: Si falla el análisis, se devuelve error y no se añade al historial.

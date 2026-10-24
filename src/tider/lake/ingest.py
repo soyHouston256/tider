@@ -1,9 +1,13 @@
 """Ingesta al context lake: Markdown (runbooks/ADR) y Mermaid (arquitectura). Las imágenes quedan fuera del MVP."""
+
 from __future__ import annotations
+
 import re
 from datetime import date
 from pathlib import Path
+
 import yaml
+
 from .models import Chunk, Doc, Edge
 
 FRONT = re.compile(r"^---\n(.*?)\n---\n", re.S)
@@ -26,7 +30,8 @@ def split_markdown(body: str, max_chars: int = 1200) -> list[str]:
     parts, cur = [], []
     for line in body.splitlines():
         if line.startswith("#") and cur:
-            parts.append("\n".join(cur)); cur = []
+            parts.append("\n".join(cur))
+            cur = []
         cur.append(line)
     if cur:
         parts.append("\n".join(cur))
@@ -34,8 +39,9 @@ def split_markdown(body: str, max_chars: int = 1200) -> list[str]:
     for p in parts:
         while len(p) > max_chars:
             cut = p.rfind("\n", 1, max_chars)
-            cut = cut if cut > 0 else max_chars   # sin salto de línea a mano: corte duro
-            out.append(p[:cut]); p = p[cut:]
+            cut = cut if cut > 0 else max_chars  # sin salto de línea a mano: corte duro
+            out.append(p[:cut])
+            p = p[cut:]
         if p.strip():
             out.append(p)
     return out
@@ -47,17 +53,25 @@ def load_file(path: Path, base: Path | None = None) -> tuple[Doc, list[Chunk], l
     m = FRONT.match(raw)
     if m:
         meta = yaml.safe_load(m.group(1)) or {}
-        body = raw[m.end():]
+        body = raw[m.end() :]
     doc_type = meta.get("type") or ("architecture" if path.suffix in (".mmd", ".mermaid") else "runbook")
     updated = meta.get("updated")
     if isinstance(updated, str):
         updated = date.fromisoformat(updated)
     doc_id = path.relative_to(base).as_posix() if base else str(path)
-    doc = Doc(id=doc_id, doc_type=doc_type, service=meta.get("service"),
-              title=meta.get("title", path.stem), updated=updated, meta=meta)
+    doc = Doc(
+        id=doc_id,
+        doc_type=doc_type,
+        service=meta.get("service"),
+        title=meta.get("title", path.stem),
+        updated=updated,
+        meta=meta,
+    )
     edges: list[Edge] = []
     if path.suffix in (".mmd", ".mermaid") or "```mermaid" in body:
-        diagrams = [body] if path.suffix in (".mmd", ".mermaid") else re.findall(r"```mermaid\n(.*?)```", body, re.S)
+        diagrams = (
+            [body] if path.suffix in (".mmd", ".mermaid") else re.findall(r"```mermaid\n(.*?)```", body, re.S)
+        )
         for d in diagrams:
             edges += parse_mermaid(d)
     for e in edges:

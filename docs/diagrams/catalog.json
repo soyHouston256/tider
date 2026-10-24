@@ -1,0 +1,299 @@
+{
+  "version": "0.5.0",
+  "reviewed": "2026-10-17",
+  "diagrams": [
+    {
+      "id": "01-c4-context",
+      "title": "C4 · Nivel 1: contexto del sistema",
+      "category": "C4",
+      "question": "¿Para quién existe TiderOps y con qué sistemas se relaciona?",
+      "summary": "TiderOps ayuda al operador a investigar incidentes de Online Boutique. ChaosForge administra el laboratorio. La consulta a Cloud Logging y el proveedor de modelos son integraciones configurables.",
+      "reading": [
+        "El operador solicita un análisis y recibe hipótesis, evidencia y decisiones.",
+        "ChaosForge organiza los experimentos sobre Online Boutique; la consola de TiderOps analiza la evidencia disponible.",
+        "En el modo local, la evidencia sintética y las reglas están dentro de TiderOps. Las flechas discontinuas requieren configuración externa."
+      ],
+      "decisions": [
+        "D01: una aplicación de diagnóstico con una raíz de código.",
+        "D05: el punto de entrada de la consola funciona en observación."
+      ],
+      "files": [
+        "src/tider/console/settings.py",
+        "src/tider/console/providers/cloud_logging.py",
+        "src/tider/console/analysis.py"
+      ]
+    },
+    {
+      "id": "02-c4-containers",
+      "title": "C4 · Nivel 2: contenedores lógicos",
+      "category": "C4",
+      "question": "¿Qué aplicaciones ejecutables forman la consola?",
+      "summary": "La consola tiene una aplicación web que corre en el navegador y un backend Python. El backend sirve los archivos estáticos y ejecuta el grafo. Los agentes son componentes internos del backend.",
+      "reading": [
+        "El navegador se comunica por HTTP/JSON con FastAPI; el análisis se devuelve en la misma solicitud.",
+        "El historial y el contexto son estructuras en la memoria del backend, no servicios de base de datos separados.",
+        "El backend lee escenarios JSON, contexto Markdown y política YAML empaquetados. La versión de Docker despliega el mismo backend."
+      ],
+      "decisions": [
+        "D01: un paquete Python instalable y recursos incluidos en la distribución.",
+        "D03: historial por aplicación y contexto por análisis."
+      ],
+      "files": [
+        "src/tider/console/api.py",
+        "src/tider/console/static/js/app.js",
+        "src/tider/console/service.py",
+        "src/tider/console/analysis.py",
+        "pyproject.toml"
+      ]
+    },
+    {
+      "id": "03-c4-components",
+      "title": "C4 · Nivel 3: componentes del backend",
+      "category": "C4",
+      "question": "¿Cómo se reparten las responsabilidades dentro del proceso Python?",
+      "summary": "create_app compone el servicio, sus conectores y el motor. AnalysisService coordina el caso de uso; LabEngine adapta las señales al grafo compartido. La política y las explicaciones tienen módulos propios.",
+      "reading": [
+        "Las flechas representan invocaciones entre componentes del mismo proceso, salvo los dos proveedores externos.",
+        "El servicio controla identificación, tiempo e historial. El motor configura herramientas, contexto y dependencias por ejecución.",
+        "El grafo utiliza agentes y nodos deterministas. explain convierte su auditoría en DecisionStep sin invocar otro modelo."
+      ],
+      "decisions": [
+        "D02: orquestación, agentes y política separados.",
+        "D03: dependencias explícitas.",
+        "D04: explicaciones derivadas de eventos registrados."
+      ],
+      "files": [
+        "src/tider/console/api.py",
+        "src/tider/console/service.py",
+        "src/tider/console/analysis.py",
+        "src/tider/graph.py",
+        "src/tider/console/explanation.py"
+      ]
+    },
+    {
+      "id": "04-c4-code",
+      "title": "C4 · Nivel 4: código del caso de uso",
+      "category": "C4",
+      "question": "¿Cómo se implementó AnalysisService sin acoplarlo a HTTP ni a un proveedor concreto?",
+      "summary": "El caso de uso depende de dos Protocol de Python: EvidenceSource y DiagnosticEngine. Recibe sus implementaciones en el constructor. Esto permite probarlo con dobles y mantener separadas la consulta y la investigación.",
+      "reading": [
+        "Los Protocol declaran load y analyze. Sus implementaciones deben cumplir esas firmas; no necesitan heredar de estos contratos.",
+        "AnalysisService posee el historial y su Lock. Devuelve copias para que un consumidor no altere los resultados guardados.",
+        "create_app inyecta EvidenceProvider como EvidenceSource y LabEngine como DiagnosticEngine; sus componentes aparecen en la vista C4 de nivel 3."
+      ],
+      "decisions": [
+        "D03: inyección de dependencias y estado por aplicación.",
+        "Pruebas: aislamiento de historial y análisis concurrentes."
+      ],
+      "files": [
+        "src/tider/console/service.py",
+        "src/tider/console/providers/__init__.py",
+        "src/tider/console/analysis.py",
+        "tests/console/test_service.py"
+      ]
+    },
+    {
+      "id": "05-sequence-analysis",
+      "title": "Secuencia · del formulario al resultado",
+      "category": "Comportamiento",
+      "question": "¿En qué orden ocurre un análisis completo?",
+      "summary": "La solicitud HTTP valida la entrada, recoge evidencia y ejecuta el grafo de manera síncrona desde el punto de vista del cliente. Sólo un resultado completado se agrega al historial.",
+      "reading": [
+        "La asignación de S01, S02… ocurre después de obtener las señales y antes de invocar el motor.",
+        "El resultado incluye la auditoría del grafo y una proyección legible; el servicio añade el identificador, la duración y la fecha.",
+        "Una consulta o análisis fallidos devuelve error HTTP. No se guarda un análisis exitoso ficticio en el historial."
+      ],
+      "decisions": [
+        "D03: HTTP traduce errores; el servicio coordina el análisis.",
+        "D04: la vista legible deriva de la misma ejecución."
+      ],
+      "files": [
+        "src/tider/console/static/js/app.js",
+        "src/tider/console/api.py",
+        "src/tider/console/service.py",
+        "src/tider/console/analysis.py"
+      ]
+    },
+    {
+      "id": "06-agent-workflow",
+      "title": "Actividad · grafo de los agentes",
+      "category": "Comportamiento",
+      "question": "¿Qué hace cada agente y cuándo se repite la investigación?",
+      "summary": "LangGraph conecta ocho etapas. Investigador, juez y reportero usan el proveedor de razonamiento seleccionado. Recepción, recuperación, decisión y control de ejecución se implementan con código determinista.",
+      "reading": [
+        "El investigador dispone de hasta seis pasos de herramienta por ronda. El juez incrementa el contador de rondas.",
+        "Se vuelve a investigar sólo si falta respaldo, hay evidencia solicitada y quedan rondas; por defecto el máximo es dos.",
+        "En la consola, execute apunta a preview_node: se registra una propuesta. verify queda omitido y report no aprende un incidente resuelto."
+      ],
+      "decisions": [
+        "D02: el grafo expresa transiciones y los módulos contienen el trabajo.",
+        "D05: la consola elige la capacidad de observación al compilar el grafo."
+      ],
+      "files": [
+        "src/tider/graph.py",
+        "src/tider/agents/investigator.py",
+        "src/tider/agents/judge.py",
+        "src/tider/workflow/nodes.py",
+        "src/tider/agents/reporter.py"
+      ]
+    },
+    {
+      "id": "07-decision-policy",
+      "title": "Árbol de decisión · reglas y controles",
+      "category": "Comportamiento",
+      "question": "¿Por qué el agente propone un runbook, un cambio o revisión humana?",
+      "summary": "La decisión final se calcula con reglas. La hipótesis propone una acción y el juez aporta respaldo y confianza. Las precondiciones operativas se leen de Evidence.data, no de texto libre.",
+      "reading": [
+        "Si se propone escalar, falta respaldo o el namespace no está permitido, la ruta es revisión humana.",
+        "Para runbooks se comprueban umbral, deployment, protección y precondiciones. Después se reservan los límites de Safety.",
+        "En la consola cualquier ruta produce una propuesta; una ruta runbook no significa que se ejecutó kubectl."
+      ],
+      "decisions": [
+        "D02: el decisor es independiente del modelo.",
+        "D05: autorización de una propuesta y ejecución son pasos diferentes."
+      ],
+      "files": [
+        "src/tider/decision/policy.py",
+        "src/tider/decision/allowlist.yaml",
+        "src/tider/safety.py",
+        "src/tider/workflow/nodes.py"
+      ]
+    },
+    {
+      "id": "08-data-contracts",
+      "title": "Modelo de datos · solicitud, evidencia y resultado",
+      "category": "Datos",
+      "question": "¿Qué objetos viajan por la aplicación y cómo se relacionan?",
+      "summary": "Los modelos Pydantic validan la entrada y la respuesta pública. Signal es una señal de la fuente; Evidence es el registro de una herramienta dentro del motor. Analysis reúne ambas vistas a través del resultado del flujo.",
+      "reading": [
+        "Una solicitud produce un Analysis con señales, WorkflowResult y una lista ordenada de DecisionStep.",
+        "WorkflowResult conserva hipótesis, veredicto, decisión, ejecución, reporte y auditoría.",
+        "evidence_ids referencia Signal.id dentro del mismo resultado. Es una referencia lógica, no una clave de base de datos."
+      ],
+      "decisions": [
+        "D03: validación en los bordes del caso de uso.",
+        "D04: contrato explícito para explicar los resultados."
+      ],
+      "files": [
+        "src/tider/console/models.py",
+        "src/tider/state.py",
+        "src/tider/console/explanation.py"
+      ]
+    },
+    {
+      "id": "09-evidence-flow",
+      "title": "Flujo de datos · origen y uso de las señales",
+      "category": "Datos",
+      "question": "¿Cómo se obtiene la evidencia y qué llega al razonamiento?",
+      "summary": "El gateway selecciona el proveedor indicado. Los mocks se leen del paquete; Cloud Logging consulta una ventana y entorno acotados, selecciona mensajes y enmascara patrones antes de construir Signal.",
+      "reading": [
+        "GCP exige habilitación en el servidor y credenciales ADC. El filtro incluye proyecto, clúster, región, namespace, tiempo y servicio/dependencias.",
+        "La consulta trae hasta 100 entradas por defecto, configurable hasta 200. Se admite texto directo; en payloads JSON se selecciona message, msg o error.",
+        "Las herramientas del laboratorio no reciben argumentos; leen las señales ya recogidas. El proveedor externo recibe esa evidencia únicamente al activar Anthropic."
+      ],
+      "decisions": [
+        "D03: conectores intercambiables con el mismo contrato.",
+        "D05: elección explícita de fuentes y capacidades externas."
+      ],
+      "files": [
+        "src/tider/console/providers/__init__.py",
+        "src/tider/console/providers/cloud_logging.py",
+        "src/tider/console/providers/redaction.py",
+        "src/tider/console/analysis.py"
+      ]
+    },
+    {
+      "id": "10-deployment",
+      "title": "Despliegue · ejecución local y Docker",
+      "category": "Operación",
+      "question": "¿Dónde corre cada parte y qué se necesita para abrir la consola?",
+      "summary": "El backend puede iniciarse con make run en el entorno virtual o como un contenedor Docker. Son dos alternativas para la misma aplicación. Los recursos del laboratorio GKE son un destino externo de consulta.",
+      "reading": [
+        "El arranque nativo escucha en 127.0.0.1:8080. El navegador utiliza esa dirección para la consola y la API.",
+        "Compose publica 127.0.0.1:8080 hacia el puerto 8080 del contenedor, cuyo usuario de ejecución es tiderops.",
+        "El perfil lake inicia Postgres/pgvector para la entrada operativa del motor. La consola no está conectada a ese servicio."
+      ],
+      "decisions": [
+        "D01: misma distribución y versiones fijadas para ejecución nativa y contenedor.",
+        "D05: acceso a GCP opcional; no se despliega un agente por cada nodo del grafo."
+      ],
+      "files": [
+        "Makefile",
+        "Dockerfile",
+        "docker-compose.yml",
+        "src/tider/console/__main__.py",
+        "src/tider/api.py"
+      ]
+    },
+    {
+      "id": "11-module-dependencies",
+      "title": "Dependencias · mapa del código",
+      "category": "Implementación",
+      "question": "¿Qué archivo debo cambiar para modificar una función del sistema?",
+      "summary": "La organización separa la presentación, el caso de uso, los adaptadores del laboratorio y el motor compartido. Las flechas indican dependencias principales de implementación; no son llamadas de red.",
+      "reading": [
+        "Los módulos JS se separan en interacción, HTTP y renderizado. FastAPI contiene las rutas y la composición del servicio.",
+        "La lógica de diagnóstico por reglas está en baseline.py; las instrucciones de agentes están en prompts.py; los permisos de acciones están en decision/.",
+        "Las pruebas de consola y del motor se ejecutan juntas, usando el paquete instalado."
+      ],
+      "decisions": [
+        "D01: raíz canónica en project/tider.",
+        "D02: separar módulos por responsabilidad, sin otro orquestador."
+      ],
+      "files": [
+        "src/tider/console/static/js/app.js",
+        "src/tider/console/api.py",
+        "src/tider/console/analysis.py",
+        "src/tider/graph.py",
+        "src/tider/agents/prompts.py"
+      ]
+    },
+    {
+      "id": "12-implementation-decisions",
+      "title": "Implementación · de la estructura anterior a la actual",
+      "category": "Implementación",
+      "question": "¿Qué se reorganizó y qué problema resolvió cada cambio?",
+      "summary": "La reorganización absorbió la consola en el repositorio del motor y separó los puntos que mezclaban responsabilidades. El objetivo fue hacer localizables las decisiones, los contratos y las pruebas.",
+      "reading": [
+        "El proyecto pasó de dos raíces conectadas por PYTHONPATH a un paquete con pyproject.toml y uv.lock.",
+        "main.py se repartió entre API y caso de uso; evidence.py entre conectores y datos de escenarios; el grafo conserva sólo su construcción y punto de entrada.",
+        "La auditoría JSON sigue disponible, pero ahora la interfaz también presenta DecisionStep con motivos e identificadores de señales."
+      ],
+      "decisions": [
+        "D01: un paquete.",
+        "D02: flujo y agentes separados.",
+        "D03: composición explícita.",
+        "D04: explicación derivada de eventos."
+      ],
+      "files": [
+        "docs/decisions.md",
+        "pyproject.toml",
+        "src/tider/console/service.py",
+        "src/tider/console/explanation.py",
+        "tests/console/test_service.py"
+      ]
+    },
+    {
+      "id": "13-analysis-states",
+      "title": "Estados · ciclo de una solicitud",
+      "category": "Comportamiento",
+      "question": "¿Qué significa que un análisis terminó, necesita evidencia o falló?",
+      "summary": "Esta vista describe el ciclo de procesamiento. Sólo hypothesis e insufficient_evidence son valores del campo Analysis.status. Las otras cajas representan etapas o respuestas HTTP, no estados persistidos en una base de datos.",
+      "reading": [
+        "Una entrada inválida termina con 422; una configuración no permitida puede terminar con 400; un fallo de fuente o motor termina con 503.",
+        "Un análisis completado puede contener una hipótesis respaldada o evidencia insuficiente. Ambos pueden guardarse en el historial.",
+        "En observación, completar el análisis no marca el incidente como resuelto: workflow.resolved permanece false."
+      ],
+      "decisions": [
+        "D03: errores y resultados exitosos tienen caminos separados.",
+        "D04: la UI conserva el significado del resultado del motor."
+      ],
+      "files": [
+        "src/tider/console/models.py",
+        "src/tider/console/api.py",
+        "src/tider/console/service.py",
+        "src/tider/console/analysis.py"
+      ]
+    }
+  ]
+}

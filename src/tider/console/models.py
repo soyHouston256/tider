@@ -1,0 +1,77 @@
+"""Validated public contracts for analysis, evidence and readable decisions."""
+
+from datetime import datetime, timedelta
+from typing import Literal
+
+from pydantic import BaseModel, Field, model_validator
+
+from tider.state import Decision, Hypothesis, Verdict
+
+
+class Signal(BaseModel):
+    id: str = ""
+    timestamp: datetime
+    service: str
+    source: Literal["log", "metric", "trace"]
+    message: str
+    severity: str = "INFO"
+    trace_id: str | None = None
+
+
+class AnalyzeRequest(BaseModel):
+    incident_id: str = Field(min_length=1, max_length=128)
+    service: str = Field(min_length=1, max_length=63, pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$")
+    start: datetime
+    end: datetime
+    mode: Literal["mock", "gcp"] | None = None
+    scenario: Literal["redis_down", "cart_unavailable", "healthy", "missing_telemetry"] = "redis_down"
+
+    @model_validator(mode="after")
+    def valid_window(self):
+        if self.start.tzinfo is None or self.end.tzinfo is None:
+            raise ValueError("Las fechas deben incluir zona horaria.")
+        if self.start >= self.end or self.end - self.start > timedelta(hours=2):
+            raise ValueError("La ventana debe ser positiva y no superar dos horas.")
+        return self
+
+
+class DecisionStep(BaseModel):
+    sequence: int
+    stage: str
+    title: str
+    outcome: str
+    reason: str
+    status: Literal["completed", "needs_review", "skipped"]
+    evidence_ids: list[str] = Field(default_factory=list)
+
+
+class WorkflowResult(BaseModel):
+    handler: str = "generic"
+    context: list[dict] = Field(default_factory=list)
+    hypothesis: Hypothesis | None = None
+    verdict: Verdict | None = None
+    decision: Decision | None = None
+    execution: dict = Field(default_factory=dict)
+    resolved: bool = False
+    report: str = ""
+    audit: list[dict] = Field(default_factory=list)
+
+
+class Analysis(BaseModel):
+    incident_id: str
+    hypothesis: str
+    component: str
+    confidence: float = Field(ge=0, le=1)
+    evidence: list[Signal]
+    recommendation: str
+    status: Literal["hypothesis", "insufficient_evidence"] = "hypothesis"
+    disclaimer: str = "Hipótesis para revisión humana. Sin remediación ejecutada."
+    evidence_mode: Literal["mock", "gcp"] = "mock"
+    engine: str = "langgraph"
+    reasoning_mode: str = "rules"
+    namespace: str = "boutique"
+    elapsed_ms: float = 0
+    run_id: str = ""
+    analyzed_at: datetime | None = None
+    workflow: WorkflowResult = Field(default_factory=WorkflowResult)
+    decision_steps: list[DecisionStep] = Field(default_factory=list)

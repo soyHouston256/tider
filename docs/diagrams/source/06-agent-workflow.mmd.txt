@@ -1,0 +1,20 @@
+flowchart TB
+  start([Alerta]) --> intake["1. intake<br/>Clasificar alerta y reiniciar contador"]
+  intake --> context["2. gather_context<br/>Documentos y topología"]
+  context --> investigate["3. investigate<br/>Herramientas de lectura e hipótesis<br/>Máximo 6 pasos por ronda"]
+  investigate --> judge["4. judge<br/>Evaluar respaldo y limitar confianza<br/>Incrementar iterations"]
+  judge --> again{"¿Sin respaldo, missing no vacío<br/>e iterations menor al máximo?"}
+  again -->|Sí| investigate
+  again -->|No| decide["5. decide_node<br/>Política determinista y límites"]
+  decide --> preview["6. preview_node · consola<br/>Propuesta, executed=false, dry_run=true"]
+  preview --> verify["7. verify_node<br/>Sin acción: skipped, resolved=false"]
+  verify --> reporter["8. report<br/>Redactar informe; no guardar caso resuelto"]
+  reporter --> finish([Estado final y auditoría])
+  model["Proveedor de razonamiento<br/>Reglas locales o Anthropic opcional"]
+  model -.-> investigate
+  model -.-> judge
+  model -.-> reporter
+  classDef phase fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef gate fill:#fff0d9,color:#5d3d10,stroke:#b7802c
+  class intake,context,investigate,judge,decide,preview,verify,reporter phase
+  class again gate

@@ -1,0 +1,30 @@
+flowchart TB
+  ui["Consola web<br/>[Contenedor externo a esta vista]"]
+  subgraph backend["Backend de diagnóstico · un proceso Python"]
+    http["Adaptador HTTP<br/>console.api<br/>Rutas y errores HTTP"]
+    usecase["AnalysisService<br/>console.service<br/>Caso de uso e historial"]
+    source["EvidenceProvider<br/>console.providers<br/>Selecciona Mock o Cloud Logging"]
+    engine["LabEngine<br/>console.analysis<br/>Compone una ejecución"]
+    orchestrator["Grafo LangGraph<br/>graph + agents + workflow<br/>Investiga, evalúa y reporta"]
+    policy["Decisión determinista<br/>decision + safety<br/>Reglas y límites"]
+    context["Contexto y herramientas<br/>lake + ToolRegistry<br/>Memoria y lectura de señales"]
+    reason["Proveedor de razonamiento<br/>ScriptedLLM o AnthropicLLM<br/>Respuestas por agente"]
+    explain["Proyección de auditoría<br/>console.explanation<br/>Pasos legibles y referencias"]
+  end
+  cloud["Cloud Logging<br/>[Sistema externo]"]
+  llm["Anthropic<br/>[Sistema externo]"]
+  ui -->|HTTP/JSON| http
+  http -->|analyze / history| usecase
+  usecase -->|load| source
+  source -.->|Lectura opcional| cloud
+  usecase -->|analyze| engine
+  engine -->|build_graph / invoke| orchestrator
+  orchestrator -->|decide / reserve_action| policy
+  orchestrator -->|search / call| context
+  orchestrator -->|complete_json / complete_text| reason
+  reason -.->|HTTPS si se configura| llm
+  engine -->|audit y señales a explain| explain
+  classDef internal fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef external fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  class http,usecase,source,engine,orchestrator,policy,context,reason,explain internal
+  class ui,cloud,llm external

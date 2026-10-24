@@ -1,0 +1,58 @@
+classDiagram
+  direction TB
+  class AnalyzeRequest {
+    +incident_id
+    +service
+    +start / end
+    +mode / scenario
+    +valid_window()
+  }
+  class Analysis {
+    +run_id / incident_id
+    +hypothesis / component
+    +confidence / status
+    +recommendation
+    +analyzed_at / elapsed_ms
+  }
+  class Signal {
+    +id
+    +timestamp / service
+    +source / severity
+    +message
+  }
+  class WorkflowResult {
+    +handler / context
+    +execution / resolved
+    +report / audit
+  }
+  class Hypothesis {
+    +component / reason
+    +propagation
+    +proposed_action / action_params
+  }
+  class Evidence {
+    +source / kind
+    +summary / ref / data
+  }
+  class Verdict {
+    +supported / confidence
+    +missing / notes
+  }
+  class Decision {
+    +route / action
+    +params / reason
+  }
+  class DecisionStep {
+    +sequence / stage / title
+    +outcome / reason / status
+    +evidence_ids
+  }
+  AnalyzeRequest ..> Analysis : resultado de analizar
+  Analysis "1" *-- "0..n" Signal : evidence
+  Analysis "1" *-- "1" WorkflowResult : workflow
+  Analysis "1" *-- "0..n" DecisionStep : decision_steps
+  WorkflowResult "1" *-- "0..1" Hypothesis
+  WorkflowResult "1" *-- "0..1" Verdict
+  WorkflowResult "1" *-- "0..1" Decision
+  Hypothesis "1" *-- "0..n" Evidence
+  DecisionStep ..> Signal : IDs consultados

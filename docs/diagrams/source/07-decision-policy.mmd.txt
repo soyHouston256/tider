@@ -1,0 +1,24 @@
+flowchart TB
+  input["Hipótesis + veredicto + namespace"] --> initial{"¿Acción distinta de escalate,<br/>respaldo y namespace permitido?"}
+  initial -->|No| human["route=escalate<br/>Motivo registrado"]
+  initial -->|Sí| kind{"Tipo de acción"}
+  kind -->|Otro| human
+  kind -->|pr| prgate{"¿Cambio permitido<br/>y confianza suficiente?"}
+  prgate -->|No| human
+  prgate -->|Sí| pr["route=pr<br/>Propuesta para revisión"]
+  kind -->|runbook| allow{"¿Permitido y supera umbral?"}
+  allow -->|No| human
+  allow -->|Sí| target{"¿Deployment en origen/propagación<br/>y no protegido?"}
+  target -->|No| human
+  target -->|Sí| conditions{"¿Precondiciones válidas?<br/>Undo: rollout reciente y revisiones<br/>Scale: sin HPA y aumento acotado"}
+  conditions -->|No| human
+  conditions -->|Sí| safety{"¿Interruptor, enfriamiento<br/>y presupuesto permiten reservar?"}
+  safety -->|No| human
+  safety -->|Sí| runbook["route=runbook<br/>Acción y parámetros permitidos"]
+  human --> observation["Consola: preview_node<br/>Sólo presenta la propuesta"]
+  pr --> observation
+  runbook --> observation
+  classDef result fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef gate fill:#fff0d9,color:#5d3d10,stroke:#b7802c
+  class human,pr,runbook,observation result
+  class initial,kind,prgate,allow,target,conditions,safety gate

@@ -1,0 +1,6 @@
+{
+  "incident_id": "MOCK-001",
+  "service": "cartservice",
+  "start": "2026-10-16T10:00:00-05:00",
+  "end": "2026-10-16T10:05:00-05:00"
+}

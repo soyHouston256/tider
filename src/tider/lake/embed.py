@@ -1,6 +1,10 @@
 """Embeddings. HashEmbedder es determinista y sin dependencias (pruebas/offline); en el piloto se reemplaza por un modelo real."""
+
 from __future__ import annotations
-import hashlib, math, re
+
+import hashlib
+import math
+import re
 from typing import Protocol
 
 DIM = 256

@@ -1,18 +1,48 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tider"
-version = "0.4.0"
-description = "Tider v4: agente RCA con context lake, juez y decisor determinista"
-# Probado con 3.12. En 3.15 la instalación falla hoy: uuid-utils (dependencia de langgraph) aún no tiene wheels.
-requires-python = ">=3.11"
+version = "0.5.0"
+description = "TiderOps: RCA agents, decision policy and local analysis console"
+requires-python = ">=3.11,<3.15"
 dependencies = [
-  "langgraph>=1.0,<2", "pydantic>=2.7,<3", "fastapi>=0.110", "uvicorn", "httpx", "pyyaml",
+  "langgraph>=1.0,<2",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.3,<3",
+  "python-dotenv>=1,<2",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "httpx>=0.27,<1",
+  "pyyaml>=6,<7",
 ]
+
 [project.optional-dependencies]
-llm = ["anthropic"]
-pg = ["psycopg[binary]>=3.1"]
-dev = ["pytest"]
+llm = ["anthropic>=0.40,<2"]
+gcp = ["google-cloud-logging>=3.10,<4"]
+pg = ["psycopg[binary]>=3.1,<4"]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
+
+[project.scripts]
+tider-console = "tider.console.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+tider = [
+  "decision/*.yaml", "lake/*.sql",
+  "console/resources/*.json", "console/resources/context/*.md",
+  "console/static/*.html", "console/static/css/*.css", "console/static/js/*.js",
+]
+
 [tool.pytest.ini_options]
-pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

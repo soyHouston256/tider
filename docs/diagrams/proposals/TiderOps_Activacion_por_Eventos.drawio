@@ -1,0 +1,201 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="draw.io" compressed="false">
+  <diagram id="page-1" name="01 · Activación y análisis por evento">
+    <mxGraphModel grid="1" gridSize="10" page="0" pageWidth="1510" pageHeight="1430" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-background" value="" parent="1" vertex="1" style="rounded=0;fillColor=#FFFFFF;strokeColor=none;connectable=0;">
+          <mxGeometry as="geometry" x="0" y="0" width="1510" height="1430" />
+        </mxCell>
+        <mxCell id="title" value="TiderOps · Del aviso automático a la sugerencia" parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=32;fontColor=#18364B;fontStyle=1;">
+          <mxGeometry as="geometry" x="60" y="28" width="1390" height="50" />
+        </mxCell>
+        <mxCell id="subtitle" value="PROPUESTA PARA REVISIÓN · Push desde GCP; consultas de telemetría solo durante un incidente." parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=20;fontColor=#18364B;fontStyle=0;">
+          <mxGeometry as="geometry" x="60" y="90" width="1390" height="40" />
+        </mxCell>
+        <mxCell id="phase-a" value="DETECCIÓN → AVISO → RECOLECCIÓN ACOTADA → ANÁLISIS → SUGERENCIA" parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=17;fontColor=#18364B;fontStyle=1;">
+          <mxGeometry as="geometry" x="60" y="148" width="1390" height="30" />
+        </mxCell>
+        <mxCell id="app" value="&lt;b style=&quot;font-size:20px&quot;&gt;Online Boutique&lt;/b&gt;&lt;br&gt;&lt;br&gt;Servicios instrumentados&lt;br&gt;La telemetría se conserva en GCP" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="205" width="280" height="150" />
+        </mxCell>
+        <mxCell id="monitor" value="&lt;b style=&quot;font-size:20px&quot;&gt;Cloud Monitoring&lt;/b&gt;&lt;br&gt;&lt;br&gt;Evalúa una regla por servicio&lt;br&gt;Emite apertura y cierre del incidente" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#FFFFFF;fillColor=#133D69;strokeColor=#133D69;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="430" y="205" width="280" height="150" />
+        </mxCell>
+        <mxCell id="bus" value="&lt;b style=&quot;font-size:20px&quot;&gt;Pub/Sub · push&lt;/b&gt;&lt;br&gt;&lt;br&gt;Envía un aviso pequeño:&lt;br&gt;ID, recurso, estado y fechas" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="800" y="205" width="280" height="150" />
+        </mxCell>
+        <mxCell id="receiver" value="&lt;b style=&quot;font-size:20px&quot;&gt;Entrada de TiderOps&lt;/b&gt;&lt;br&gt;&lt;br&gt;Cloud Run · autenticación&lt;br&gt;Validar, normalizar y deduplicar&lt;br&gt;Confirmar tras aceptación durable" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1170" y="205" width="280" height="150" />
+        </mxCell>
+        <mxCell id="a1" value="síntoma" source="app" target="monitor" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="a2" value="open /&lt;br&gt;closed" source="monitor" target="bus" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="a3" value="HTTPS +&lt;br&gt;identidad" source="bus" target="receiver" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="sources" value="&lt;b style=&quot;font-size:20px&quot;&gt;Fuentes de evidencia&lt;/b&gt;&lt;br&gt;&lt;br&gt;Cloud Logging · logs&lt;br&gt;Cloud Monitoring · métricas&lt;br&gt;Cloud Trace · trazas disponibles" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="485" width="280" height="175" />
+        </mxCell>
+        <mxCell id="collect" value="&lt;b style=&quot;font-size:20px&quot;&gt;Recolector por ventana&lt;/b&gt;&lt;br&gt;&lt;br&gt;Primera lectura: t₀ − 10 min → ahora&lt;br&gt;Después: solo datos nuevos&lt;br&gt;Filtra servicio y dependencias" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="430" y="485" width="280" height="175" />
+        </mxCell>
+        <mxCell id="tasks" value="&lt;b style=&quot;font-size:20px&quot;&gt;Cloud Tasks&lt;/b&gt;&lt;br&gt;&lt;br&gt;Ejecuta lotes cortos&lt;br&gt;Programa el siguiente solo si procede&lt;br&gt;Sin un sondeo global permanente" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="800" y="485" width="280" height="175" />
+        </mxCell>
+        <mxCell id="state" value="&lt;b style=&quot;font-size:20px&quot;&gt;Registro persistente&lt;/b&gt;&lt;br&gt;&lt;br&gt;Estado abierto / cerrado&lt;br&gt;Cursor y progreso por fuente&lt;br&gt;Una investigación por incidente" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1170" y="485" width="280" height="175" />
+        </mxCell>
+        <mxCell id="b1" value="registrar aviso" source="receiver" target="state" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="b2" value="activar&lt;br&gt;trabajo" source="state" target="tasks" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;entryX=1;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="b3" value="ejecutar&lt;br&gt;lote" source="tasks" target="collect" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;entryX=1;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="b4" value="consulta&lt;br&gt;acotada" source="collect" target="sources" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;entryX=1;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="b5" value="telemetría&lt;br&gt;almacenada" source="app" target="sources" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="lake" value="&lt;b style=&quot;font-size:20px&quot;&gt;Context lake + RAG&lt;/b&gt;&lt;br&gt;&lt;br&gt;Recupera runbooks y arquitectura&lt;br&gt;Topología e incidentes anteriores&lt;br&gt;Contexto relevante con referencias" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E4F3EC;strokeColor=#398A6C;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="795" width="280" height="175" />
+        </mxCell>
+        <mxCell id="evidence" value="&lt;b style=&quot;font-size:20px&quot;&gt;Evidencia normalizada&lt;/b&gt;&lt;br&gt;&lt;br&gt;Datos nuevos, depurados y con origen&lt;br&gt;Solapamiento breve + deduplicación&lt;br&gt;Actualizar cursor por fuente" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="430" y="795" width="280" height="175" />
+        </mxCell>
+        <mxCell id="lifecycle" value="&lt;b style=&quot;font-size:20px&quot;&gt;Control del ciclo y del consumo&lt;/b&gt;&lt;br&gt;&lt;br&gt;ABIERTO → siguiente lote con cadencia limitada&lt;br&gt;CERRADO → último lote y conciliación breve; detener&lt;br&gt;LÍMITE de tiempo, volumen o reintentos → detener y escalar&lt;br&gt;Nuevo razonamiento solo al inicio, cambio relevante o cierre" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#FFF3DE;strokeColor=#C38A27;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="800" y="795" width="650" height="175" />
+        </mxCell>
+        <mxCell id="c1" value="resultado del lote" source="collect" target="evidence" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="c2" value="buscar&lt;br&gt;contexto" source="evidence" target="lake" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;entryX=1;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="c3" value="progreso" source="evidence" target="lifecycle" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="c4" value="estado / cierre" source="state" target="lifecycle" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.8;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="c5" value="siguiente lote&lt;br&gt;solo si abierto" source="lifecycle" target="tasks" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.22;exitY=0;entryX=0.5;entryY=1;dashed=1;">
+          <mxGeometry as="geometry" relative="1" y="20" />
+        </mxCell>
+        <mxCell id="docs" value="&lt;b style=&quot;font-size:20px&quot;&gt;Preparación documental&lt;/b&gt;&lt;br&gt;&lt;br&gt;Indexar cuando cambien documentos&lt;br&gt;Conservar versiones y referencias&lt;br&gt;Diagramas y runbooks procesables" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="1090" width="280" height="175" />
+        </mxCell>
+        <mxCell id="triage" value="&lt;b style=&quot;font-size:20px&quot;&gt;Investigador + juez&lt;/b&gt;&lt;br&gt;&lt;br&gt;Analizar síntomas y dependencias&lt;br&gt;Contrastar hipótesis con evidencia&lt;br&gt;Indicar datos que faltan" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E4F3EC;strokeColor=#398A6C;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="430" y="1090" width="280" height="175" />
+        </mxCell>
+        <mxCell id="proposal" value="&lt;b style=&quot;font-size:20px&quot;&gt;Sugerencia trazable&lt;/b&gt;&lt;br&gt;&lt;br&gt;Causa probable + evidencia citada&lt;br&gt;Acción propuesta y verificaciones&lt;br&gt;Resultado guardado por incidente" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E4F3EC;strokeColor=#398A6C;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="800" y="1090" width="280" height="175" />
+        </mxCell>
+        <mxCell id="notify" value="&lt;b style=&quot;font-size:20px&quot;&gt;Consola / Slack&lt;/b&gt;&lt;br&gt;&lt;br&gt;Comunicar avance y resultado&lt;br&gt;Revisión humana de la propuesta&lt;br&gt;Canal de notificación opcional" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1170" y="1090" width="280" height="175" />
+        </mxCell>
+        <mxCell id="d1" value="índice&lt;br&gt;versionado" source="docs" target="lake" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;entryX=0.5;entryY=1;dashed=1;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="d2" value="contexto&lt;br&gt;recuperado" source="lake" target="triage" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.8;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0">
+            <Array as="points">
+              <mxPoint x="385" y="935" />
+              <mxPoint x="385" y="1177" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d3" value="evidencia&lt;br&gt;relevante" source="evidence" target="triage" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="d4" value="veredicto" source="triage" target="proposal" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="d5" value="resultado" source="proposal" target="notify" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="foot" value="Cloud Run: mínimo 0 y facturación por solicitud. Receptor y recolector pueden compartir un servicio.&lt;br&gt;Los nodos son responsabilidades, no un microservicio por cada caja. Los datos históricos deben existir en las fuentes.&lt;br&gt;Propuesta de integración: hoy hay lectura GCP de logs y motor de análisis; faltan push, estado durable y conectores GCP de métricas/trazas." parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=18;fontColor=#18364B;fontStyle=0;">
+          <mxGeometry as="geometry" x="60" y="1330" width="1390" height="90" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-2" name="02 · Ventana temporal y límites">
+    <mxGraphModel grid="1" gridSize="10" page="0" pageWidth="1510" pageHeight="1150" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="page-background" value="" parent="1" vertex="1" style="rounded=0;fillColor=#FFFFFF;strokeColor=none;connectable=0;">
+          <mxGeometry as="geometry" x="0" y="0" width="1510" height="1150" />
+        </mxCell>
+        <mxCell id="title" value="Cuándo se consulta cada tramo" parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=32;fontColor=#18364B;fontStyle=1;">
+          <mxGeometry as="geometry" x="60" y="30" width="1390" height="50" />
+        </mxCell>
+        <mxCell id="subtitle" value="EJEMPLO ILUSTRATIVO · El cierre futuro se desconoce al recibir la alerta. Se incorpora por lotes." parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=19;fontColor=#18364B;fontStyle=0;">
+          <mxGeometry as="geometry" x="60" y="92" width="1390" height="45" />
+        </mxCell>
+        <mxCell id="pre" value="&lt;b style=&quot;font-size:20px&quot;&gt;09:50&lt;/b&gt;&lt;br&gt;&lt;br&gt;t₀ − 10 min" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="190" width="200" height="95" />
+        </mxCell>
+        <mxCell id="start" value="&lt;b style=&quot;font-size:20px&quot;&gt;10:00&lt;/b&gt;&lt;br&gt;&lt;br&gt;t₀ · inicio reportado" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="600" y="190" width="200" height="95" />
+        </mxCell>
+        <mxCell id="arrival" value="&lt;b style=&quot;font-size:20px&quot;&gt;10:02&lt;/b&gt;&lt;br&gt;&lt;br&gt;tᵣ · llega la alerta" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#FFFFFF;fillColor=#133D69;strokeColor=#133D69;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="810" y="190" width="200" height="95" />
+        </mxCell>
+        <mxCell id="delta" value="&lt;b style=&quot;font-size:20px&quot;&gt;10:04&lt;/b&gt;&lt;br&gt;&lt;br&gt;siguiente lote" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1020" y="190" width="200" height="95" />
+        </mxCell>
+        <mxCell id="close" value="&lt;b style=&quot;font-size:20px&quot;&gt;10:08&lt;/b&gt;&lt;br&gt;&lt;br&gt;t꜀ · cierre" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1230" y="190" width="200" height="95" />
+        </mxCell>
+        <mxCell id="tick-0" value="" source="pre" target="start" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="tick-1" value="" source="start" target="arrival" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="tick-2" value="" source="arrival" target="delta" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="tick-3" value="" source="delta" target="close" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="first" value="&lt;b style=&quot;font-size:20px&quot;&gt;Al recibir la alerta: primera consulta&lt;/b&gt;&lt;br&gt;&lt;br&gt;09:50 → 10:02 · Incluye los diez minutos previos al inicio reportado y el retraso del aviso" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="345" width="1370" height="110" />
+        </mxCell>
+        <mxCell id="next" value="&lt;b style=&quot;font-size:20px&quot;&gt;Mientras esté abierto: consultas incrementales&lt;/b&gt;&lt;br&gt;&lt;br&gt;10:02 → 10:04 → siguientes lotes · Guardar cursor por fuente; no volver a descargar toda la ventana" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E6F0FC;strokeColor=#438DD5;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="495" width="1370" height="110" />
+        </mxCell>
+        <mxCell id="end" value="&lt;b style=&quot;font-size:20px&quot;&gt;Al llegar el cierre: completar y detener&lt;/b&gt;&lt;br&gt;&lt;br&gt;Último cursor → 10:08 · Conciliación acotada por datos tardíos; consolidar el informe y cancelar nuevas consultas" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#E4F3EC;strokeColor=#398A6C;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="645" width="1370" height="110" />
+        </mxCell>
+        <mxCell id="window1" value="" source="first" target="next" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="window2" value="" source="next" target="end" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#516A80;fontColor=#344E63;fontFamily=Arial;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=0;">
+          <mxGeometry as="geometry" relative="1" y="0" />
+        </mxCell>
+        <mxCell id="limits" value="&lt;b style=&quot;font-size:20px&quot;&gt;Límites configurables&lt;/b&gt;&lt;br&gt;&lt;br&gt;Servicios y dependencias permitidos&lt;br&gt;Filas, bytes y trazas por lote&lt;br&gt;Duración máxima y reintentos&lt;br&gt;Presupuesto de llamadas al modelo" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#FFF3DE;strokeColor=#C38A27;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="60" y="820" width="420" height="210" />
+        </mxCell>
+        <mxCell id="timing" value="&lt;b style=&quot;font-size:20px&quot;&gt;Tiempo de evento ≠ llegada&lt;/b&gt;&lt;br&gt;&lt;br&gt;t₀ es el inicio que reporta el monitor&lt;br&gt;Puede diferir del comienzo real del fallo&lt;br&gt;Solapar brevemente y deduplicar&lt;br&gt;Respetar retención y muestreo" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#F1F4F8;strokeColor=#8C9BAC;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="535" y="820" width="420" height="210" />
+        </mxCell>
+        <mxCell id="failure" value="&lt;b style=&quot;font-size:20px&quot;&gt;Si falta el aviso de cierre&lt;/b&gt;&lt;br&gt;&lt;br&gt;Consultar estado con baja frecuencia&lt;br&gt;Aplicar un máximo de duración&lt;br&gt;Registrar cobertura incompleta&lt;br&gt;Detener y solicitar revisión" parent="1" vertex="1" style="rounded=1;arcSize=10;html=1;whiteSpace=wrap;spacing=14;align=center;verticalAlign=middle;fontFamily=Arial;fontSize=16;fontColor=#18364B;fillColor=#FFF3DE;strokeColor=#C38A27;strokeWidth=1.5;">
+          <mxGeometry as="geometry" x="1010" y="820" width="420" height="210" />
+        </mxCell>
+        <mxCell id="foot" value="La observabilidad sigue recopilando señales en GCP. TiderOps consulta y razona cuando hay un incidente.&lt;br&gt;La cadencia de 2 minutos es solo un ejemplo: se ajusta a la duración de las pruebas, la latencia y el presupuesto." parent="1" vertex="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=0;fontFamily=Arial;fontSize=18;fontColor=#18364B;fontStyle=0;">
+          <mxGeometry as="geometry" x="60" y="1070" width="1390" height="70" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

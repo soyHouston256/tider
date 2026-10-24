@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph old["Antes"]
+    roots["Motor y consola en dos raíces<br/>PYTHONPATH manual"]
+    main["main.py<br/>HTTP, análisis e historial mezclados"]
+    evidence["evidence.py<br/>Mocks, nube y texto mezclados"]
+    graphold["graph.py con cuerpos de ejecución<br/>Prompts dentro de agentes"]
+    audit["Decisiones en JSON<br/>Interpretación manual"]
+  end
+  subgraph now["Ahora · project/tider"]
+    package["D01 · Paquete instalable<br/>pyproject.toml + uv.lock"]
+    service["D03 · api.py + service.py<br/>Dependencias e historial por instancia"]
+    providers["D03 · providers/ + resources/<br/>Conectores y datos separados"]
+    nodes["D02 · graph + workflow + prompts<br/>Transiciones y responsabilidades visibles"]
+    steps["D04 · DecisionStep + render.js<br/>Resultado, motivo y referencias"]
+  end
+  roots -->|Unificar instalación| package
+  main -->|Separar caso de uso| service
+  evidence -->|Aislar origen de datos| providers
+  graphold -->|Separar orquestación| nodes
+  audit -->|Proyectar eventos reales| steps
+  classDef before fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  classDef after fill:#dceee9,color:#143e34,stroke:#347d67
+  class roots,main,evidence,graphold,audit before
+  class package,service,providers,nodes,steps after

@@ -1,0 +1,87 @@
+[
+  {
+    "id": "redis_down",
+    "name": "Redis no disponible",
+    "service": "cartservice",
+    "description": "Carrito con errores de conexión y propagación al frontend.",
+    "signals": [
+      {
+        "service": "cartservice",
+        "source": "log",
+        "message": "Redis connection refused: redis-cart:6379",
+        "severity": "ERROR"
+      },
+      {
+        "service": "frontend",
+        "source": "trace",
+        "message": "gRPC cart operation timed out",
+        "severity": "ERROR"
+      },
+      {
+        "service": "cartservice",
+        "source": "metric",
+        "message": "grpc server error ratio = 0.82",
+        "severity": "WARNING"
+      },
+      {
+        "service": "redis-cart",
+        "source": "log",
+        "message": "Redis TCP endpoint unavailable",
+        "severity": "ERROR"
+      }
+    ]
+  },
+  {
+    "id": "cart_unavailable",
+    "name": "Cart Service sin endpoints",
+    "service": "frontend",
+    "description": "El frontend no logra comunicarse con el servicio de carrito.",
+    "signals": [
+      {
+        "service": "frontend",
+        "source": "log",
+        "message": "cartservice:7070 connection refused",
+        "severity": "ERROR"
+      },
+      {
+        "service": "checkoutservice",
+        "source": "trace",
+        "message": "cartservice: no available endpoints",
+        "severity": "ERROR"
+      },
+      {
+        "service": "cartservice",
+        "source": "metric",
+        "message": "available replicas = 0",
+        "severity": "WARNING"
+      }
+    ]
+  },
+  {
+    "id": "healthy",
+    "name": "Operación normal",
+    "service": "cartservice",
+    "description": "Señales normales para comprobar que el agente no inventa una falla.",
+    "signals": [
+      {
+        "service": "cartservice",
+        "source": "log",
+        "message": "GetCart completed successfully",
+        "severity": "INFO"
+      },
+      {
+        "service": "cartservice",
+        "source": "metric",
+        "message": "grpc server error ratio = 0.00",
+        "severity": "INFO"
+      }
+    ]
+  },
+  {
+    "id": "missing_telemetry",
+    "name": "Sin telemetría",
+    "service": "cartservice",
+    "description": "Una consulta vacía debe terminar sin una causa afirmada.",
+    "signals": []
+  }
+]

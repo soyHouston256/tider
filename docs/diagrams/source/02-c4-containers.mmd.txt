@@ -1,0 +1,21 @@
+flowchart TB
+  user["Operador<br/>[Persona]"]
+  subgraph sys["Sistema: TiderOps · vista de la consola"]
+    ui["Consola web<br/>[Contenedor: HTML, CSS y JavaScript]<br/>Formulario, resultados e historial"]
+    api["Backend de diagnóstico<br/>[Contenedor: Python / FastAPI / LangGraph]<br/>Obtiene evidencia y ejecuta el análisis"]
+    resources[("Recursos del paquete<br/>[Almacén de archivos]<br/>JSON + Markdown + YAML")]
+  end
+  memory["Dentro de la memoria del backend:<br/>historial deque, máximo 50 por defecto<br/>contexto InMemoryStore por análisis"]
+  cloud["Cloud Logging<br/>[Sistema externo opcional]"]
+  model["Anthropic<br/>[Sistema externo opcional]"]
+  user -->|Interactúa| ui
+  ui -->|HTTP/JSON · POST y GET| api
+  api -->|HTTP · sirve HTML, CSS, JS| ui
+  api -->|Lee archivos empaquetados| resources
+  api -.->|EVIDENCE_MODE=gcp · HTTPS| cloud
+  api -.->|LLM_PROVIDER=anthropic · HTTPS| model
+  memory -.- api
+  classDef container fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef external fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  class ui,api,resources container
+  class user,cloud,model,memory external

@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph host["Equipo de desarrollo"]
+    browser["Navegador<br/>Consola HTML / CSS / JS"]
+    subgraph native["Alternativa A · make run"]
+      venv[".venv · Python 3.12<br/>Uvicorn + FastAPI + LangGraph<br/>127.0.0.1:8080"]
+    end
+    subgraph docker["Alternativa B · Compose profile console"]
+      container["Contenedor console<br/>Imagen tider-console<br/>Usuario tiderops · puerto 8080"]
+    end
+    pg["Perfil lake opcional<br/>Postgres + pgvector · 5432<br/>Para la API operativa, fuera de la consola"]
+  end
+  subgraph gcp["Laboratorio externo · GCP"]
+    cluster["Proyecto tider-ops<br/>GKE chaosforge-lab<br/>us-central1 · namespace boutique"]
+    logs["Cloud Logging"]
+    cluster -->|Logs| logs
+  end
+  browser -->|HTTP local| venv
+  browser -->|HTTP · puerto publicado en loopback| container
+  venv -.->|Lectura opcional, con ADC| logs
+  container -.->|Lectura opcional, con credenciales configuradas| logs
+  classDef runtime fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef optional fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  class browser,venv,container runtime
+  class cluster,logs,pg optional

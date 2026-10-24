@@ -1,0 +1,22 @@
+stateDiagram-v2
+  direction TB
+  [*] --> Recibida
+  Recibida --> Rechazada: entrada inválida / HTTP 422
+  Recibida --> Consultando: solicitud válida
+  Consultando --> Error: configuración / 400 o proveedor / 503
+  Consultando --> Analizando: señales disponibles, incluso lista vacía
+  Analizando --> Error: configuración / 400 o motor / 503
+  Analizando --> Hipotesis: verdict.supported=true
+  Analizando --> Insuficiente: verdict.supported=false
+  state "Analysis.status = hypothesis" as Hipotesis
+  state "Analysis.status = insufficient_evidence" as Insuficiente
+  Hipotesis --> Guardada: copia del resultado
+  Insuficiente --> Guardada: copia del resultado
+  Guardada --> Entregada: HTTP 200 y vista de decisiones
+  Entregada --> [*]
+  Error --> [*]
+  Rechazada --> [*]
+  note right of Guardada
+    Historial en memoria, acotado.
+    En observación: resolved=false.
+  end note

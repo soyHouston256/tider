@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TiderOps · Laboratorio de agentes</title>
+    <link rel="stylesheet" href="/static/css/app.css"><script src="/static/js/app.js" type="module"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="TiderOps, inicio"><span class="brand-mark">T</span>Tider<span>Ops</span><span class="brand-divider"></span><small>LABORATORIO</small></a>
+      <nav><span id="connection" class="badge">Conectando…</span><a href="/docs" target="_blank" rel="noopener">API / Swagger ↗</a>
+      </nav>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">CHAOSFORGE / ONLINE BOUTIQUE</p>
+          <h1>Del incidente a la evidencia.</h1>
+          <p class="lede">Prueba el diagnóstico, sigue el recorrido de los agentes y revisa cada decisión.</p>
+        </div>
+        <div class="mode-stamp"><span class="dot"></span>Modo observación<small>Las propuestas requieren intervención humana</small>
+        </div>
+      </section>
+      <section class="workspace">
+        <aside>
+          <form id="analysis-form" class="panel config-panel">
+            <div class="section-title"><span class="section-number">01</span>
+              <h2>Configurar prueba</h2>
+            </div>
+            <label for="mode">Fuente de evidencia</label>
+            <select id="mode">
+              <option value="mock">Simulación local</option value="gcp" disabled>Logs de GKE</option>
+            </select>
+            <p id="mode-note" class="hint">Señales sintéticas. No necesita conexión a GCP.</p>
+            <div id="scenario-fields">
+              <label for="scenario">Escenario</label>
+              <select id="scenario">
+              </select>
+              <p id="scenario-note" class="hint">
+              </p>
+            </div>
+            <label for="service">Servicio afectado</label>
+            <select id="service">
+            </select>
+            <label for="incident">Identificador del incidente</label>
+            <input id="incident" required maxlength="128" autocomplete="off">
+            <div id="time-fields" hidden>
+              <label for="start">Desde · hora local</label>
+              <input id="start" type="datetime-local">
+              <label for="end">Hasta · hora local</label>
+              <input id="end" type="datetime-local">
+              <p class="hint">Ventana máxima: 2 horas. Consulta logs del servicio y sus dependencias.</p>
+            </div>
+            <button id="run" class="primary" disabled type="submit">Analizar incidente <span>→</span></button>
+            <p id="error" class="error" role="alert" hidden>
+            </p>
+          </form>
+          <section class="environment">
+            <p class="eyebrow">ENTORNO CONFIGURADO</p>
+            <dl>
+              <dt>Proyecto</dt>
+              <dd id="project">—</dd>
+              <dt>Clúster</dt>
+              <dd id="cluster">—</dd>
+              <dt>Namespace</dt>
+              <dd id="namespace">—</dd>
+              <dt>Razonamiento</dt>
+              <dd id="reasoning">—</dd>
+            </dl>
+            <p class="hint">La configuración identifica el destino; no comprueba su disponibilidad.</p>
+          </section>
+        </aside>
+        <div class="results-column">
+          <section class="panel flow-panel">
+            <div class="section-title"><span class="section-number">02</span>
+              <h2>Recorrido del agente</h2>
+              <span id="flow-status" class="quiet">En espera</span>
+            </div>
+            <ol id="flow" class="flow">
+            </ol>
+          </section>
+          <section id="empty-state" class="panel empty-state">
+            <div class="empty-symbol">⌁</div>
+            <p class="eyebrow">LISTO PARA INVESTIGAR</p>
+            <h2>Selecciona un escenario para comenzar</h2>
+            <p>El resultado mostrará la hipótesis, sus señales de respaldo<br>y la decisión que produjo el motor.</p>
+            <div class="empty-legend"><span>Logs</span><span>Métricas</span><span>Trazas</span>
+            </div>
+          </section>
+          <section id="result" hidden aria-live="polite">
+            <div class="panel diagnosis">
+              <div class="section-title"><span class="section-number">03</span>
+                <h2>Resultado del análisis</h2>
+                <button id="download" class="text-button" type="button">Descargar JSON ↓</button>
+              </div>
+              <div class="result-meta"><span id="result-mode" class="badge"></span><span id="result-id"></span><span id="result-time"></span>
+              </div>
+              <h2 id="hypothesis">
+              </h2>
+              <div class="metrics">
+                <div><span>Componente identificado</span><strong id="component"></strong>
+                </div>
+                <div><span>Confianza del juez</span><strong id="confidence"></strong><small>Puntuación heurística</small>
+                </div>
+                <div><span>Señales recibidas</span><strong id="signal-count"></strong>
+                </div>
+              </div>
+              <div class="recommendation"><span>REVISIÓN RECOMENDADA</span>
+                <p id="recommendation">
+                </p>
+              </div>
+              <p id="judge-note" class="hint">
+              </p>
+            </div>
+            <div class="panel evidence-panel">
+              <div class="section-title">
+                <h2>Evidencia consultada</h2>
+                <span id="evidence-count" class="quiet"></span>
+              </div>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Fuente</th>
+                      <th>Servicio</th>
+                      <th>Señal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="evidence">
+                  </tbody>
+                </table>
+              </div>
+              <p id="no-evidence" class="hint" hidden>No se recibieron señales en esta consulta.</p>
+            </div>
+            <div class="panel decisions-panel">
+              <div class="section-title">
+                <h2>Decisiones y sustento</h2>
+              </div>
+              <p class="hint">Cada paso conserva su resultado, motivo y señales consultadas. Las rondas adicionales aparecen en orden.</p>
+              <ol id="decision-steps" class="decision-steps">
+              </ol>
+            </div>
+            <div class="panel audit-panel">
+              <details>
+                <summary>Detalle técnico · JSON</summary>
+                <p id="decision">
+                </p>
+                <p id="execution" class="hint">
+                </p>
+                <pre id="audit">
+                </pre>
+              </details>
+            </div>
+          </section>
+        </div>
+      </section>
+      <section class="panel history-panel">
+        <div class="section-title">
+          <h2>Pruebas de esta sesión</h2>
+          <span class="quiet">Últimas 50 · memoria del servidor</span>
+        </div>
+        <p id="history-empty" class="hint">Todavía no hay análisis. Los resultados aparecerán aquí.</p>
+        <div id="history" class="history">
+        </div>
+      </section>
+      <footer><span>TiderOps · Consola de diagnóstico</span><span>Grafo LangGraph / ChaosForge</span>
+      </footer>
+    </main>
+  </body>
+</html>

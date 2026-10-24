@@ -1,8 +1,12 @@
 """Decisor DETERMINISTA: no usa LLM. Combina hipótesis + veredicto del juez + lista permitida.
 Las precondiciones se leen de datos estructurados de herramientas (Evidence.data), nunca del texto del LLM."""
+
 from __future__ import annotations
+
 from pathlib import Path
+
 import yaml
+
 from ..state import Decision, Hypothesis, Verdict
 
 DEFAULT = Path(__file__).with_name("allowlist.yaml")
@@ -18,8 +22,14 @@ def escalate(reason: str) -> Decision:
 
 def observed_status(h: Hypothesis, deployment: str) -> dict | None:
     """Último deployment_status observado para el deployment objetivo."""
-    return next((e.data for e in reversed(h.evidence)
-                 if e.kind == "deploy" and e.data and e.data.get("deployment") == deployment), None)
+    return next(
+        (
+            e.data
+            for e in reversed(h.evidence)
+            if e.kind == "deploy" and e.data and e.data.get("deployment") == deployment
+        ),
+        None,
+    )
 
 
 def decide(h: Hypothesis, v: Verdict, namespace: str, cfg: dict) -> Decision:
@@ -52,20 +62,34 @@ def decide(h: Hypothesis, v: Verdict, namespace: str, cfg: dict) -> Decision:
         if name == "rollout-undo":
             age, limit = st.get("last_rollout_age_minutes"), rule["max_rollout_age_minutes"]
             if st.get("revisions", 0) < 2 or age is None or age > limit:
-                return escalate(f"No hay un rollout reciente que deshacer (último hace {age} min, máx {limit}).")
+                return escalate(
+                    f"No hay un rollout reciente que deshacer (último hace {age} min, máx {limit})."
+                )
         if name == "scale":
             if st.get("hpa"):
                 return escalate(f"'{dep}' lo maneja el HPA '{st['hpa']}': escalar a mano se pisa con él.")
             r, cur = params.get("replicas"), st.get("replicas", 0)
             if not isinstance(r, int) or r <= cur or r > rule["max_replicas"]:
-                return escalate(f"replicas={r!r} inválido: debe ser mayor que {cur} (actual) y como máximo {rule['max_replicas']}.")
-            params["current_replicas"] = cur   # precondición de kubectl scale: si cambió desde que se observó, no escala
-        return Decision(route="runbook", action=name, params=params,
-                        reason=f"Confianza {v.confidence:.2f}, acción permitida.")
+                return escalate(
+                    f"replicas={r!r} inválido: debe ser mayor que {cur} (actual) y como máximo {rule['max_replicas']}."
+                )
+            params["current_replicas"] = (
+                cur  # precondición de kubectl scale: si cambió desde que se observó, no escala
+            )
+        return Decision(
+            route="runbook",
+            action=name,
+            params=params,
+            reason=f"Confianza {v.confidence:.2f}, acción permitida.",
+        )
     if kind == "pr":
         rule = cfg["pr"].get(name)
         if rule is None or v.confidence < rule["min_confidence"]:
             return escalate(f"PR '{name}' no permitido o confianza insuficiente ({v.confidence:.2f}).")
-        return Decision(route="pr", action=name, params=h.action_params,
-                        reason=f"Cambio propuesto para revisión humana (confianza {v.confidence:.2f}).")
+        return Decision(
+            route="pr",
+            action=name,
+            params=h.action_params,
+            reason=f"Cambio propuesto para revisión humana (confianza {v.confidence:.2f}).",
+        )
     return escalate(f"Tipo de acción desconocido: {action}")

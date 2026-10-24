@@ -1,8 +1,13 @@
 """Verificador: espera a que el rollout termine y luego consulta Alertmanager hasta que ESTA alerta deje de estar
 activa o se acabe TIDER_VERIFY_TIMEOUT. Ante cualquier duda devuelve False: nunca asumimos éxito."""
+
 from __future__ import annotations
-import logging, time
+
+import logging
+import time
+
 import httpx
+
 from ..config import env, verify_interval, verify_timeout
 from ..tools import kube
 
@@ -12,8 +17,11 @@ log = logging.getLogger("tider.verify")
 def alert_active(alert: dict) -> bool:
     """Busca la alerta por fingerprint; si no hay, por labels completos; si tampoco, por nombre. Sin respuesta = activa."""
     try:
-        r = httpx.get(f"{env('ALERTMANAGER_URL', 'http://localhost:9093')}/api/v2/alerts",
-                      params={"active": "true"}, timeout=10)
+        r = httpx.get(
+            f"{env('ALERTMANAGER_URL', 'http://localhost:9093')}/api/v2/alerts",
+            params={"active": "true"},
+            timeout=10,
+        )
         r.raise_for_status()
         active = r.json()
     except Exception:

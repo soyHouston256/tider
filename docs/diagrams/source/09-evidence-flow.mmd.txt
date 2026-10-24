@@ -1,0 +1,21 @@
+flowchart TB
+  req["Solicitud validada<br/>servicio, ventana, modo, escenario"] --> choose{"Fuente elegida"}
+  choose -->|mock| fixtures["scenarios.json<br/>Señales sintéticas"]
+  choose -->|gcp| gate["Habilitación del servidor + ADC<br/>Filtro del entorno y ventana"]
+  cloud["Cloud Logging<br/>Proveedor externo"] -->|Entradas consultadas| gate
+  gate --> fields["Extraer texto o message / msg / error<br/>Máximo 100 entradas por defecto"]
+  fields --> redact["sanitize<br/>Patrones de credenciales y email<br/>Truncar a 600 caracteres"]
+  fixtures --> signals["Signal[]<br/>Asignar S01, S02..."]
+  redact --> signals
+  signals --> tools["lab_log / lab_metric / lab_trace<br/>Herramientas sin argumentos"]
+  signals --> baseline["Baseline: reglas sobre señales<br/>No usa la etiqueta del escenario"]
+  baseline --> scripted["ScriptedLLM<br/>Proveedor local"]
+  tools --> investigator["Investigador + juez<br/>Hipótesis, evidencia y veredicto"]
+  scripted --> investigator
+  llm["Anthropic<br/>Opcional por configuración"] -.->|Respuestas del modelo| investigator
+  investigator -.->|Evidencia dentro de prompts| llm
+  investigator --> result["Analysis<br/>Resultado + evidencia + auditoría"]
+  classDef process fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef external fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  class req,fixtures,gate,fields,redact,signals,tools,baseline,scripted,investigator,result process
+  class cloud,llm external

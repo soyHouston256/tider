@@ -1,0 +1,27 @@
+flowchart TB
+  subgraph web["Presentación · console/static"]
+    appjs["js/app.js<br/>Formulario y sesión"] --> httpjs["js/api.js<br/>Cliente HTTP"]
+    appjs --> render["js/render.js<br/>DOM y decisiones"]
+  end
+  subgraph console["Aplicación · tider.console"]
+    api["api.py<br/>Rutas y composición"] --> service["service.py<br/>Caso de uso e historial"]
+    api --> provider["providers/<br/>Mock y Cloud Logging"]
+    api --> engine["analysis.py<br/>Adaptador al grafo"]
+    service --> contracts["models.py + Protocol<br/>Contratos y validación"]
+    provider --> contracts
+    engine --> baseline["baseline.py<br/>Reglas de diagnóstico"]
+    engine --> explanation["explanation.py<br/>Decisiones legibles"]
+  end
+  subgraph core["Motor compartido · tider"]
+    orchestrator["graph.py<br/>Transiciones"] --> agents["agents/<br/>Trabajo de cada agente"]
+    agents --> prompts["agents/prompts.py"]
+    orchestrator --> nodes["workflow/nodes.py"]
+    nodes --> policy["decision/ + safety.py"]
+    nodes --> executors["executor/<br/>Adaptadores operativos"]
+    agents --> shared["state.py + tools/ + lake/ + llm.py"]
+  end
+  engine --> orchestrator
+  engine --> shared
+  httpjs -.->|Frontera HTTP| api
+  classDef module fill:#dceee9,color:#143e34,stroke:#347d67
+  class appjs,httpjs,render,api,service,provider,engine,contracts,baseline,explanation,orchestrator,agents,prompts,nodes,policy,executors,shared module

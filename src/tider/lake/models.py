@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -6,7 +7,7 @@ from datetime import date
 @dataclass
 class Doc:
     id: str
-    doc_type: str            # runbook | architecture | incident | adr
+    doc_type: str  # runbook | architecture | incident | adr
     service: str | None = None
     title: str = ""
     updated: date | None = None

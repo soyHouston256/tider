@@ -1,0 +1,21 @@
+classDiagram
+  direction TB
+  class AnalysisService {
+    +Settings settings
+    +EvidenceSource provider
+    +DiagnosticEngine engine
+    -deque history_store
+    -Lock lock
+    +analyze(request) Analysis
+    +history() list~Analysis~
+  }
+  class EvidenceSource {
+    <<Protocol>>
+    +load(request) list~Signal~
+  }
+  class DiagnosticEngine {
+    <<Protocol>>
+    +analyze(request, evidence) Analysis
+  }
+  AnalysisService --> EvidenceSource : consulta contrato
+  AnalysisService --> DiagnosticEngine : invoca contrato

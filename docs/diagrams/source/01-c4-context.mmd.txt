@@ -1,0 +1,20 @@
+flowchart TB
+  op["Operador DevOps<br/>[Persona]<br/>Investiga y revisa propuestas"]
+  team["Equipo del laboratorio<br/>[Persona]<br/>Prepara experimentos"]
+  tider["TiderOps<br/>[Sistema bajo estudio]<br/>Analiza señales y explica decisiones"]
+  chaos["ChaosForge<br/>[Sistema externo]<br/>Administra el laboratorio"]
+  boutique["Online Boutique en GKE<br/>[Sistema externo]<br/>Aplicación observada"]
+  logs["Google Cloud Logging<br/>[Sistema externo]<br/>Logs del laboratorio"]
+  llm["API Anthropic<br/>[Sistema externo opcional]<br/>Modelo de lenguaje"]
+  op -->|Solicita y revisa análisis| tider
+  team -->|Define experimentos| chaos
+  chaos -->|Despliega y prepara fallos| boutique
+  boutique -->|Emite logs| logs
+  tider -.->|Consulta de lectura con modo gcp| logs
+  tider -.->|Evidencia al modelo, si se habilita| llm
+  classDef person fill:#173c54,color:#fff,stroke:#173c54
+  classDef system fill:#dceee9,color:#143e34,stroke:#347d67
+  classDef external fill:#f1f3f5,color:#253b4b,stroke:#8394a1
+  class op,team person
+  class tider system
+  class chaos,boutique,logs,llm external
