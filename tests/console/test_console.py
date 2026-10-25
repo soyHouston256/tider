@@ -69,7 +69,7 @@ def test_scenarios_run_the_real_graph(scenario, service, component, status, n, a
 def test_console_assets_and_host_boundary(app):
     with TestClient(app) as c:
         r = c.get("/")
-        assert r.status_code == 200 and "Configurar prueba" in r.text
+        assert r.status_code == 200 and "Investigar incidente" in r.text
         assert "frame-ancestors 'none'" in r.headers["content-security-policy"]
         assert c.get("/static/js/app.js").status_code == 200
         assert c.get("/static/css/app.css").status_code == 200
@@ -125,7 +125,8 @@ def test_gcp_query_is_scoped_and_logs_are_redacted(monkeypatch, app, settings):
     fake.list_entries.return_value = [
         SimpleNamespace(
             payload={
-                "message": "Redis connection refused token=secretXYZ user=a@example.com",
+                "message": "Request failed user=a@example.com",
+                "error": "Redis connection refused token=secretXYZ",
                 "extra": "sensitive-not-allowed",
             },
             labels={"k8s-pod/app": "cartservice"},
@@ -150,11 +151,14 @@ def test_gcp_query_is_scoped_and_logs_are_redacted(monkeypatch, app, settings):
         'labels."k8s-pod/app"="redis-cart"',
     ]:
         assert required in query
-    assert fake.list_entries.call_args.kwargs["max_results"] == 100
+    assert fake.list_entries.call_args.kwargs["max_results"] is None
+    assert "severity >= ERROR" in query
     assert result["evidence_mode"] == "gcp"
     assert result["component"] == "redis-cart"
     assert result["confidence"] <= 0.7
     assert {s["source"] for s in result["evidence"]} == {"log"}
+    assert "Redis connection refused" in result["evidence"][0]["message"]
+    assert "Request failed" in result["evidence"][0]["message"]
     assert all(s not in response.text for s in ["secretXYZ", "a@example.com", "sensitive-not-allowed"])
     fake.close.assert_called_once()
 

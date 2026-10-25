@@ -2,54 +2,135 @@
 <html lang="es">
   <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TiderOps · Laboratorio de agentes</title>
+    <title>TiderOps · Centro de investigación</title>
     <link rel="stylesheet" href="/static/css/app.css"><script src="/static/js/app.js" type="module"></script>
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="TiderOps, inicio"><span class="brand-mark">T</span>Tider<span>Ops</span><span class="brand-divider"></span><small>LABORATORIO</small></a>
-      <nav><span id="connection" class="badge">Conectando…</span><a href="/docs" target="_blank" rel="noopener">API / Swagger ↗</a>
+    <aside id="sidebar" class="sidebar" aria-label="Navegación principal">
+
+      <div class="sidebar-heading"><a class="brand" href="/"><span class="brand-mark">T</span><span>TiderOps<small>CHAOSFORGE</small></span></a><button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="sidebar" aria-label="Contraer menú" title="Contraer menú">☰</button></div>
+      <div class="project-card"><span class="eyebrow">PROYECTO ACTUAL</span><div class="project-identity"><span class="project-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 6l2-3h14l2 3v4a3 3 0 0 1-4 0 3 3 0 0 1-5 0 3 3 0 0 1-5 0 3 3 0 0 1-4 0V6ZM3 6h18M9 20v-6h6v6"/></svg></span><div><strong>Online Boutique</strong><small>Tienda · microservicios</small></div></div></div>
+      <nav class="side-nav">
+        <a href="#investigation" class="selected"><span aria-hidden="true">⌕</span><span class="nav-label">Investigar</span></a>
+        <a href="#context-lake"><span aria-hidden="true">▤</span><span class="nav-label">Context Lake</span></a>
+        <button id="nav-catalog" type="button"><span aria-hidden="true">⌘</span><span class="nav-label">Catálogo</span></button>
+        <a href="#session-history"><span aria-hidden="true">◷</span><span class="nav-label">Historial</span></a>
       </nav>
-    </header>
+      <div class="sidebar-bottom"><span id="connection" class="badge">Conectando…</span><a href="/docs" target="_blank" rel="noopener">API / Swagger ↗</a><small>Consola de diagnóstico</small></div>
+    </aside>
     <main>
-      <section class="intro">
+      <section class="intro" id="investigation">
         <div>
-          <p class="eyebrow">CHAOSFORGE / ONLINE BOUTIQUE</p>
-          <h1>Del incidente a la evidencia.</h1>
-          <p class="lede">Prueba el diagnóstico, sigue el recorrido de los agentes y revisa cada decisión.</p>
+          <p class="eyebrow">Online Boutique &nbsp; › &nbsp; Centro de investigación</p>
+          <h1 id="page-title">Centro de investigación</h1>
+          <p class="lede" id="page-description">Del contexto a la evidencia, en un solo lugar.</p>
         </div>
         <div class="mode-stamp"><span class="dot"></span>Modo observación<small>Las propuestas requieren intervención humana</small>
         </div>
       </section>
+      <section id="context-view" hidden aria-label="Context Lake">
+        <aside class="context-column" id="context-lake">
+          <details class="panel context-panel" open>
+            <summary>Biblioteca de documentos <span class="badge">En memoria</span></summary>
+            <p class="hint">Documentación de tu plataforma. Se conserva al cerrar la pestaña y se pierde al reiniciar el servidor.</p>
+            <label id="context-drop" class="context-drop" for="context-files">
+              <span class="upload-symbol" aria-hidden="true">↑</span>
+              <strong>Añadir documentos</strong>
+              <span class="upload-hint">Arrastra aquí tus archivos Markdown o diagramas draw.io</span>
+              <span class="upload-choice">Seleccionar archivos</span>
+              <input id="context-files" type="file" accept=".md,.drawio" multiple>
+            </label>
+            <p class="hint">Markdown y draw.io · 1 MB por archivo · hasta 20 documentos. Sin PDF ni OCR en esta versión.</p>
+            <p id="context-status" role="status" class="hint">Cargando índice…</p>
+            <ul id="context-documents" class="context-documents"></ul>
+            <div class="catalog-summary"><strong>Catálogo documental</strong>
+              <p id="catalog-status" class="hint" role="status">Catálogo sin revisar</p>
+              <button id="catalog-open" class="text-button" type="button">Revisar catálogo</button>
+            </div>
+            <form id="context-search">
+              <label for="context-query">Buscar en tus documentos</label>
+              <input id="context-query" maxlength="2000" required placeholder="¿Cómo investigar errores del carrito?">
+              <button class="primary" type="submit">Buscar contexto</button>
+            </form>
+            <p class="hint">Embeddings locales. La primera carga descarga el modelo. Los resultados son fragmentos candidatos, no respuestas generadas. El catálogo confirmado orienta las consultas de logs. Con logs reales, el diagnóstico combina patrones de fallo con servicios, alias y relaciones confirmados; no utiliza un LLM.</p>
+            <div id="context-matches" aria-live="polite"></div>
+          </details>
+        </aside>
+      </section>
+    <section id="catalog-dialog" class="panel catalog-page" hidden aria-labelledby="catalog-title">
+      <form id="catalog-review-form">
+        <div class="catalog-heading"><div><p class="eyebrow">CONTEXTO DOCUMENTADO</p><h2 id="catalog-title">Revisar servicios y relaciones</h2></div>
+          <button id="catalog-close" type="button" class="text-button">Volver a investigar</button></div>
+        <p>Selecciona lo que representa tu plataforma. Puedes corregir los nombres y las relaciones antes de confirmar. Esto no verifica recursos en Kubernetes.</p>
+        <p class="hint">Candidatos extraídos de identificadores en draw.io, relaciones Mermaid y el campo service de Markdown. Los elementos que no se reconocen no se añaden automáticamente.</p>
+        <section class="catalog-map-section" aria-label="Mapa documental de servicios">
+          <div class="catalog-map-heading"><h3>Mapa de la propuesta</h3><span class="hint">Verde: incluido · gris: sin incluir</span></div>
+          <p class="hint">Las flechas representan las relaciones documentadas, no tráfico medido. Selecciona un nodo para ver su fuente. Pasa el cursor por un servicio para destacar sus conexiones; sobre una flecha verás su detalle. El mapa se actualiza al editar la revisión.</p>
+          <div id="catalog-map" class="catalog-map"></div>
+        </section>
+        <button id="catalog-select-all" type="button" class="catalog-select-all">✓ Seleccionar todos los servicios y relaciones</button>
+        <h3>Servicios candidatos</h3><p class="hint">Revisa los alias y nombres de operaciones usados en los logs. Los sugeridos proceden del nombre del servicio; solo se usan después de confirmar. Un alias ambiguo no identifica una causa.</p><div id="catalog-services"></div>
+        <h3>Relaciones documentadas</h3>
+        <p class="hint">Solo se guardan relaciones entre servicios incluidos. Su dirección y descripción son editables. La consulta de logs incluye los vecinos directos en ambos sentidos.</p>
+        <div id="catalog-relations"></div>
+        <p id="catalog-error" class="error" role="alert" hidden></p>
+        <div class="catalog-actions"><span id="catalog-selection" class="hint"></span>
+          <button id="catalog-confirm" type="submit" class="primary">Confirmar catálogo</button></div>
+      </form>
+    </section>
       <section class="workspace">
         <aside>
           <form id="analysis-form" class="panel config-panel">
             <div class="section-title"><span class="section-number">01</span>
-              <h2>Configurar prueba</h2>
+              <h2>Investigar incidente</h2>
             </div>
-            <label for="mode">Fuente de evidencia</label>
-            <select id="mode">
-              <option value="mock">Simulación local</option value="gcp" disabled>Logs de GKE</option>
+            <div id="evidence-source-card" class="evidence-source-card" data-source="mock">
+            <div class="source-heading"><span class="source-origin-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 4 14 4 14 0V5M5 12v6c0 4 14 4 14 0v-6"/></svg></span><div><label id="evidence-label" for="mode-trigger">Origen de la evidencia</label><span class="source-subtitle">¿De dónde viene la información?</span></div></div>
+            <div class="evidence-picker">
+              <button id="mode-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="mode-options">Simulación local <span aria-hidden="true">⌄</span></button>
+              <div id="mode-options" role="listbox" aria-label="Fuente de evidencia" hidden></div>
+            </div>
+            <select id="mode" hidden>
+              <option value="mock">Simulación local</option><option value="gcp" disabled>Logs de GKE</option>
             </select>
-            <p id="mode-note" class="hint">Señales sintéticas. No necesita conexión a GCP.</p>
+            <div id="source-kind" class="source-kind">DATOS SIMULADOS</div><p id="mode-note" class="hint">Señales sintéticas. No necesita conexión a GCP.</p>
+            </div>
             <div id="scenario-fields">
-              <label for="scenario">Escenario</label>
-              <select id="scenario">
+              <label for="scenario-trigger">Escenario</label>
+              <div class="scenario-picker evidence-picker">
+                <button id="scenario-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="scenario-options">Seleccionar escenario</button>
+                <div id="scenario-options" role="listbox" aria-label="Escenario" hidden></div>
+              </div>
+              <select id="scenario" hidden>
               </select>
               <p id="scenario-note" class="hint">
               </p>
             </div>
-            <label for="service">Servicio afectado</label>
-            <select id="service">
+            <fieldset class="analysis-scope"><legend>Alcance de la investigación</legend>
+              <label><input type="radio" name="scope" value="general"><span><strong>Análisis general</strong><small>No sé dónde está el problema</small></span></label>
+              <label><input type="radio" name="scope" value="focused" checked><span><strong>Análisis enfocado</strong><small>Sé dónde observé el problema</small></span></label>
+            </fieldset><p id="scope-note" class="hint"></p>
+            <div id="focused-fields"><label for="service-trigger">Servicio donde observaste el problema</label>
+            <div class="service-picker evidence-picker">
+              <button id="service-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="service-options">Seleccionar servicio</button>
+              <div id="service-options" role="listbox" aria-label="Servicio afectado" hidden></div>
+            </div>
+            <select id="service" required hidden>
             </select>
+            <p id="service-catalog-note" class="hint"></p></div>
             <label for="incident">Identificador del incidente</label>
-            <input id="incident" required maxlength="128" autocomplete="off">
+            <input id="incident" required maxlength="128" autocomplete="off" aria-describedby="incident-note"><p id="incident-note" class="hint"></p>
             <div id="time-fields" hidden>
-              <label for="start">Desde · hora local</label>
-              <input id="start" type="datetime-local">
-              <label for="end">Hasta · hora local</label>
-              <input id="end" type="datetime-local">
-              <p class="hint">Ventana máxima: 2 horas. Consulta logs del servicio y sus dependencias.</p>
+              <fieldset class="analysis-scope time-choice"><legend>¿Cuándo ocurrió?</legend>
+                <label><input type="radio" name="time-mode" value="recent" checked><span><strong>Últimos 10 minutos</strong><small>Hasta el momento de analizar</small></span></label>
+                <label><input type="radio" name="time-mode" value="custom"><span><strong>Elegir horas de hoy</strong><small>Para un incidente anterior</small></span></label>
+              </fieldset>
+              <p id="time-today" class="hint"></p>
+              <div id="custom-hours" class="hours-grid" hidden>
+                <div><label for="start">Desde</label><input id="start" type="time"></div>
+                <div><label for="end">Hasta</label><input id="end" type="time"></div>
+              </div>
+              <p class="hint">Hora local del navegador · máximo 2 horas por consulta.</p>
             </div>
             <button id="run" class="primary" disabled type="submit">Analizar incidente <span>→</span></button>
             <p id="error" class="error" role="alert" hidden>
@@ -71,19 +152,29 @@
           </section>
         </aside>
         <div class="results-column">
+          <section class="panel architecture-panel">
+            <div class="section-title"><span class="section-number">⌘</span><h2>Arquitectura documentada</h2><span id="architecture-status" class="quiet">Sin contexto</span></div>
+            <div id="architecture-map" class="architecture-map"><p class="hint">Carga documentos para proponer un mapa de servicios y relaciones.</p></div>
+            <p id="architecture-diagnosis" class="hint" hidden></p><div class="architecture-footer"><span class="hint">→ Relaciones documentadas · no es tráfico en vivo.</span><button id="architecture-review" class="text-button" type="button">Revisar catálogo ↗</button></div>
+          </section>
           <section class="panel flow-panel">
             <div class="section-title"><span class="section-number">02</span>
               <h2>Recorrido del agente</h2>
               <span id="flow-status" class="quiet">En espera</span>
             </div>
-            <ol id="flow" class="flow">
+            <ol id="flow" class="flow" aria-label="Etapas del análisis">
             </ol>
+            <p id="flow-detail" class="flow-detail" aria-live="polite"></p>
+            <div class="flow-controls"><p id="flow-caption" class="hint">El recorrido se reproduce al recibir el resultado del análisis.</p>
+              <button id="flow-skip" class="text-button" type="button" hidden>Mostrar resultado</button>
+              <button id="flow-replay" class="text-button" type="button" hidden>Repetir recorrido</button>
+            </div>
           </section>
           <section id="empty-state" class="panel empty-state">
             <div class="empty-symbol">⌁</div>
             <p class="eyebrow">LISTO PARA INVESTIGAR</p>
-            <h2>Selecciona un escenario para comenzar</h2>
-            <p>El resultado mostrará la hipótesis, sus señales de respaldo<br>y la decisión que produjo el motor.</p>
+            <h2>Comienza una investigación</h2>
+            <p>Elige una fuente de evidencia y el servicio afectado.<br>Aquí verás la hipótesis y las señales que la respaldan.</p>
             <div class="empty-legend"><span>Logs</span><span>Métricas</span><span>Trazas</span>
             </div>
           </section>
@@ -131,6 +222,8 @@
                   </tbody>
                 </table>
               </div>
+              <label class="page-size-label" for="evidence-size">Señales por página <select id="evidence-size"><option>10</option><option>15</option><option>20</option><option>25</option><option>50</option><option>100</option></select></label>
+              <nav id="evidence-pagination" class="evidence-pagination" aria-label="Páginas de evidencia" hidden><button id="evidence-prev" type="button">← Anterior</button><span id="evidence-page" role="status"></span><button id="evidence-next" type="button">Siguiente →</button></nav>
               <p id="no-evidence" class="hint" hidden>No se recibieron señales en esta consulta.</p>
             </div>
             <div class="panel decisions-panel">
@@ -155,9 +248,9 @@
           </section>
         </div>
       </section>
-      <section class="panel history-panel">
+      <section class="panel history-panel" id="session-history">
         <div class="section-title">
-          <h2>Pruebas de esta sesión</h2>
+          <h2>Historial de investigaciones</h2>
           <span class="quiet">Últimas 50 · memoria del servidor</span>
         </div>
         <p id="history-empty" class="hint">Todavía no hay análisis. Los resultados aparecerán aquí.</p>
@@ -167,5 +260,6 @@
       <footer><span>TiderOps · Consola de diagnóstico</span><span>Grafo LangGraph / ChaosForge</span>
       </footer>
     </main>
+
   </body>
 </html>

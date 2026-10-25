@@ -12,6 +12,7 @@ from tider.llm import LLM, AnthropicLLM, ScriptedLLM
 from tider.tools.base import Tool, ToolRegistry
 
 from .baseline import diagnose
+from .catalog_diagnosis import diagnose_catalog
 from .explanation import explain
 from .models import Analysis, AnalyzeRequest, Signal, WorkflowResult
 from .settings import Settings
@@ -58,8 +59,9 @@ def baseline_model(baseline: Analysis, service: str) -> ScriptedLLM:
 
 
 class LabEngine:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, context_lake=None):
         self.settings = settings
+        self.context_lake = context_lake
 
     def _model(self, baseline: Analysis, service: str) -> LLM:
         if self.settings.llm_provider == "none":
@@ -69,7 +71,12 @@ class LabEngine:
         return AnthropicLLM(model=self.settings.tider_model)
 
     def analyze(self, request: AnalyzeRequest, evidence: list[Signal]) -> Analysis:
-        baseline = diagnose(request.incident_id, request.service, evidence)
+        service = request.service or "general"
+        snapshot = self.context_lake.catalog() if self.context_lake else None
+        if snapshot is not None and snapshot["status"] != "empty" and (request.mode or self.settings.evidence_mode) != "mock":
+            baseline = diagnose_catalog(request.incident_id, service, evidence, snapshot.get("confirmed") or {})
+        else:
+            baseline = diagnose(request.incident_id, service, evidence)
         registry = ToolRegistry()
         for kind in SIGNAL_KINDS:
             records = [signal.model_dump(mode="json") for signal in evidence if signal.source == kind]
@@ -83,14 +90,14 @@ class LabEngine:
         ingest_dir(store, Path(str(files("tider.console").joinpath("resources/context"))))
         policy = load_policy()
         policy["namespaces"] = [self.settings.gcp_namespace]
-        model = self._model(baseline, request.service)
+        model = self._model(baseline, service)
         graph = build_graph(Deps(model, store, registry, policy), observation_only=True)
         # HTTP owns failures; run_alert's external escalation is intentionally not used.
         state = graph.invoke(
             {
                 "alert": {
                     "name": request.incident_id,
-                    "service": request.service,
+                    "service": service,
                     "namespace": self.settings.gcp_namespace,
                     "starts_at": request.start.isoformat(),
                     "annotations": {"summary": "Análisis de evidencia en Online Boutique"},

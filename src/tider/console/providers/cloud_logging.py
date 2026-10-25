@@ -1,6 +1,7 @@
 """Cloud Logging adapter: bounded reads scoped to the configured lab."""
 
 import json
+from itertools import chain
 from datetime import datetime, timezone
 
 from ..models import Signal
@@ -9,7 +10,9 @@ from .catalog import related_services
 from .redaction import sanitize
 
 
-def gcp_filter(service: str, start: datetime, end: datetime, settings: Settings) -> str:
+def gcp_filter(
+    service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None
+) -> str:
     q = json.dumps
     fields = {
         "resource.type": "k8s_container",
@@ -23,11 +26,26 @@ def gcp_filter(service: str, start: datetime, end: datetime, settings: Settings)
         f"timestamp >= {q(start.astimezone(timezone.utc).isoformat())}",
         f"timestamp <= {q(end.astimezone(timezone.utc).isoformat())}",
     ]
-    labels = " OR ".join(f'labels."k8s-pod/app"={q(s)}' for s in related_services(service))
+    labels = " OR ".join(
+        f'labels."k8s-pod/app"={q(s)}'
+        for s in (services if services is not None else related_services(service))
+    )
     return " AND ".join([*clauses, "(" + labels + ")"])
 
 
-def gcp_signals(service: str, start: datetime, end: datetime, settings: Settings) -> list[Signal]:
+# Match structured errors as well as applications that log failures at INFO.
+ERROR_FILTER = '(' + ' OR '.join([
+    'severity >= ERROR',
+    '(jsonPayload.error:* AND NOT jsonPayload.error="")',
+    'jsonPayload.level=~"(?i)^(error|fatal|critical)$"',
+    *[f'{field}=~"(?i)(error|exception|failed|failure|unavailable|connection refused|deadline exceeded|timeout)"'
+      for field in ('textPayload', 'jsonPayload.message', 'jsonPayload.msg')],
+]) + ')'
+
+
+def gcp_signals(
+    service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None
+) -> list[Signal]:
     if settings.evidence_mode != "gcp":
         raise ValueError("Activa EVIDENCE_MODE=gcp en el servidor para consultar Cloud Logging.")
     if not settings.google_cloud_project:
@@ -38,15 +56,36 @@ def gcp_signals(service: str, start: datetime, end: datetime, settings: Settings
     signals = []
     try:
         entries = client.list_entries(
-            filter_=gcp_filter(service, start, end, settings),
+            filter_=gcp_filter(service, start, end, settings, services) + " AND " + ERROR_FILTER,
             order_by="timestamp desc",
             page_size=min(settings.gcp_log_limit, 100),
-            max_results=settings.gcp_log_limit,
+            max_results=None,
         )
+        # The SDK iterator follows every page token; page_size is not a total cap.
+        iterator = iter(entries)
+        first = next(iterator, None)
+        if first is None:
+            # No matching errors: retain a bounded normal-activity sample.
+            entries = client.list_entries(
+                filter_=gcp_filter(service, start, end, settings, services),
+                order_by="timestamp desc", page_size=min(settings.gcp_log_limit, 100),
+                max_results=settings.gcp_log_limit,
+            )
+        else:
+            entries = chain([first], iterator)
         for entry in entries:
             payload = entry.payload
             if isinstance(payload, dict):
-                message = payload.get("message") or payload.get("msg") or payload.get("error") or ""
+                # Keep diagnostic details before the general message so truncation
+                # cannot hide the error behind a long request description.
+                parts = []
+                for key in ("error", "message", "msg"):
+                    value = payload.get(key)
+                    if value:
+                        part = sanitize(str(value))
+                        if part not in parts:
+                            parts.append(part)
+                message = " | ".join(parts) or sanitize(json.dumps(payload, ensure_ascii=False))
             else:
                 message = payload if isinstance(payload, str) else ""
             if not message:

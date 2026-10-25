@@ -1,6 +1,6 @@
 # Pruebas del agente
 
-Ejecutar desde `project/tider`, después de `make setup`:
+Ejecutar desde `project/code/tider`, después de `make setup`:
 
 ```bash
 make test
@@ -83,3 +83,36 @@ el build y comprobar `/health` en el contenedor.
 
 Estas comprobaciones se ejecutaron con evidencia y respuestas locales. Las pruebas
 con telemetría del laboratorio y un modelo externo se describen en el roadmap.
+
+## Context Lake · primera etapa
+
+`tests/console/test_context_lake.py` comprueba Chroma efímero con embeddings
+locales deterministas: aislamiento, recuperación con procedencia, duplicados,
+retirada, formatos, límites y rechazo de entidades XML. Incluye diagramas draw.io
+comprimidos y sin comprimir. No descarga modelos durante la suite.
+
+Validación local de esta implementación: 73 pruebas aprobadas; lint y formato de
+`src` y `tests` correctos. Prueba separada con el modelo de embeddings real:
+una consulta de carrito recuperó antes su documento que el documento de pagos.
+Esto es una comprobación funcional, no un benchmark de recuperación.
+
+Navegador: carga Markdown, búsqueda, conservación tras recargar, retirada y carga
+por arrastre de draw.io verificadas. Sin errores JavaScript; sin desbordamiento a
+390, 768, 1024 y 1440 píxeles. Los documentos de prueba fueron retirados.
+
+## Catálogo documental revisable
+
+`tests/console/test_catalog_review.py` verifica extracción estructurada, fuentes,
+agrupación, estado pendiente, confirmación, corrección de nombres, descarte,
+invalidación al cambiar documentos, rechazo de revisiones antiguas y alcance de
+logs por vecinos directos confirmados. Las llamadas cloud se simulan.
+
+Se comprobó en un servidor local de prueba separado: confirmar cinco candidatos
+tras renombrar uno y excluir otro actualiza el selector; recargar conserva la
+revisión; añadir un documento invalida la confirmación y deshabilita el análisis
+GKE hasta revisar de nuevo. La revisión se ajusta a escritorio y móvil de 390 px.
+Los cambios de prueba no se aplicaron al catálogo de la sesión del usuario.
+
+Mapa visual: seis nodos renderizados con las fuentes cargadas, actualización al
+renombrar, acceso a fuente al seleccionar nodo y revisión sin desbordamiento en
+móvil. Suite final de catálogo: 79 pruebas aprobadas; lint y formato correctos.

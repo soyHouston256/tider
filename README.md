@@ -30,7 +30,7 @@ rondas de investigación, JSON descargable e historial de 50 análisis en memori
 ## Dónde está cada cosa
 
 ```text
-project/tider/
+project/code/tider/
 ├── src/tider/
 │   ├── graph.py              # Sólo construcción del grafo y punto de entrada
 │   ├── state.py              # Contratos del estado, hipótesis, veredicto y decisión
@@ -74,6 +74,15 @@ project/tider/
 | [Pruebas](docs/testing.md) | Casos, comandos y comprobación manual de la consola |
 | [Motor operativo](docs/engine.md) | Webhook Alertmanager, política, ejecutores, contexto y evaluación |
 | [Siguiente integración](docs/roadmap.md) | Conectores y evaluación del laboratorio real |
+
+## Context Lake en memoria
+
+La consola incluye un panel plegable para cargar Markdown y draw.io y buscar
+fragmentos con su fuente. Usa Chroma en memoria y embeddings locales; la primera
+carga descarga el modelo. El índice se pierde al reiniciar el servidor.
+El botón Revisar catálogo propone servicios y relaciones con fuentes para tu
+confirmación. Ese catálogo alimenta el selector GKE y orienta la consulta de logs;
+el diagnóstico sigue por reglas y aún no razona sobre los documentos cargados. Ver [alcance y límites](docs/context-lake.md).
 
 ## Configuración opcional
 

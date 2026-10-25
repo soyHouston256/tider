@@ -19,7 +19,14 @@ def diagnose(incident_id: str, service: str, evidence: list[Signal]) -> Analysis
         s
         for s in errors
         if s.service in {"frontend", "checkoutservice", "cartservice"}
-        and re.search(r"cartservice.{0,60}(no available endpoints|connection refused)", s.message, re.I)
+        and (
+            re.search(r"cartservice.{0,60}(no available endpoints|connection refused)", s.message, re.I)
+            or (
+                re.search(r"could not retrieve cart:\s*rpc error:", s.message, re.I)
+                and re.search(r"\bcode\s*=\s*Unavailable\b", s.message, re.I)
+                and re.search(r"\bconnection refused\b", s.message, re.I)
+            )
+        )
     ]
     if redis and not cart:
         return Analysis(
@@ -33,7 +40,7 @@ def diagnose(incident_id: str, service: str, evidence: list[Signal]) -> Analysis
     if cart and not redis:
         return Analysis(
             incident_id=incident_id,
-            hypothesis="Cart Service no tiene un endpoint disponible.",
+            hypothesis="Cart Service no es accesible desde el servicio que reporta el error.",
             component="cartservice",
             confidence=0.7,
             evidence=evidence,

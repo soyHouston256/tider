@@ -105,3 +105,13 @@ histórica del prototipo y sus resultados; no es el paquete de ejecución actual
   nuevos, `decision/policy.py`. Cubrir su aceptación y rechazo en pruebas.
 - **Una vista:** cambiar `static/`; usar `textContent` para contenido recibido.
   La UI muestra el contrato de la API, sin recalcular sus veredictos.
+
+## Recuperación documental de sesión
+
+La consola incorpora un panel Context Lake con API propia y una colección
+Chroma efímera por aplicación. `console/context_lake.py` extrae Markdown y texto
+estructural de draw.io, divide fragmentos y conserva su procedencia. El modelo de
+embeddings se ejecuta localmente. La recuperación documental sigue separada del diagnóstico. Un catálogo revisable
+extrae candidatos estructurados, conserva fuentes y exige confirmación humana.
+El catálogo confirmado alimenta la selección GKE y sus vecinos directos delimitan
+la consulta de logs. No sustituye todavía el contexto empaquetado del grafo. Ver [alcance del Context Lake](context-lake.md).

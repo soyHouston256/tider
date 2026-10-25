@@ -27,7 +27,7 @@ un paquete instalable. No se copian campañas, servicios externos ni efectos al 
 `tider-mock/tiderops/agents/rca/app`, con dos listas de dependencias y `PYTHONPATH`
 manual. El Dockerfile dependía de la raíz completa del workspace.
 
-**Decisión:** mantener `project/tider`, que ya contiene el repositorio del motor,
+**Decisión:** mantener una raíz canónica (actualmente `project/code/tider`), que ya contiene el repositorio del motor,
 y absorber allí la consola en `src/tider/console`. Un `pyproject.toml` describe las
 capacidades y `uv.lock` fija las versiones. HTML, CSS, JSON, Markdown de contexto,
 política YAML y esquema SQL forman parte del paquete distribuible.

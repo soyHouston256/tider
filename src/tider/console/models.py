@@ -20,7 +20,8 @@ class Signal(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     incident_id: str = Field(min_length=1, max_length=128)
-    service: str = Field(min_length=1, max_length=63, pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$")
+    scope: Literal["focused", "general"] = "focused"
+    service: str | None = Field(default=None, min_length=1, max_length=63, pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$")
     start: datetime
     end: datetime
     mode: Literal["mock", "gcp"] | None = None
@@ -28,6 +29,10 @@ class AnalyzeRequest(BaseModel):
 
     @model_validator(mode="after")
     def valid_window(self):
+        if self.scope == "focused" and not self.service:
+            raise ValueError("Selecciona un servicio para el análisis enfocado.")
+        if self.scope == "general":
+            self.service = None
         if self.start.tzinfo is None or self.end.tzinfo is None:
             raise ValueError("Las fechas deben incluir zona horaria.")
         if self.start >= self.end or self.end - self.start > timedelta(hours=2):
@@ -58,6 +63,7 @@ class WorkflowResult(BaseModel):
 
 
 class Analysis(BaseModel):
+    scope: Literal["focused", "general"] = "focused"
     incident_id: str
     hypothesis: str
     component: str

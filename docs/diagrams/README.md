@@ -356,7 +356,7 @@ La organización separa la presentación, el caso de uso, los adaptadores del la
 2. La lógica de diagnóstico por reglas está en baseline.py; las instrucciones de agentes están en prompts.py; los permisos de acciones están en decision/.
 3. Las pruebas de consola y del motor se ejecutan juntas, usando el paquete instalado.
 
-**Decisiones relacionadas:** D01: raíz canónica en project/tider. D02: separar módulos por responsabilidad, sin otro orquestador.
+**Decisiones relacionadas:** D01: raíz canónica en project/code/tider. D02: separar módulos por responsabilidad, sin otro orquestador.
 
 **Código:** [src/tider/console/static/js/app.js](../../src/tider/console/static/js/app.js), [src/tider/console/api.py](../../src/tider/console/api.py), [src/tider/console/analysis.py](../../src/tider/console/analysis.py), [src/tider/graph.py](../../src/tider/graph.py), [src/tider/agents/prompts.py](../../src/tider/agents/prompts.py).
 

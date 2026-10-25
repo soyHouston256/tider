@@ -237,7 +237,7 @@
         "Las pruebas de consola y del motor se ejecutan juntas, usando el paquete instalado."
       ],
       "decisions": [
-        "D01: raíz canónica en project/tider.",
+        "D01: raíz canónica en project/code/tider.",
         "D02: separar módulos por responsabilidad, sin otro orquestador."
       ],
       "files": [

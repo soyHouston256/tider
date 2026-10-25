@@ -6,7 +6,7 @@ flowchart LR
     graphold["graph.py con cuerpos de ejecución<br/>Prompts dentro de agentes"]
     audit["Decisiones en JSON<br/>Interpretación manual"]
   end
-  subgraph now["Ahora · project/tider"]
+  subgraph now["Ahora · project/code/tider"]
     package["D01 · Paquete instalable<br/>pyproject.toml + uv.lock"]
     service["D03 · api.py + service.py<br/>Dependencias e historial por instancia"]
     providers["D03 · providers/ + resources/<br/>Conectores y datos separados"]

@@ -56,6 +56,7 @@ class AnalysisService:
             raise
         except Exception as exc:
             raise AnalysisUnavailable("No se pudo completar el análisis.") from exc
+        result.scope = request.scope
         result.evidence_mode = request.mode or self.settings.evidence_mode
         result.run_id = uuid4().hex
         result.elapsed_ms = round((perf_counter() - started) * 1000, 2)
