@@ -19,6 +19,7 @@ class Signal(BaseModel):
 
 
 class AnalyzeRequest(BaseModel):
+    objective: str = Field(default="Investiga el incidente y determina qué evidencia falta.", max_length=2000)
     incident_id: str = Field(min_length=1, max_length=128)
     scope: Literal["focused", "general"] = "focused"
     service: str | None = Field(default=None, min_length=1, max_length=63, pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$")
@@ -80,4 +81,5 @@ class Analysis(BaseModel):
     run_id: str = ""
     analyzed_at: datetime | None = None
     workflow: WorkflowResult = Field(default_factory=WorkflowResult)
+    investigation: dict = Field(default_factory=dict)
     decision_steps: list[DecisionStep] = Field(default_factory=list)

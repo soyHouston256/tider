@@ -2,7 +2,7 @@ import { replayFlow } from './flow.js';
 import './catalog.js';
 import './context.js';
 /** Form interactions and session state. Rendering and HTTP have separate modules. */
-import { fetchJSON, analyzeIncident } from './api.js';
+import { fetchJSON, analyzeIncident, investigateIncident } from './api.js';
 import { $, node, renderFlow, showResult, renderHistory } from './render.js';
 
 let configuration;
@@ -103,6 +103,7 @@ function buildRequest() {
     throw new Error('Elige una ventana positiva de hasta dos horas.');
   }
   return {
+    objective: $('objective').value.trim() || "Investiga el incidente y determina qué evidencia falta.",
     incident_id: $('incident').value.trim(), scope: selectedScope(), service: selectedScope() === 'general' ? null : $('service').value,
     mode: $('mode').value, scenario: $('scenario').value,
     start: start.toISOString(), end: end.toISOString(),
@@ -127,9 +128,20 @@ async function submitAnalysis(event) {
   $('run').textContent = 'Analizando…';
   $('flow-status').textContent = 'Procesando evidencia…';
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120000);
+  const timeout = setTimeout(() => controller.abort(), 330000);
   try {
-    const result = await analyzeIncident(buildRequest(), controller.signal);
+    const agentic = configuration.reasoning_mode !== 'none';
+    const observedSteps=[];
+    const result = agentic
+      ? await investigateIncident(buildRequest(), controller.signal, step => {
+          if(version!==viewVersion)return;
+          observedSteps.push({agent:step.stage,outcome:step.title});
+          renderFlow(observedSteps,true);
+          $('flow-status').textContent=step.title;
+          $('flow-caption').textContent='Investigación adaptativa · eventos reales';
+          $('flow-detail').textContent=step.outcome+' · '+step.reason;
+        })
+      : await analyzeIncident(buildRequest(), controller.signal);
     clearTimeout(timeout);
     runs = [result, ...runs].slice(0, configuration.history_limit);
     updateHistory();
@@ -137,7 +149,7 @@ async function submitAnalysis(event) {
     if (version === viewVersion) {
       playback = new AbortController();
       $('run').textContent = 'Mostrando recorrido…';
-      await replayFlow(result, playback.signal);
+      if(result.reasoning_mode !== 'agentic') await replayFlow(result, playback.signal);
       if (version === viewVersion) selectResult(result);
     }
   } catch (error) {
@@ -173,6 +185,8 @@ async function init() {
   try {
     configuration = await fetchJSON('/v1/lab/config');
     for (const id of ['project', 'cluster', 'namespace']) $(id).textContent = configuration[id];
+    $('objective').disabled = configuration.reasoning_mode === 'none';
+    $('objective').placeholder = configuration.reasoning_mode === 'none' ? 'Activa un modelo para investigar un síntoma libre.' : 'La compra falla; investiga qué componente está implicado.';
     $('reasoning').textContent = configuration.reasoning_mode === 'none' ? 'Baseline por reglas' : configuration.model;
     const gcpOption = new Option('Logs de GKE', 'gcp');
     gcpOption.disabled = !configuration.gcp_enabled;
@@ -208,7 +222,7 @@ $('flow-replay').addEventListener('click', async () => {
   updateServices();
   playback = new AbortController();
   try {
-    await replayFlow(result, playback.signal);
+    if(result.reasoning_mode !== 'agentic') await replayFlow(result, playback.signal);
     if (version === viewVersion) selectResult(result);
   } finally {
     analyzing = false;

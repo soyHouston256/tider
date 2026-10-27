@@ -19,8 +19,9 @@ function icon(id) {
   for(const [k,v] of Object.entries({viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.6','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'})) svg.setAttribute(k,v);
   const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',paths[id]);svg.append(path);return svg;
 }
-export function renderFlow(audit=[]) {
-  $('flow').replaceChildren(...stages.map(([id,label])=>{
+export function renderFlow(audit=[], adaptive=false) {
+  const displayed=adaptive ? audit.map((e,i)=>[e.agent,`${i+1}. ${e.agent==='investigator' ? 'Consulta' : e.agent==='judge' ? 'Evaluación' : e.agent==='reporter' ? 'Conclusión' : 'Objetivo'}`]) : stages;
+  $('flow').replaceChildren(...displayed.map(([id,label])=>{
     const events=audit.filter(e=>e.agent===id), event=events.at(-1);
     const item=document.createElement('li');item.dataset.stage=id;
     item.className=event ? event.skipped ? 'skipped' : 'complete' : '';

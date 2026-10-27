@@ -1,8 +1,9 @@
 """Cloud Logging adapter: bounded reads scoped to the configured lab."""
 
 import json
-from itertools import chain
 from datetime import datetime, timezone
+from itertools import chain
+from time import monotonic
 
 from ..models import Signal
 from ..settings import Settings
@@ -44,36 +45,45 @@ ERROR_FILTER = '(' + ' OR '.join([
 
 
 def gcp_signals(
-    service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None
+    service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None,
+    max_records: int | None = None, text: str = "", errors_only: bool = True, deadline: float | None = None,
 ) -> list[Signal]:
     if settings.evidence_mode != "gcp":
         raise ValueError("Activa EVIDENCE_MODE=gcp en el servidor para consultar Cloud Logging.")
     if not settings.google_cloud_project:
         raise ValueError("GOOGLE_CLOUD_PROJECT es obligatorio.")
-    from google.cloud import logging_v2
-
-    client = logging_v2.Client(project=settings.google_cloud_project)
+    if max_records is not None and settings.agent_logging_transport == "mcp":
+        from .logging_mcp import LoggingMCPClient
+        client = LoggingMCPClient(settings.google_cloud_project, deadline=deadline)
+    else:
+        from google.cloud import logging_v2
+        client = logging_v2.Client(project=settings.google_cloud_project)
     signals = []
     try:
+        base = gcp_filter(service, start, end, settings, services)
+        if text:
+            base += " AND " + json.dumps(text)
         entries = client.list_entries(
-            filter_=gcp_filter(service, start, end, settings, services) + " AND " + ERROR_FILTER,
+            filter_=base + (" AND " + ERROR_FILTER if errors_only else ""),
             order_by="timestamp desc",
             page_size=min(settings.gcp_log_limit, 100),
-            max_results=None,
+            max_results=max_records,
         )
         # The SDK iterator follows every page token; page_size is not a total cap.
         iterator = iter(entries)
         first = next(iterator, None)
-        if first is None:
+        if first is None and max_records is None:
             # No matching errors: retain a bounded normal-activity sample.
             entries = client.list_entries(
-                filter_=gcp_filter(service, start, end, settings, services),
+                filter_=base,
                 order_by="timestamp desc", page_size=min(settings.gcp_log_limit, 100),
                 max_results=settings.gcp_log_limit,
             )
         else:
-            entries = chain([first], iterator)
+            entries = chain([first], iterator) if first is not None else []
         for entry in entries:
+            if deadline is not None and monotonic() >= deadline:
+                raise TimeoutError("Presupuesto de consulta agotado; evidencia incompleta descartada.")
             payload = entry.payload
             if isinstance(payload, dict):
                 # Keep diagnostic details before the general message so truncation

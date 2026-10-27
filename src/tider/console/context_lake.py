@@ -184,6 +184,12 @@ class ContextLake:
                 if relevant(query, text, distance)
             ][:k]
 
+    def snapshot_documents(self):
+        """Freeze source text and metadata for one investigation, without embeddings."""
+        with self.lock:
+            data = self.collection.get(include=["documents", "metadatas"])
+            return [dict(meta, text=text) for meta, text in zip(data["metadatas"], data["documents"])]
+
     def catalog(self):
         with self.lock:
             return deepcopy(

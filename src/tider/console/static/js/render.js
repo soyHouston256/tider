@@ -50,11 +50,12 @@ function renderDecisions(steps) {
 export function showResult(result) {
   $('empty-state').hidden = true;
   $('result').hidden = false;
-  renderFlow(result.workflow.audit);
+  renderFlow(result.workflow.audit, result.reasoning_mode === 'agentic');
   $('flow-status').textContent = 'Recorrido registrado';
   $('flow-caption').textContent = 'Registro del análisis · la reproducción visual no altera su duración real';
   $('flow-detail').textContent = '';
-  $('flow-replay').hidden = false;
+  $('flow-replay').hidden = result.reasoning_mode === 'agentic';
+  if(result.reasoning_mode === 'agentic') $('flow-caption').textContent='Consultas y comprobaciones reales · sin reparaciones ejecutadas';
   $('hypothesis').textContent = result.hypothesis;
   $('component').textContent = result.status === 'hypothesis' ? result.component : 'Sin determinar';
   $('confidence').textContent = Math.round(result.confidence * 100) + ' %';
@@ -71,7 +72,7 @@ export function showResult(result) {
   renderDecisions(result.decision_steps);
   $('decision').textContent = result.workflow.decision?.reason || '';
   $('execution').textContent = 'Acciones ejecutadas: 0 · Revisión humana requerida';
-  $('audit').textContent = JSON.stringify(result.workflow, null, 2);
+  $('audit').textContent = JSON.stringify({workflow:result.workflow, investigation:result.investigation}, null, 2);
 }
 
 export function renderHistory(runs, onSelect) {

@@ -1,10 +1,13 @@
 """HTTP boundary and application factory. Business decisions live in the service."""
 
+import json
 from importlib.resources import files
+from queue import Queue
+from threading import Thread
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -41,7 +44,7 @@ def create_app(settings: Settings | None = None, service: AnalysisService | None
 
     @app.middleware("http")
     async def response_headers(request, call_next):
-        if request.url.path.startswith("/v1/context") and request.method in {"POST", "DELETE"}:
+        if request.url.path.startswith(("/v1/context", "/v1/incidents")) and request.method in {"POST", "DELETE"}:
             origin = request.headers.get("origin")
             if origin and origin != str(request.base_url).rstrip("/"):
                 from fastapi.responses import JSONResponse
@@ -126,6 +129,34 @@ def create_app(settings: Settings | None = None, service: AnalysisService | None
             raise HTTPException(
                 503, "No se pudo completar el análisis. Revisa el motor y la configuración del modelo."
             ) from None
+
+    @app.post("/v1/incidents/investigate-stream")
+    def investigate_stream(request: AnalyzeRequest):
+        if settings.llm_provider == "none":
+            raise HTTPException(400, "Activa un modelo para usar la investigación adaptativa.")
+        queue = Queue()
+
+        def run():
+            try:
+                result = service.analyze(request, emit=queue.put)
+                queue.put({"type": "result", "result": result.model_dump(mode="json")})
+            except ValueError as exc:
+                queue.put({"type": "error", "message": str(exc)})
+            except Exception:
+                queue.put({"type": "error", "message": "No se pudo completar la investigación. Revisa conexiones y modelo."})
+            finally:
+                queue.put(None)
+
+        Thread(target=run, daemon=True).start()
+
+        def stream():
+            while True:
+                item = queue.get()
+                if item is None:
+                    break
+                yield json.dumps(item, ensure_ascii=False) + "\n"
+
+        return StreamingResponse(stream(), media_type="application/x-ndjson")
 
     @app.get("/v1/context/catalog")
     def context_catalog():

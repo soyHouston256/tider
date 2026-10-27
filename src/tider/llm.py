@@ -27,7 +27,7 @@ class AnthropicLLM:
     def __init__(self, model: str | None = None, temperature: float = 0.0):
         import anthropic
 
-        self.client = anthropic.Anthropic()
+        self.client = anthropic.Anthropic(timeout=25.0, max_retries=0)
         self.model = model or env("TIDER_MODEL", "claude-sonnet-5-5")
         self.temperature = temperature
 
@@ -35,7 +35,6 @@ class AnthropicLLM:
         r = self.client.messages.create(
             model=self.model,
             max_tokens=2000,
-            temperature=self.temperature,
             system=system,
             messages=[{"role": "user", "content": user}],
         )

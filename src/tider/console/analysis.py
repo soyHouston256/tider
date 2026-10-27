@@ -63,6 +63,11 @@ class LabEngine:
         self.settings = settings
         self.context_lake = context_lake
 
+    def analyze_live(self, request: AnalyzeRequest, emit=None) -> Analysis:
+        from .agentic import AgenticEngine
+
+        return AgenticEngine(self.settings, self.context_lake).analyze_live(request, emit=emit)
+
     def _model(self, baseline: Analysis, service: str) -> LLM:
         if self.settings.llm_provider == "none":
             return baseline_model(baseline, service)

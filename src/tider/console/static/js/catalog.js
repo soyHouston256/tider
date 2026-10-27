@@ -144,6 +144,12 @@ loadCatalogPage();
 
 let selectedDiagnosis;
 function markDiagnosis() {
+  const historical=selectedDiagnosis?.investigation?.catalog?.confirmed;
+  if(historical) {
+    renderCatalogMap(el('architecture-map'), historical.services.map(s=>({...s,original:s.name,name:{value:s.name},check:{checked:true}})),
+      historical.relations.map(r=>({...r,source:{value:r.source},target:{value:r.target},label:{value:r.label},check:{checked:true}})),()=>{});
+    el('architecture-status').textContent='Catálogo conservado con esta investigación';
+  }
   const nodes = [...el('architecture-map').querySelectorAll('[data-service]')];
   nodes.forEach(n=>n.classList.remove('diagnosis-component'));
   const note = el('architecture-diagnosis');
@@ -154,6 +160,6 @@ function markDiagnosis() {
   const match = nodes.find(n => n.dataset.service === component);
   if (match) match.classList.add('diagnosis-component');
   const source = result.evidence_mode === 'mock' ? 'Simulación' : 'Logs reales';
-  note.textContent = `${source} · ${result.incident_id} · ` + (match ? `Rojo: ${component}, componente señalado por la hipótesis.` : component ? `El componente ${component} no aparece en el catálogo actual.` : 'Sin componente respaldado para resaltar.') + ' Mapa documental actual; no indica salud en vivo.';
+  note.textContent = `${source} · ${result.incident_id} · ` + (match ? `Rojo: ${component}, componente señalado por la hipótesis.` : component ? `El componente ${component} no aparece en el catálogo actual.` : 'Sin componente respaldado para resaltar.') + (historical ? ' Mapa documental conservado del incidente; no indica salud en vivo.' : ' Mapa documental actual; no indica salud en vivo.');
 }
-document.addEventListener('diagnosis-selected',event=>{selectedDiagnosis=event.detail;markDiagnosis();});
+document.addEventListener('diagnosis-selected',event=>{const hadSnapshot=Boolean(selectedDiagnosis?.investigation?.catalog?.confirmed);selectedDiagnosis=event.detail;if(hadSnapshot&&!selectedDiagnosis?.investigation?.catalog?.confirmed)refresh().catch(()=>markDiagnosis());else markDiagnosis();});
