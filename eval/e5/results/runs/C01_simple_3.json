@@ -1,0 +1,80 @@
+{
+  "case": "C01",
+  "segment": "explicit",
+  "method": "simple",
+  "repeat": 3,
+  "model": "claude-haiku-5-5",
+  "started_at_utc": "2026-10-29T18:07:27.104365+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "component": "redis-cart",
+    "status": "hypothesis",
+    "executed": false,
+    "raw": {
+      "component": "redis-cart",
+      "finding": "S02 indica directamente que el listener de Redis dejó de aceptar conexiones, y S01 (cartservice) muestra 'connection refused' hacia redis-cart:6379 con fallo de GetCart, lo que es consistente con ese síntoma. Límites: no hay evidencia sobre la causa de la detención del listener (proceso, configuración, recursos o red) ni métricas de redis-cart; cartservice se considera afectado, no causa.",
+      "cites": [
+        "S01",
+        "S02"
+      ]
+    }
+  },
+  "calls": [
+    {
+      "agent": "single_llm",
+      "prompt_sha256": "4efd0a6956a0bdbd046ca9903b79ee6213ada963406b6304f6229d00df800093",
+      "response_text": "{\"component\":\"redis-cart\",\"finding\":\"S02 indica directamente que el listener de Redis dejó de aceptar conexiones, y S01 (cartservice) muestra 'connection refused' hacia redis-cart:6379 con fallo de GetCart, lo que es consistente con ese síntoma. Límites: no hay evidencia sobre la causa de la detención del listener (proceso, configuración, recursos o red) ni métricas de redis-cart; cartservice se considera afectado, no causa.\",\"cites\":[\"S01\",\"S02\"]}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 686,
+        "output_tokens": 444,
+        "output_tokens_details": {
+          "thinking_tokens": 262
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 3.6593037080019712
+    }
+  ],
+  "wall_seconds": 3.6595394169853535
+}

@@ -1,0 +1,47 @@
+{
+  "case": "C07",
+  "segment": "insufficient",
+  "method": "rules",
+  "repeat": 1,
+  "model": null,
+  "started_at_utc": "2026-10-29T17:54:03.754795+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "component": "desconocido",
+    "status": "insufficient_evidence",
+    "executed": false
+  },
+  "calls": [],
+  "wall_seconds": 3.9292004657909274e-05
+}

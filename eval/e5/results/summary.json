@@ -1,0 +1,1232 @@
+{
+  "generated_at_utc": "2026-10-29T18:10:07.219610+00:00",
+  "manifest": {
+    "frozen_at_utc": "2026-10-29T17:51:20.626925+00:00",
+    "name": "E5-synthetic-v1",
+    "n_cases": 12,
+    "repetitions_llm": 3,
+    "seed_order": 42,
+    "seed_bootstrap": 1011,
+    "bootstrap_samples": 5000,
+    "segments": {
+      "explicit": 3,
+      "variation": 3,
+      "insufficient": 3,
+      "stress": 3
+    },
+    "provenance": "Authored synthetic evaluation suite; no SIBI telemetry. Not an independent held-out benchmark; authors know code and generated labels. No tuning after freeze.",
+    "files": {
+      "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+      "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+    },
+    "primary_metric": "case-averaged exact component-or-abstention accuracy; average 3 trials within case",
+    "countermetrics": [
+      "wrong non-abstaining answer / all trials",
+      "abstention rate",
+      "wall seconds",
+      "input/output tokens",
+      "API errors",
+      "actions executed"
+    ],
+    "decision_rule": "Before Nov21: assisted synthetic demo only if v0 accuracy >=0.80, wrong answer rate <=0.10, p95 wall time <=120s, executed actions=0 and offline replay matches. Real pilot requires authorized data, independent labels, user study and advisor scope approval. Otherwise no-go for pilot; retain honest demo.",
+    "limitations": "12 hand-authored cases, no training split because no training/fine-tuning; no statistical generalization to real incidents, no MTTR/cost reduction claim, no confidence calibration."
+  },
+  "methods": {
+    "agent": {
+      "n_cases": 12,
+      "n_trials": 36,
+      "correct": {
+        "mean": 0.9166666666666666,
+        "ci95": [
+          0.75,
+          1.0
+        ]
+      },
+      "wrong": {
+        "mean": 0.08333333333333333,
+        "ci95": [
+          0.0,
+          0.25
+        ]
+      },
+      "abstained": {
+        "mean": 0.25,
+        "ci95": [
+          0.0,
+          0.5
+        ]
+      },
+      "api_error": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "wall_seconds": {
+        "mean": 25.94893763897158,
+        "min": 15.537108541990165,
+        "max": 58.34292783300043,
+        "p50": 20.582710791990394,
+        "p95": 52.038055198245274,
+        "total": 934.1617550029769
+      },
+      "input_tokens": {
+        "mean": 8840.027777777777,
+        "min": 4994,
+        "max": 20993,
+        "p50": 7166.5,
+        "p95": 18591.75,
+        "total": 318241
+      },
+      "output_tokens": {
+        "mean": 4493.305555555556,
+        "min": 2103,
+        "max": 10999,
+        "p50": 3509.0,
+        "p95": 9563.5,
+        "total": 161759
+      },
+      "model_calls": 205,
+      "executed_actions": 0
+    },
+    "noop": {
+      "n_cases": 12,
+      "n_trials": 12,
+      "correct": {
+        "mean": 0.3333333333333333,
+        "ci95": [
+          0.08333333333333333,
+          0.5833333333333334
+        ]
+      },
+      "wrong": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "abstained": {
+        "mean": 1,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      },
+      "api_error": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "wall_seconds": {
+        "mean": 7.059358419307198e-05,
+        "min": 2.7583009796217084e-05,
+        "max": 0.0002921659906860441,
+        "p50": 5.0646005547605455e-05,
+        "p95": 0.00017620785220060485,
+        "total": 0.0008471230103168637
+      },
+      "input_tokens": {
+        "mean": 0,
+        "min": 0,
+        "max": 0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "total": 0
+      },
+      "output_tokens": {
+        "mean": 0,
+        "min": 0,
+        "max": 0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "executed_actions": 0
+    },
+    "rules": {
+      "n_cases": 12,
+      "n_trials": 12,
+      "correct": {
+        "mean": 0.6666666666666666,
+        "ci95": [
+          0.4166666666666667,
+          0.9166666666666666
+        ]
+      },
+      "wrong": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "abstained": {
+        "mean": 0.6666666666666666,
+        "ci95": [
+          0.4166666666666667,
+          0.9166666666666666
+        ]
+      },
+      "api_error": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "wall_seconds": {
+        "mean": 0.00011589949281187728,
+        "min": 3.9292004657909274e-05,
+        "max": 0.0004513339954428375,
+        "p50": 9.406250319443643e-05,
+        "p95": 0.0002810402453178538,
+        "total": 0.0013907939137425274
+      },
+      "input_tokens": {
+        "mean": 0,
+        "min": 0,
+        "max": 0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "total": 0
+      },
+      "output_tokens": {
+        "mean": 0,
+        "min": 0,
+        "max": 0,
+        "p50": 0.0,
+        "p95": 0.0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "executed_actions": 0
+    },
+    "simple": {
+      "n_cases": 12,
+      "n_trials": 36,
+      "correct": {
+        "mean": 0.9722222222222222,
+        "ci95": [
+          0.9166666666666666,
+          1.0
+        ]
+      },
+      "wrong": {
+        "mean": 0.027777777777777776,
+        "ci95": [
+          0.0,
+          0.08333333333333333
+        ]
+      },
+      "abstained": {
+        "mean": 0.3055555555555556,
+        "ci95": [
+          0.08333333333333333,
+          0.5555555555555556
+        ]
+      },
+      "api_error": {
+        "mean": 0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "wall_seconds": {
+        "mean": 3.0250599526350723,
+        "min": 1.4972190420085099,
+        "max": 5.019933959003538,
+        "p50": 3.0805959169956623,
+        "p95": 4.443920156249078,
+        "total": 108.9021582948626
+      },
+      "input_tokens": {
+        "mean": 690,
+        "min": 524,
+        "max": 776,
+        "p50": 690.5,
+        "p95": 776.0,
+        "total": 24840
+      },
+      "output_tokens": {
+        "mean": 461.1111111111111,
+        "min": 167,
+        "max": 966,
+        "p50": 469.5,
+        "p95": 841.0,
+        "total": 16600
+      },
+      "model_calls": 36,
+      "executed_actions": 0
+    }
+  },
+  "segments": {
+    "agent": {
+      "explicit": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 29.227700180665124,
+          "min": 15.546911792014726,
+          "max": 58.34292783300043,
+          "p50": 22.134333249996416,
+          "p95": 56.38917776659946,
+          "total": 263.0493016259861
+        },
+        "input_tokens": {
+          "mean": 9379.333333333334,
+          "min": 4994,
+          "max": 20993,
+          "p50": 7210.0,
+          "p95": 19601.0,
+          "total": 84414
+        },
+        "output_tokens": {
+          "mean": 5259.666666666667,
+          "min": 2559,
+          "max": 10999,
+          "p50": 3908.0,
+          "p95": 10606.6,
+          "total": 47337
+        },
+        "model_calls": 52,
+        "executed_actions": 0
+      },
+      "insufficient": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 0.6666666666666666,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0.3333333333333333,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "abstained": {
+          "mean": 0.6666666666666666,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 22.116130680667183,
+          "min": 15.537108541990165,
+          "max": 51.564556041994365,
+          "p50": 17.95646862499416,
+          "p95": 41.91885284199961,
+          "total": 199.04517612600466
+        },
+        "input_tokens": {
+          "mean": 8351.888888888889,
+          "min": 5959,
+          "max": 20214,
+          "p50": 6491.0,
+          "p95": 15530.799999999996,
+          "total": 75167
+        },
+        "output_tokens": {
+          "mean": 3541.222222222222,
+          "min": 2103,
+          "max": 9388,
+          "p50": 2640.0,
+          "p95": 7388.399999999998,
+          "total": 31871
+        },
+        "model_calls": 53,
+        "executed_actions": 0
+      },
+      "stress": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0.3333333333333333,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 30.73982161111134,
+          "min": 18.554540999990422,
+          "max": 50.314830582996365,
+          "p50": 21.410426084010396,
+          "p95": 49.76669929979835,
+          "total": 276.65839450000203
+        },
+        "input_tokens": {
+          "mean": 10561.444444444445,
+          "min": 5145,
+          "max": 18051,
+          "p50": 7314.0,
+          "p95": 16877.8,
+          "total": 95053
+        },
+        "output_tokens": {
+          "mean": 5344.666666666667,
+          "min": 2844,
+          "max": 9412,
+          "p50": 3617.0,
+          "p95": 8778.0,
+          "total": 48102
+        },
+        "model_calls": 56,
+        "executed_actions": 0
+      },
+      "variation": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 21.712098083442672,
+          "min": 15.921686000016052,
+          "max": 38.65934141699108,
+          "p50": 21.9061223329918,
+          "p95": 33.079406983387884,
+          "total": 195.40888275098405
+        },
+        "input_tokens": {
+          "mean": 7067.444444444444,
+          "min": 4996,
+          "max": 14750,
+          "p50": 6963.0,
+          "p95": 11779.599999999999,
+          "total": 63607
+        },
+        "output_tokens": {
+          "mean": 3827.6666666666665,
+          "min": 2775,
+          "max": 7264,
+          "p50": 3777.0,
+          "p95": 6137.999999999999,
+          "total": 34449
+        },
+        "model_calls": 44,
+        "executed_actions": 0
+      }
+    },
+    "noop": {
+      "explicit": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 5.095833330415189e-05,
+          "min": 3.3082993468269706e-05,
+          "max": 7.541701779700816e-05,
+          "p50": 4.4374988647177815e-05,
+          "p95": 7.231281488202512e-05,
+          "total": 0.00015287499991245568
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "insufficient": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 5.4916677375634514e-05,
+          "min": 3.287501749582589e-05,
+          "max": 8.133301162160933e-05,
+          "p50": 5.054200300946832e-05,
+          "p95": 7.825391076039523e-05,
+          "total": 0.00016475003212690353
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "stress": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 0.3333333333333333,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 3.9666328423966966e-05,
+          "min": 2.7583009796217084e-05,
+          "max": 5.7707977248355746e-05,
+          "p50": 3.370799822732806e-05,
+          "p95": 5.5307979346252976e-05,
+          "total": 0.00011899898527190089
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "variation": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 0.00013683299766853452,
+          "min": 5.075000808574259e-05,
+          "max": 0.0002921659906860441,
+          "p50": 6.758299423381686e-05,
+          "p95": 0.00026970769104082135,
+          "total": 0.00041049899300560355
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      }
+    },
+    "rules": {
+      "explicit": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 0.6666666666666666,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0.3333333333333333,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 0.00023109766577060023,
+          "min": 0.00010025000665336847,
+          "max": 0.0004513339954428375,
+          "p50": 0.00014170899521559477,
+          "p95": 0.0004203714954201132,
+          "total": 0.0006932929973118007
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "insufficient": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 5.0680653657764196e-05,
+          "min": 3.9292004657909274e-05,
+          "max": 7.270797505043447e-05,
+          "p50": 4.0041981264948845e-05,
+          "p95": 6.944137567188591e-05,
+          "total": 0.0001520419609732926
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "stress": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0.3333333333333333,
+          "ci95": [
+            0.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 0.00011498632375150919,
+          "min": 0.00010079197818413377,
+          "max": 0.00012766700820066035,
+          "p50": 0.00011649998486973345,
+          "p95": 0.00012655030586756767,
+          "total": 0.00034495897125452757
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      },
+      "variation": {
+        "n_cases": 3,
+        "n_trials": 3,
+        "correct": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 6.683332806763549e-05,
+          "min": 4.549999721348286e-05,
+          "max": 8.787499973550439e-05,
+          "p50": 6.712498725391924e-05,
+          "p95": 8.579999848734587e-05,
+          "total": 0.0002004999842029065
+        },
+        "input_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "output_tokens": {
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "total": 0
+        },
+        "model_calls": 0,
+        "executed_actions": 0
+      }
+    },
+    "simple": {
+      "explicit": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 3.081568555541,
+          "min": 2.1149409159843344,
+          "max": 3.780521124979714,
+          "p50": 3.178808582975762,
+          "p95": 3.7321284417819696,
+          "total": 27.734116999869002
+        },
+        "input_tokens": {
+          "mean": 683,
+          "min": 674,
+          "max": 689,
+          "p50": 686.0,
+          "p95": 689.0,
+          "total": 6147
+        },
+        "output_tokens": {
+          "mean": 457.22222222222223,
+          "min": 311,
+          "max": 545,
+          "p50": 444.0,
+          "p95": 539.0,
+          "total": 4115
+        },
+        "model_calls": 9,
+        "executed_actions": 0
+      },
+      "insufficient": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 1.918279666667028,
+          "min": 1.4972190420085099,
+          "max": 2.7701956249948125,
+          "p50": 1.7629795410030056,
+          "p95": 2.5548724417982154,
+          "total": 17.264517000003252
+        },
+        "input_tokens": {
+          "mean": 621.3333333333334,
+          "min": 524,
+          "max": 734,
+          "p50": 606.0,
+          "p95": 734.0,
+          "total": 5592
+        },
+        "output_tokens": {
+          "mean": 242.11111111111111,
+          "min": 167,
+          "max": 334,
+          "p50": 239.0,
+          "p95": 313.2,
+          "total": 2179
+        },
+        "model_calls": 9,
+        "executed_actions": 0
+      },
+      "stress": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 0.8888888888888888,
+          "ci95": [
+            0.6666666666666666,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0.1111111111111111,
+          "ci95": [
+            0.0,
+            0.3333333333333333
+          ]
+        },
+        "abstained": {
+          "mean": 0.2222222222222222,
+          "ci95": [
+            0.0,
+            0.6666666666666666
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 3.667671551109783,
+          "min": 2.8237709999957588,
+          "max": 5.019933959003538,
+          "p50": 3.301651000016136,
+          "p95": 4.870911125396378,
+          "total": 33.00904395998805
+        },
+        "input_tokens": {
+          "mean": 762.3333333333334,
+          "min": 752,
+          "max": 776,
+          "p50": 759.0,
+          "p95": 776.0,
+          "total": 6861
+        },
+        "output_tokens": {
+          "mean": 636,
+          "min": 388,
+          "max": 966,
+          "p50": 545.0,
+          "p95": 942.4,
+          "total": 5724
+        },
+        "model_calls": 9,
+        "executed_actions": 0
+      },
+      "variation": {
+        "n_cases": 3,
+        "n_trials": 9,
+        "correct": {
+          "mean": 1,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "wrong": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "abstained": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "api_error": {
+          "mean": 0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "wall_seconds": {
+          "mean": 3.4327200372224778,
+          "min": 2.888458166999044,
+          "max": 4.125680042023305,
+          "p50": 3.2431143749854527,
+          "p95": 4.086566025216598,
+          "total": 30.8944803350023
+        },
+        "input_tokens": {
+          "mean": 693.3333333333334,
+          "min": 690,
+          "max": 699,
+          "p50": 691.0,
+          "p95": 699.0,
+          "total": 6240
+        },
+        "output_tokens": {
+          "mean": 509.1111111111111,
+          "min": 455,
+          "max": 587,
+          "p50": 505.0,
+          "p95": 573.4,
+          "total": 4582
+        },
+        "model_calls": 9,
+        "executed_actions": 0
+      }
+    }
+  },
+  "paired_deltas": {
+    "noop": {
+      "n_cases": 12,
+      "mean": 0.5833333333333334,
+      "ci95": [
+        0.16666666666666666,
+        0.9166666666666666
+      ]
+    },
+    "rules": {
+      "n_cases": 12,
+      "mean": 0.25,
+      "ci95": [
+        -0.08333333333333333,
+        0.5833333333333334
+      ]
+    },
+    "simple": {
+      "n_cases": 12,
+      "mean": -0.05555555555555555,
+      "ci95": [
+        -0.25,
+        0.08333333333333334
+      ]
+    }
+  }
+}

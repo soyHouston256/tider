@@ -1,0 +1,533 @@
+{
+  "case": "C09",
+  "segment": "insufficient",
+  "method": "agent",
+  "repeat": 3,
+  "model": "claude-haiku-5-5",
+  "started_at_utc": "2026-10-29T18:05:48.262190+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "scope": "focused",
+    "incident_id": "C09",
+    "hypothesis": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.",
+    "component": "frontend",
+    "confidence": 0.7,
+    "evidence": [
+      {
+        "id": "S01",
+        "timestamp": "2026-10-20T12:05:00Z",
+        "service": "frontend",
+        "source": "log",
+        "message": "HTTP 500; no trace id or downstream evidence available",
+        "severity": "ERROR",
+        "trace_id": null
+      }
+    ],
+    "recommendation": "Buscar en frontend el trace id o la petición asociada al HTTP 500 de las 12:05 y seguir esa traza hacia los servicios downstream del catálogo. Ampliar la búsqueda a advertencias y a checkoutservice y paymentservice, y revisar si existen logs de redis-cart en la misma ventana.",
+    "status": "hypothesis",
+    "disclaimer": "Hipótesis para revisión humana. Sin remediación ejecutada.",
+    "evidence_mode": "mock",
+    "engine": "langgraph",
+    "reasoning_mode": "agentic",
+    "namespace": "boutique",
+    "elapsed_ms": 0.0,
+    "run_id": "",
+    "analyzed_at": null,
+    "workflow": {
+      "handler": "adaptive_investigation",
+      "context": [],
+      "hypothesis": {
+        "component": "frontend",
+        "reason": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.",
+        "propagation": [],
+        "evidence": [
+          {
+            "source": "search_logs",
+            "kind": "log",
+            "summary": "{\"groups\": [{\"service\": \"frontend\", \"source\": \"log\", \"message\": \"HTTP 500; no trace id or downstream evidence available\", \"count\": 1, \"first\": \"2026-10-20T12:05:00+00:00\", \"last\": \"2026-10-20T12:05:00+00:00\", \"signal_ids\": [\"S01\"]}], \"records\": 1, \"truncated\": false, \"total_groups\": 1, \"next_offset\": null, \"remaining_log_budget\": 99, \"start\": \"2026-10-20T12:00:00+00:00\", \"end\": \"2026-10-20T12:10:00+00:00\"}",
+            "ref": "Q2",
+            "data": {
+              "groups": [
+                {
+                  "service": "frontend",
+                  "source": "log",
+                  "message": "HTTP 500; no trace id or downstream evidence available",
+                  "count": 1,
+                  "first": "2026-10-20T12:05:00+00:00",
+                  "last": "2026-10-20T12:05:00+00:00",
+                  "signal_ids": [
+                    "S01"
+                  ]
+                }
+              ],
+              "records": 1,
+              "truncated": false,
+              "total_groups": 1,
+              "next_offset": null,
+              "remaining_log_budget": 99,
+              "start": "2026-10-20T12:00:00+00:00",
+              "end": "2026-10-20T12:10:00+00:00"
+            }
+          },
+          {
+            "source": "search_logs",
+            "kind": "empty",
+            "summary": "sin resultados",
+            "ref": "Q3",
+            "data": null
+          }
+        ],
+        "proposed_action": "escalate",
+        "action_params": {}
+      },
+      "verdict": {
+        "confidence": 0.7,
+        "supported": true,
+        "missing": [
+          "Un único registro de error; no hay volumen suficiente para caracterizar el patrón.",
+          "Sin trace id ni correlación, no se puede seguir la petición hacia cartservice, redis-cart, checkoutservice o paymentservice.",
+          "Q3 solo prueba ausencia de errores en cartservice dentro de esa consulta; no descarta fallos sin nivel de error, latencia ni problemas en redis-cart.",
+          "No se consultaron logs de advertencia ni de nivel inferior, ni la ventana previa al incidente.",
+          "El estado actual del clúster no acredita lo ocurrido en la ventana."
+        ],
+        "notes": "La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el cr Puntuación heurística no calibrada."
+      },
+      "decision": {
+        "route": "escalate",
+        "action": "escalate",
+        "params": {},
+        "reason": "Revisión humana; no se ejecutan reparaciones."
+      },
+      "execution": {
+        "mode": "observation",
+        "executed": false
+      },
+      "resolved": false,
+      "report": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.",
+      "audit": [
+        {
+          "agent": "intake",
+          "reason": "Investigación de lectura dentro del catálogo y la ventana autorizados.",
+          "outcome": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas."
+        },
+        {
+          "agent": "investigator",
+          "reason": "Obtener el catálogo confirmado y sus relaciones antes de acotar la búsqueda de logs.",
+          "outcome": "Q1 · service_catalog · doc"
+        },
+        {
+          "agent": "investigator",
+          "reason": "Buscar grupos de errores en todo el intervalo sin filtrar por servicio, para ver qué componentes del catálogo aparecen con evidencia en la ventana.",
+          "outcome": "Q2 · search_logs · log"
+        },
+        {
+          "agent": "investigator",
+          "reason": "Comprobar si hay errores en cartservice en la misma ventana, ya que el catálogo relaciona frontend con cartservice y el único error observado no identifica destino.",
+          "outcome": "Q3 · search_logs · empty"
+        },
+        {
+          "agent": "judge",
+          "reason": "La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el cr",
+          "outcome": "Conclusión respaldada"
+        },
+        {
+          "agent": "reporter",
+          "reason": "La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el cr",
+          "outcome": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior."
+        }
+      ]
+    },
+    "investigation": {
+      "objective": {
+        "objective": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas.",
+        "service": null,
+        "scope": "general",
+        "start": "2026-10-20T12:00:00+00:00",
+        "end": "2026-10-20T12:10:00+00:00",
+        "environment": {
+          "project": "synthetic-e5",
+          "cluster": "offline-fixture",
+          "namespace": "boutique"
+        }
+      },
+      "catalog": {
+        "status": "confirmed",
+        "revision": 1,
+        "confirmed": {
+          "services": [
+            {
+              "name": "frontend"
+            },
+            {
+              "name": "cartservice"
+            },
+            {
+              "name": "redis-cart"
+            },
+            {
+              "name": "checkoutservice"
+            },
+            {
+              "name": "paymentservice"
+            },
+            {
+              "name": "productcatalogservice"
+            }
+          ],
+          "relationships": [
+            {
+              "from": "cartservice",
+              "to": "redis-cart"
+            },
+            {
+              "from": "frontend",
+              "to": "cartservice"
+            },
+            {
+              "from": "checkoutservice",
+              "to": "paymentservice"
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "id": "Q1",
+          "tool": "service_catalog",
+          "args": {},
+          "kind": "doc",
+          "data": {
+            "status": "confirmed",
+            "revision": 1,
+            "confirmed": {
+              "services": [
+                {
+                  "name": "frontend"
+                },
+                {
+                  "name": "cartservice"
+                },
+                {
+                  "name": "redis-cart"
+                },
+                {
+                  "name": "checkoutservice"
+                },
+                {
+                  "name": "paymentservice"
+                },
+                {
+                  "name": "productcatalogservice"
+                }
+              ],
+              "relationships": [
+                {
+                  "from": "cartservice",
+                  "to": "redis-cart"
+                },
+                {
+                  "from": "frontend",
+                  "to": "cartservice"
+                },
+                {
+                  "from": "checkoutservice",
+                  "to": "paymentservice"
+                }
+              ]
+            }
+          },
+          "summary": "",
+          "elapsed_seconds": 1.413
+        },
+        {
+          "id": "Q2",
+          "tool": "search_logs",
+          "args": {
+            "errors_only": true,
+            "start": "2026-10-20T12:00:00+00:00",
+            "end": "2026-10-20T12:10:00+00:00",
+            "offset": 0
+          },
+          "kind": "log",
+          "data": {
+            "groups": [
+              {
+                "service": "frontend",
+                "source": "log",
+                "message": "HTTP 500; no trace id or downstream evidence available",
+                "count": 1,
+                "first": "2026-10-20T12:05:00+00:00",
+                "last": "2026-10-20T12:05:00+00:00",
+                "signal_ids": [
+                  "S01"
+                ]
+              }
+            ],
+            "records": 1,
+            "truncated": false,
+            "total_groups": 1,
+            "next_offset": null,
+            "remaining_log_budget": 99,
+            "start": "2026-10-20T12:00:00+00:00",
+            "end": "2026-10-20T12:10:00+00:00"
+          },
+          "summary": "",
+          "elapsed_seconds": 3.498
+        },
+        {
+          "id": "Q3",
+          "tool": "search_logs",
+          "args": {
+            "services": [
+              "cartservice"
+            ],
+            "errors_only": true,
+            "start": "2026-10-20T12:00:00+00:00",
+            "end": "2026-10-20T12:10:00+00:00",
+            "offset": 0
+          },
+          "kind": "empty",
+          "data": null,
+          "summary": "sin resultados",
+          "elapsed_seconds": 5.371
+        }
+      ],
+      "candidate": {
+        "component": "frontend",
+        "finding": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.",
+        "missing": [
+          "Un único registro de error; no hay volumen suficiente para caracterizar el patrón.",
+          "Sin trace id ni correlación, no se puede seguir la petición hacia cartservice, redis-cart, checkoutservice o paymentservice.",
+          "Q3 solo prueba ausencia de errores en cartservice dentro de esa consulta; no descarta fallos sin nivel de error, latencia ni problemas en redis-cart.",
+          "No se consultaron logs de advertencia ni de nivel inferior, ni la ventana previa al incidente.",
+          "El estado actual del clúster no acredita lo ocurrido en la ventana."
+        ],
+        "cites": [
+          "Q2",
+          "Q3"
+        ],
+        "recommendation": "Buscar en frontend el trace id o la petición asociada al HTTP 500 de las 12:05 y seguir esa traza hacia los servicios downstream del catálogo. Ampliar la búsqueda a advertencias y a checkoutservice y paymentservice, y revisar si existen logs de redis-cart en la misma ventana."
+      },
+      "stop_reason": "supported",
+      "model": "claude-haiku-5-5",
+      "model_calls": 5,
+      "tool_calls": 3,
+      "web_calls": 0,
+      "log_budget_remaining": 99,
+      "storage": "memory; export report to retain",
+      "telemetry": "synthetic"
+    },
+    "decision_steps": [
+      {
+        "sequence": 1,
+        "stage": "intake",
+        "title": "Objetivo y alcance",
+        "outcome": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas.",
+        "reason": "Investigación de lectura dentro del catálogo y la ventana autorizados.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 2,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q1 · service_catalog · doc",
+        "reason": "Obtener el catálogo confirmado y sus relaciones antes de acotar la búsqueda de logs.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 3,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q2 · search_logs · log",
+        "reason": "Buscar grupos de errores en todo el intervalo sin filtrar por servicio, para ver qué componentes del catálogo aparecen con evidencia en la ventana.",
+        "status": "completed",
+        "evidence_ids": [
+          "S01"
+        ]
+      },
+      {
+        "sequence": 4,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q3 · search_logs · empty",
+        "reason": "Comprobar si hay errores en cartservice en la misma ventana, ya que el catálogo relaciona frontend con cartservice y el único error observado no identifica destino.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 5,
+        "stage": "judge",
+        "title": "Comprobación del sustento",
+        "outcome": "Conclusión respaldada",
+        "reason": "La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el cr",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 6,
+        "stage": "reporter",
+        "title": "Conclusión",
+        "outcome": "La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.",
+        "reason": "La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el cr",
+        "status": "completed",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "calls": [
+    {
+      "agent": "investigator",
+      "prompt_sha256": "e46482801c2f470437b1bc3e9404ee74649d4325c721422e23cc46838bec7210",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"service_catalog\",\"args\":{},\"purpose\":\"Obtener el catálogo confirmado y sus relaciones antes de acotar la búsqueda de logs.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 868,
+        "output_tokens": 113,
+        "output_tokens_details": {
+          "thinking_tokens": 46
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 1.4086403750116006
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "1c3293e43c4bbfef2e7279f131c66a9c422700bbbbbacf09ba229c53c6d39658",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"search_logs\",\"args\":{\"errors_only\":true,\"start\":\"2026-10-20T12:00:00+00:00\",\"end\":\"2026-10-20T12:10:00+00:00\",\"offset\":0},\"purpose\":\"Buscar grupos de errores en todo el intervalo sin filtrar por servicio, para ver qué componentes del catálogo aparecen con evidencia en la ventana.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1108,
+        "output_tokens": 316,
+        "output_tokens_details": {
+          "thinking_tokens": 176
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 2.0823177920246962
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "54e527a650957a56440f4ca8e9a0f5efb65b8a080e49b5fd527013e31734ebf8",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"search_logs\",\"args\":{\"services\":[\"cartservice\"],\"errors_only\":true,\"start\":\"2026-10-20T12:00:00+00:00\",\"end\":\"2026-10-20T12:10:00+00:00\",\"offset\":0},\"purpose\":\"Comprobar si hay errores en cartservice en la misma ventana, ya que el catálogo relaciona frontend con cartservice y el único error observado no identifica destino.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1416,
+        "output_tokens": 288,
+        "output_tokens_details": {
+          "thinking_tokens": 139
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 1.8700087080069352
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "2798732ef1eb90a1f0e3f76293c44967726909331ca825bcf4acb811272e3e84",
+      "response_text": "{\"action\":\"final\",\"component\":\"frontend\",\"finding\":\"La única señal de error en la ventana 12:00-12:10 UTC (Q2, sin filtro de servicio y solo errores) corresponde a frontend: un grupo con HTTP 500 a las 12:05, sin trace id ni evidencia de downstream. La consulta específica a cartservice (Q3) no devolvió errores. Esto sustenta frontend como el único componente con error observado, pero no identifica una causa operativa ni prueba que el fallo se origine en frontend o en un servicio posterior.\",\"missing\":[\"Un único registro de error; no hay volumen suficiente para caracterizar el patrón.\",\"Sin trace id ni correlación, no se puede seguir la petición hacia cartservice, redis-cart, checkoutservice o paymentservice.\",\"Q3 solo prueba ausencia de errores en cartservice dentro de esa consulta; no descarta fallos sin nivel de error, latencia ni problemas en redis-cart.\",\"No se consultaron logs de advertencia ni de nivel inferior, ni la ventana previa al incidente.\",\"El estado actual del clúster no acredita lo ocurrido en la ventana.\"],\"cites\":[\"Q2\",\"Q3\"],\"recommendation\":\"Buscar en frontend el trace id o la petición asociada al HTTP 500 de las 12:05 y seguir esa traza hacia los servicios downstream del catálogo. Ampliar la búsqueda a advertencias y a checkoutservice y paymentservice, y revisar si existen logs de redis-cart en la misma ventana.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1548,
+        "output_tokens": 1095,
+        "output_tokens_details": {
+          "thinking_tokens": 560
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 6.022556667012395
+    },
+    {
+      "agent": "judge",
+      "prompt_sha256": "b6f5a5217755ff3dbe5ab8823d0667b8e6122d45918e598ad4647b0f653702c2",
+      "response_text": "{\"supported\":true,\"notes\":\"La conclusión se sostiene solo como identificación de la única señal de error observada, no como causa. Sustento: Q2 es una búsqueda sin filtro de servicio, con errors_only=true, en la ventana 12:00-12:10 UTC; devolvió 1 registro, 1 grupo (frontend, HTTP 500 a las 12:05), truncated=false y next_offset=null. Q3 (cartservice, errors_only) no devolvió resultados. Q1 es documentación del catálogo, no telemetría, y solo aporta relaciones entre servicios; no prueba que el error se propague. Limitaciones que deben mantenerse explícitas: (1) la afirmación de unicidad vale solo para errores según el criterio de errors_only y para esa ventana; advertencias, latencias y niveles inferiores no fueron consultados; (2) un único registro no permite caracterizar patrón ni recurrencia; (3) Q3 no descarta fallos en cartservice sin nivel de error ni problemas en redis-cart, checkoutservice o paymentservice, que no fueron consultados directamente; (4) no hay trace id ni correlación, así que no se puede atribuir el origen del fallo a frontend ni a un servicio posterior; (5) la ventana previa al incidente no fue revisada, y el estado actual del clúster no acredita lo ocurrido. Evidencia faltante para una causa: trace id o request asociado al 500 de las 12:05, logs de advertencia de frontend y de los downstream, y logs de redis-cart en la misma ventana.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1551,
+        "output_tokens": 1329,
+        "output_tokens_details": {
+          "thinking_tokens": 786
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 6.973241125000641
+    }
+  ],
+  "wall_seconds": 18.37215599999763
+}

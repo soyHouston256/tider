@@ -1,0 +1,486 @@
+{
+  "verified_at_utc": "2026-10-29T18:10:42.684368+00:00",
+  "network_calls": 0,
+  "runs": [
+    {
+      "run": "C01_agent_1",
+      "status": "matched",
+      "prompt_calls": 10
+    },
+    {
+      "run": "C01_agent_2",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C01_agent_3",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C01_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C01_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C01_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C01_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C01_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C02_agent_1",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C02_agent_2",
+      "status": "matched",
+      "prompt_calls": 6
+    },
+    {
+      "run": "C02_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C02_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C02_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C02_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C02_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C02_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C03_agent_1",
+      "status": "matched",
+      "prompt_calls": 9
+    },
+    {
+      "run": "C03_agent_2",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C03_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C03_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C03_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C03_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C03_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C03_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C04_agent_1",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C04_agent_2",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C04_agent_3",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C04_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C04_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C04_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C04_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C04_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C05_agent_1",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C05_agent_2",
+      "status": "matched",
+      "prompt_calls": 8
+    },
+    {
+      "run": "C05_agent_3",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C05_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C05_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C05_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C05_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C05_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C06_agent_1",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C06_agent_2",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C06_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C06_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C06_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C06_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C06_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C06_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C07_agent_1",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C07_agent_2",
+      "status": "matched",
+      "prompt_calls": 6
+    },
+    {
+      "run": "C07_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C07_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C07_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C07_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C07_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C07_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C08_agent_1",
+      "status": "matched",
+      "prompt_calls": 6
+    },
+    {
+      "run": "C08_agent_2",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C08_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C08_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C08_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C08_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C08_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C08_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C09_agent_1",
+      "status": "matched",
+      "prompt_calls": 6
+    },
+    {
+      "run": "C09_agent_2",
+      "status": "matched",
+      "prompt_calls": 10
+    },
+    {
+      "run": "C09_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C09_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C09_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C09_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C09_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C09_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C10_agent_1",
+      "status": "matched",
+      "prompt_calls": 9
+    },
+    {
+      "run": "C10_agent_2",
+      "status": "matched",
+      "prompt_calls": 8
+    },
+    {
+      "run": "C10_agent_3",
+      "status": "matched",
+      "prompt_calls": 7
+    },
+    {
+      "run": "C10_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C10_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C10_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C10_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C10_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C11_agent_1",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C11_agent_2",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C11_agent_3",
+      "status": "matched",
+      "prompt_calls": 4
+    },
+    {
+      "run": "C11_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C11_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C11_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C11_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C11_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C12_agent_1",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C12_agent_2",
+      "status": "matched",
+      "prompt_calls": 8
+    },
+    {
+      "run": "C12_agent_3",
+      "status": "matched",
+      "prompt_calls": 5
+    },
+    {
+      "run": "C12_noop_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C12_rules_1",
+      "status": "matched",
+      "prompt_calls": 0
+    },
+    {
+      "run": "C12_simple_1",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C12_simple_2",
+      "status": "matched",
+      "prompt_calls": 1
+    },
+    {
+      "run": "C12_simple_3",
+      "status": "matched",
+      "prompt_calls": 1
+    }
+  ]
+}

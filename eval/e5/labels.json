@@ -1,0 +1,62 @@
+{
+  "C01": {
+    "expected_component": "redis-cart",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C02": {
+    "expected_component": "cartservice",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C03": {
+    "expected_component": "paymentservice",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C04": {
+    "expected_component": "redis-cart",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C05": {
+    "expected_component": "cartservice",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C06": {
+    "expected_component": "productcatalogservice",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C07": {
+    "expected_component": "desconocido",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C08": {
+    "expected_component": "desconocido",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C09": {
+    "expected_component": "desconocido",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C10": {
+    "expected_component": "desconocido",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C11": {
+    "expected_component": "redis-cart",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  },
+  "C12": {
+    "expected_component": "cartservice",
+    "basis": "Synthetic construction; unique implicated component, not verified operational root cause. Ambiguity requires abstention.",
+    "independent_human_adjudication": false
+  }
+}

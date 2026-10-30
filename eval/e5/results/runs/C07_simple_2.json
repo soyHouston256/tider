@@ -1,0 +1,77 @@
+{
+  "case": "C07",
+  "segment": "insufficient",
+  "method": "simple",
+  "repeat": 2,
+  "model": "claude-haiku-5-5",
+  "started_at_utc": "2026-10-29T17:54:00.975054+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "component": "desconocido",
+    "status": "insufficient_evidence",
+    "executed": false,
+    "raw": {
+      "component": "desconocido",
+      "finding": "No hay señales en la ventana 2026-10-20T12:00:00Z a 12:10:00Z para el incidente C07, por lo que no existe evidencia que sustente un componente. El catálogo confirmado (rev. 1) lista 6 servicios y 3 relaciones, pero eso no indica cuál está afectado. Se requieren logs, métricas o trazas en la ventana antes de atribuir cualquier causa.",
+      "cites": []
+    }
+  },
+  "calls": [
+    {
+      "agent": "single_llm",
+      "prompt_sha256": "6b53001b545c5cfd775f0676c9d94a3640cee859e6197c1b920e9bdebc97190d",
+      "response_text": "{\"component\":\"desconocido\",\"finding\":\"No hay señales en la ventana 2026-10-20T12:00:00Z a 12:10:00Z para el incidente C07, por lo que no existe evidencia que sustente un componente. El catálogo confirmado (rev. 1) lista 6 servicios y 3 relaciones, pero eso no indica cuál está afectado. Se requieren logs, métricas o trazas en la ventana antes de atribuir cualquier causa.\",\"cites\":[]}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 524,
+        "output_tokens": 239,
+        "output_tokens_details": {
+          "thinking_tokens": 73
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 2.770058334019268
+    }
+  ],
+  "wall_seconds": 2.7701956249948125
+}

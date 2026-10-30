@@ -1,0 +1,80 @@
+{
+  "case": "C05",
+  "segment": "variation",
+  "method": "simple",
+  "repeat": 2,
+  "model": "claude-haiku-5-5",
+  "started_at_utc": "2026-10-29T18:09:27.182524+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "component": "cartservice",
+    "status": "hypothesis",
+    "executed": false,
+    "raw": {
+      "component": "cartservice",
+      "finding": "S02 registra en cartservice un fallo de readiness probe y listener gRPC no disponible. S01 en frontend muestra cero endpoints listos para cartservice, consistente con ese fallo, pero es un síntoma downstream. La evidencia no establece la causa del fallo de readiness; no hay señales sobre redis-cart ni sobre otros servicios del catálogo.",
+      "cites": [
+        "S02",
+        "S01"
+      ]
+    }
+  },
+  "calls": [
+    {
+      "agent": "single_llm",
+      "prompt_sha256": "928d662f816d89a7c8d33b301419d04eb4d53de5f3792fcbee4244fd75561b8d",
+      "response_text": "{\"component\":\"cartservice\",\"finding\":\"S02 registra en cartservice un fallo de readiness probe y listener gRPC no disponible. S01 en frontend muestra cero endpoints listos para cartservice, consistente con ese fallo, pero es un síntoma downstream. La evidencia no establece la causa del fallo de readiness; no hay señales sobre redis-cart ni sobre otros servicios del catálogo.\",\"cites\":[\"S02\",\"S01\"]}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 691,
+        "output_tokens": 553,
+        "output_tokens_details": {
+          "thinking_tokens": 397
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 3.0638397079892457
+    }
+  ],
+  "wall_seconds": 3.064050541986944
+}

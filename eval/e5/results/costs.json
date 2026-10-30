@@ -1,0 +1,38 @@
+{
+  "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "consulted": "2026-10-29",
+  "currency": "USD",
+  "basis": "Haiku 5.5, standard global, prompts <=100k, no cache, input $0.10/MTok and output $0.50/MTok",
+  "limitations": "List estimate, not billed charge. Excludes infrastructure, energy, storage and human review.",
+  "methods": {
+    "rules": {
+      "n": 12,
+      "mean": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "total": 0.0
+    },
+    "noop": {
+      "n": 12,
+      "mean": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "total": 0.0
+    },
+    "simple": {
+      "n": 36,
+      "mean": 0.00029955555555555557,
+      "min": 0.0001359,
+      "max": 0.0005589,
+      "total": 0.010784
+    },
+    "agent": {
+      "n": 36,
+      "mean": 0.0031306555555555555,
+      "min": 0.0016481,
+      "max": 0.0075988,
+      "total": 0.1127036
+    }
+  },
+  "total_usd": 0.1234876
+}

@@ -1,0 +1,31 @@
+{
+  "frozen_at_utc": "2026-10-29T17:51:20.626925+00:00",
+  "name": "E5-synthetic-v1",
+  "n_cases": 12,
+  "repetitions_llm": 3,
+  "seed_order": 42,
+  "seed_bootstrap": 1011,
+  "bootstrap_samples": 5000,
+  "segments": {
+    "explicit": 3,
+    "variation": 3,
+    "insufficient": 3,
+    "stress": 3
+  },
+  "provenance": "Authored synthetic evaluation suite; no SIBI telemetry. Not an independent held-out benchmark; authors know code and generated labels. No tuning after freeze.",
+  "files": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "primary_metric": "case-averaged exact component-or-abstention accuracy; average 3 trials within case",
+  "countermetrics": [
+    "wrong non-abstaining answer / all trials",
+    "abstention rate",
+    "wall seconds",
+    "input/output tokens",
+    "API errors",
+    "actions executed"
+  ],
+  "decision_rule": "Before Nov21: assisted synthetic demo only if v0 accuracy >=0.80, wrong answer rate <=0.10, p95 wall time <=120s, executed actions=0 and offline replay matches. Real pilot requires authorized data, independent labels, user study and advisor scope approval. Otherwise no-go for pilot; retain honest demo.",
+  "limitations": "12 hand-authored cases, no training split because no training/fine-tuning; no statistical generalization to real incidents, no MTTR/cost reduction claim, no confidence calibration."
+}

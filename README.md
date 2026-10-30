@@ -4,6 +4,24 @@ Investiga incidentes de Online Boutique, presenta la evidencia y explica la deci
 que produjo el grafo LangGraph. **Todo el código del agente y su consola está en
 este proyecto.** ChaosForge administra el laboratorio donde se inyectan los fallos.
 
+## E5 y taller del 31 de octubre
+
+La [guía de evaluación](eval/e5/README.md) contiene los datos sintéticos congelados,
+semillas y comandos de reproducción. El [notebook ejecutado](eval/e5/E5_Equipo04.ipynb)
+recalcula los resultados y verifica las 96 ejecuciones registradas sin consultar
+al proveedor. Son 12 casos distintos; estos resultados no validan recuperación
+ni reducción de MTTR en producción.
+
+```sh
+uv sync --extra llm --extra dev --frozen
+uv run python eval/course_e5.py --replay
+uv run python eval/course_e5.py --summarize
+```
+
+La demo por reglas funciona sin API; una investigación nueva con LLM requiere
+Internet y credenciales locales. El ZIP de E5 conserva la versión exacta del
+código y los registros cuando los cambios todavía no están publicados.
+
 ## Ejecutar
 
 Desde este directorio, con Python 3.12 y `uv`:

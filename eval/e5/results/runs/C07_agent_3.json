@@ -1,0 +1,556 @@
+{
+  "case": "C07",
+  "segment": "insufficient",
+  "method": "agent",
+  "repeat": 3,
+  "model": "claude-haiku-5-5",
+  "started_at_utc": "2026-10-29T17:54:25.704241+00:00",
+  "code_revision": "22698d15d8317a356bd04faf712ef55cc5467afb",
+  "code_sha256": {
+    "eval/course_e5.py": "836adb518c4b3688fc4280958ddb11e0204b3f111487170abc80553cc694998d",
+    "src/tider/console/agentic.py": "cd8dac258d75a322f8606482d268632f066f4f600ab106737a98af5f474a60b9",
+    "src/tider/console/investigation_tools.py": "fc139ccf43a991b1e95f4a5aff576f7c153ccdb79bb3dddcd0b8e48dc9ef8c7a",
+    "src/tider/console/baseline.py": "12700d86d2dee56c6c9189faaf1275d7f40987037318f8bdf73afe7de7184cd9"
+  },
+  "corpus_sha256": {
+    "cases.json": "33f87727c5ad220e5769b59e0f5baccd4689206624d928d0823779afff2f001b",
+    "labels.json": "051fbba881b5d0b568432b9c00adb785254db533c0e65e351cb567db3d3bb1f7"
+  },
+  "configuration": {
+    "evidence_mode": "mock",
+    "google_cloud_project": "synthetic-e5",
+    "gcp_cluster": "offline-fixture",
+    "gcp_location": "us-central1",
+    "gcp_namespace": "boutique",
+    "gcp_log_limit": 100,
+    "llm_provider": "anthropic",
+    "tider_model": "claude-haiku-5-5",
+    "agent_logging_transport": "sdk",
+    "investigation_history_path": "",
+    "agent_max_steps": 8,
+    "agent_timeout_seconds": 240,
+    "agent_log_budget": 100,
+    "agent_kube_context": "",
+    "agent_reader_kubeconfig": "",
+    "agent_web_enabled": false,
+    "agent_metrics_enabled": false,
+    "history_limit": 50
+  },
+  "temperature": "provider default (matches production; not pinned)",
+  "result": {
+    "scope": "focused",
+    "incident_id": "C07",
+    "hypothesis": "La evidencia no permite sustentar una causa del incidente.",
+    "component": "desconocido",
+    "confidence": 0.0,
+    "evidence": [],
+    "recommendation": "Un humano debería aportar el síntoma observado (error, latencia, indisponibilidad, servicio o endpoint afectado) y confirmar la zona horaria y el intervalo real del incidente. Después conviene comprobar, fuera de esta herramienta de solo lectura, que el origen de logs cubre el namespace boutique en esa ventana, antes de repetir la búsqueda acotada a los servicios sospechosos.",
+    "status": "insufficient_evidence",
+    "disclaimer": "Hipótesis para revisión humana. Sin remediación ejecutada.",
+    "evidence_mode": "mock",
+    "engine": "langgraph",
+    "reasoning_mode": "agentic",
+    "namespace": "boutique",
+    "elapsed_ms": 0.0,
+    "run_id": "",
+    "analyzed_at": null,
+    "workflow": {
+      "handler": "adaptive_investigation",
+      "context": [],
+      "hypothesis": {
+        "component": "desconocido",
+        "reason": "La evidencia no permite sustentar una causa del incidente.",
+        "propagation": [],
+        "evidence": [
+          {
+            "source": "service_catalog",
+            "kind": "doc",
+            "summary": "{\"status\": \"confirmed\", \"revision\": 1, \"confirmed\": {\"services\": [{\"name\": \"frontend\"}, {\"name\": \"cartservice\"}, {\"name\": \"redis-cart\"}, {\"name\": \"checkoutservice\"}, {\"name\": \"paymentservice\"}, {\"name\": \"productcatalogservice\"}], \"relationships\": [{\"from\": \"cartservice\", \"to\": \"redis-cart\"}, {\"from\": \"frontend\", \"to\": \"cartservice\"}, {\"from\": \"checkoutservice\", \"to\": \"paymentservice\"}]}}",
+            "ref": "Q1",
+            "data": {
+              "status": "confirmed",
+              "revision": 1,
+              "confirmed": {
+                "services": [
+                  {
+                    "name": "frontend"
+                  },
+                  {
+                    "name": "cartservice"
+                  },
+                  {
+                    "name": "redis-cart"
+                  },
+                  {
+                    "name": "checkoutservice"
+                  },
+                  {
+                    "name": "paymentservice"
+                  },
+                  {
+                    "name": "productcatalogservice"
+                  }
+                ],
+                "relationships": [
+                  {
+                    "from": "cartservice",
+                    "to": "redis-cart"
+                  },
+                  {
+                    "from": "frontend",
+                    "to": "cartservice"
+                  },
+                  {
+                    "from": "checkoutservice",
+                    "to": "paymentservice"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "source": "search_logs",
+            "kind": "empty",
+            "summary": "sin resultados",
+            "ref": "Q2",
+            "data": null
+          },
+          {
+            "source": "context_search",
+            "kind": "empty",
+            "summary": "sin resultados",
+            "ref": "Q3",
+            "data": null
+          },
+          {
+            "source": "search_logs",
+            "kind": "empty",
+            "summary": "sin resultados",
+            "ref": "Q4",
+            "data": null
+          }
+        ],
+        "proposed_action": "escalate",
+        "action_params": {}
+      },
+      "verdict": {
+        "confidence": 0.0,
+        "supported": false,
+        "missing": [
+          "No se ha descrito ningún síntoma concreto ni servicio afectado (request.service es null, scope general).",
+          "Se desconoce si el sistema de logs tiene cobertura para el namespace boutique en la ventana indicada; la ausencia total de logs en la ventana sugiere ese punto como primera verificación.",
+          "No hay documentación de incidente que relacione la ventana con cambios o eventos.",
+          "No se ha verificado el estado de los servicios durante la ventana; el estado actual no lo acredita.",
+          "Las relaciones del catálogo son parciales y no permiten descartar otros caminos de dependencia."
+        ],
+        "notes": "Falta telemetría citada o componente válido. Puntuación heurística no calibrada."
+      },
+      "decision": {
+        "route": "escalate",
+        "action": "escalate",
+        "params": {},
+        "reason": "Revisión humana; no se ejecutan reparaciones."
+      },
+      "execution": {
+        "mode": "observation",
+        "executed": false
+      },
+      "resolved": false,
+      "report": "La evidencia no permite sustentar una causa del incidente.",
+      "audit": [
+        {
+          "agent": "intake",
+          "reason": "Investigación de lectura dentro del catálogo y la ventana autorizados.",
+          "outcome": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas."
+        },
+        {
+          "agent": "investigator",
+          "reason": "Obtener el catálogo confirmado de componentes y sus relaciones antes de consultar logs.",
+          "outcome": "Q1 · service_catalog · doc"
+        },
+        {
+          "agent": "investigator",
+          "reason": "Buscar grupos de errores en la ventana indicada para ver qué componentes del catálogo aparecen con evidencia.",
+          "outcome": "Q2 · search_logs · empty"
+        },
+        {
+          "agent": "investigator",
+          "reason": "Buscar en la documentación cargada qué síntoma se reportó, ya que la consulta de errores en la ventana no devolvió resultados.",
+          "outcome": "Q3 · context_search · empty"
+        },
+        {
+          "agent": "investigator",
+          "reason": "Comprobar si hay registros en la ventana sin filtrar por error, para distinguir ausencia de errores de ausencia de datos.",
+          "outcome": "Q4 · search_logs · empty"
+        },
+        {
+          "agent": "judge",
+          "reason": "Falta telemetría citada o componente válido.",
+          "outcome": "Falta sustento"
+        },
+        {
+          "agent": "reporter",
+          "reason": "Falta telemetría citada o componente válido.",
+          "outcome": "La evidencia no permite sustentar una causa del incidente."
+        }
+      ]
+    },
+    "investigation": {
+      "objective": {
+        "objective": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas.",
+        "service": null,
+        "scope": "general",
+        "start": "2026-10-20T12:00:00+00:00",
+        "end": "2026-10-20T12:10:00+00:00",
+        "environment": {
+          "project": "synthetic-e5",
+          "cluster": "offline-fixture",
+          "namespace": "boutique"
+        }
+      },
+      "catalog": {
+        "status": "confirmed",
+        "revision": 1,
+        "confirmed": {
+          "services": [
+            {
+              "name": "frontend"
+            },
+            {
+              "name": "cartservice"
+            },
+            {
+              "name": "redis-cart"
+            },
+            {
+              "name": "checkoutservice"
+            },
+            {
+              "name": "paymentservice"
+            },
+            {
+              "name": "productcatalogservice"
+            }
+          ],
+          "relationships": [
+            {
+              "from": "cartservice",
+              "to": "redis-cart"
+            },
+            {
+              "from": "frontend",
+              "to": "cartservice"
+            },
+            {
+              "from": "checkoutservice",
+              "to": "paymentservice"
+            }
+          ]
+        }
+      },
+      "observations": [
+        {
+          "id": "Q1",
+          "tool": "service_catalog",
+          "args": {},
+          "kind": "doc",
+          "data": {
+            "status": "confirmed",
+            "revision": 1,
+            "confirmed": {
+              "services": [
+                {
+                  "name": "frontend"
+                },
+                {
+                  "name": "cartservice"
+                },
+                {
+                  "name": "redis-cart"
+                },
+                {
+                  "name": "checkoutservice"
+                },
+                {
+                  "name": "paymentservice"
+                },
+                {
+                  "name": "productcatalogservice"
+                }
+              ],
+              "relationships": [
+                {
+                  "from": "cartservice",
+                  "to": "redis-cart"
+                },
+                {
+                  "from": "frontend",
+                  "to": "cartservice"
+                },
+                {
+                  "from": "checkoutservice",
+                  "to": "paymentservice"
+                }
+              ]
+            }
+          },
+          "summary": "",
+          "elapsed_seconds": 2.08
+        },
+        {
+          "id": "Q2",
+          "tool": "search_logs",
+          "args": {
+            "errors_only": true,
+            "start": "2026-10-20T12:00:00+00:00",
+            "end": "2026-10-20T12:10:00+00:00",
+            "offset": 0
+          },
+          "kind": "empty",
+          "data": null,
+          "summary": "sin resultados",
+          "elapsed_seconds": 3.679
+        },
+        {
+          "id": "Q3",
+          "tool": "context_search",
+          "args": {
+            "query": "incidente síntoma boutique cartservice checkoutservice",
+            "limit": 3
+          },
+          "kind": "empty",
+          "data": null,
+          "summary": "sin resultados",
+          "elapsed_seconds": 7.084
+        },
+        {
+          "id": "Q4",
+          "tool": "search_logs",
+          "args": {
+            "start": "2026-10-20T12:00:00+00:00",
+            "end": "2026-10-20T12:10:00+00:00",
+            "offset": 0
+          },
+          "kind": "empty",
+          "data": null,
+          "summary": "sin resultados",
+          "elapsed_seconds": 9.988
+        }
+      ],
+      "candidate": {
+        "component": "desconocido",
+        "finding": "No hay evidencia suficiente para identificar un componente. El catálogo confirma seis servicios y tres relaciones (frontend→cartservice, cartservice→redis-cart, checkoutservice→paymentservice), pero no describe ningún síntoma. La búsqueda de logs sin filtros en la ventana 12:00–12:10 UTC devolvió cero resultados, y la de solo errores también. La búsqueda de contexto con los nombres de servicio tampoco devolvió documentos. Un resultado vacío en esta ventana no demuestra que los servicios estuvieran sanos ni que hubiera un fallo: también puede deberse a que no hay cobertura de logs para ese intervalo o a que la consulta no coincide con el origen de los datos. No hay base para atribuir una causa operativa.",
+        "missing": [
+          "No se ha descrito ningún síntoma concreto ni servicio afectado (request.service es null, scope general).",
+          "Se desconoce si el sistema de logs tiene cobertura para el namespace boutique en la ventana indicada; la ausencia total de logs en la ventana sugiere ese punto como primera verificación.",
+          "No hay documentación de incidente que relacione la ventana con cambios o eventos.",
+          "No se ha verificado el estado de los servicios durante la ventana; el estado actual no lo acredita.",
+          "Las relaciones del catálogo son parciales y no permiten descartar otros caminos de dependencia."
+        ],
+        "cites": [
+          "Q1",
+          "Q2",
+          "Q3",
+          "Q4"
+        ],
+        "recommendation": "Un humano debería aportar el síntoma observado (error, latencia, indisponibilidad, servicio o endpoint afectado) y confirmar la zona horaria y el intervalo real del incidente. Después conviene comprobar, fuera de esta herramienta de solo lectura, que el origen de logs cubre el namespace boutique en esa ventana, antes de repetir la búsqueda acotada a los servicios sospechosos."
+      },
+      "stop_reason": "insufficient",
+      "model": "claude-haiku-5-5",
+      "model_calls": 5,
+      "tool_calls": 4,
+      "web_calls": 0,
+      "log_budget_remaining": 100,
+      "storage": "memory; export report to retain",
+      "telemetry": "synthetic"
+    },
+    "decision_steps": [
+      {
+        "sequence": 1,
+        "stage": "intake",
+        "title": "Objetivo y alcance",
+        "outcome": "Identifica el único componente sustentado por la evidencia disponible. Si no hay uno único, abstente; no atribuyas una causa operativa sin pruebas.",
+        "reason": "Investigación de lectura dentro del catálogo y la ventana autorizados.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 2,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q1 · service_catalog · doc",
+        "reason": "Obtener el catálogo confirmado de componentes y sus relaciones antes de consultar logs.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 3,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q2 · search_logs · empty",
+        "reason": "Buscar grupos de errores en la ventana indicada para ver qué componentes del catálogo aparecen con evidencia.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 4,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q3 · context_search · empty",
+        "reason": "Buscar en la documentación cargada qué síntoma se reportó, ya que la consulta de errores en la ventana no devolvió resultados.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 5,
+        "stage": "investigator",
+        "title": "Consulta del investigador",
+        "outcome": "Q4 · search_logs · empty",
+        "reason": "Comprobar si hay registros en la ventana sin filtrar por error, para distinguir ausencia de errores de ausencia de datos.",
+        "status": "completed",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 6,
+        "stage": "judge",
+        "title": "Comprobación del sustento",
+        "outcome": "Falta sustento",
+        "reason": "Falta telemetría citada o componente válido.",
+        "status": "needs_review",
+        "evidence_ids": []
+      },
+      {
+        "sequence": 7,
+        "stage": "reporter",
+        "title": "Conclusión",
+        "outcome": "La evidencia no permite sustentar una causa del incidente.",
+        "reason": "Falta telemetría citada o componente válido.",
+        "status": "needs_review",
+        "evidence_ids": []
+      }
+    ]
+  },
+  "calls": [
+    {
+      "agent": "investigator",
+      "prompt_sha256": "e46482801c2f470437b1bc3e9404ee74649d4325c721422e23cc46838bec7210",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"service_catalog\",\"args\":{},\"purpose\":\"Obtener el catálogo confirmado de componentes y sus relaciones antes de consultar logs.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 868,
+        "output_tokens": 159,
+        "output_tokens_details": {
+          "thinking_tokens": 95
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 2.0760237500071526
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "1c3293e43c4bbfef2e7279f131c66a9c422700bbbbbacf09ba229c53c6d39658",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"search_logs\",\"args\":{\"errors_only\":true,\"start\":\"2026-10-20T12:00:00+00:00\",\"end\":\"2026-10-20T12:10:00+00:00\",\"offset\":0},\"purpose\":\"Buscar grupos de errores en la ventana indicada para ver qué componentes del catálogo aparecen con evidencia.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1108,
+        "output_tokens": 215,
+        "output_tokens_details": {
+          "thinking_tokens": 91
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 1.596709292003652
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "015406b4a4ebce17a58eae0d5107a937c5ddbc8a0de43b8ba416d142bed2b9ae",
+      "response_text": "```json\n{\"action\":\"tool\",\"tool\":\"context_search\",\"args\":{\"query\":\"incidente síntoma boutique cartservice checkoutservice\",\"limit\":3},\"purpose\":\"Buscar en la documentación cargada qué síntoma se reportó, ya que la consulta de errores en la ventana no devolvió resultados.\"}\n```",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1229,
+        "output_tokens": 285,
+        "output_tokens_details": {
+          "thinking_tokens": 175
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 3.4025555000116583
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "ea2cab0f0d166ebe8675e3fd68a3c4b573aba6537052251e0f51bf7b3dd459f5",
+      "response_text": "{\"action\":\"tool\",\"tool\":\"search_logs\",\"args\":{\"start\":\"2026-10-20T12:00:00+00:00\",\"end\":\"2026-10-20T12:10:00+00:00\",\"offset\":0},\"purpose\":\"Comprobar si hay registros en la ventana sin filtrar por error, para distinguir ausencia de errores de ausencia de datos.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1324,
+        "output_tokens": 373,
+        "output_tokens_details": {
+          "thinking_tokens": 253
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 2.90046770797926
+    },
+    {
+      "agent": "investigator",
+      "prompt_sha256": "60988f8c237c976654c76311479b5c11c39a4649e1bf523ea9481b42d6dc66f0",
+      "response_text": "{\"action\":\"final\",\"component\":\"desconocido\",\"finding\":\"No hay evidencia suficiente para identificar un componente. El catálogo confirma seis servicios y tres relaciones (frontend→cartservice, cartservice→redis-cart, checkoutservice→paymentservice), pero no describe ningún síntoma. La búsqueda de logs sin filtros en la ventana 12:00–12:10 UTC devolvió cero resultados, y la de solo errores también. La búsqueda de contexto con los nombres de servicio tampoco devolvió documentos. Un resultado vacío en esta ventana no demuestra que los servicios estuvieran sanos ni que hubiera un fallo: también puede deberse a que no hay cobertura de logs para ese intervalo o a que la consulta no coincide con el origen de los datos. No hay base para atribuir una causa operativa.\",\"missing\":[\"No se ha descrito ningún síntoma concreto ni servicio afectado (request.service es null, scope general).\",\"Se desconoce si el sistema de logs tiene cobertura para el namespace boutique en la ventana indicada; la ausencia total de logs en la ventana sugiere ese punto como primera verificación.\",\"No hay documentación de incidente que relacione la ventana con cambios o eventos.\",\"No se ha verificado el estado de los servicios durante la ventana; el estado actual no lo acredita.\",\"Las relaciones del catálogo son parciales y no permiten descartar otros caminos de dependencia.\"],\"cites\":[\"Q1\",\"Q2\",\"Q3\",\"Q4\"],\"recommendation\":\"Un humano debería aportar el síntoma observado (error, latencia, indisponibilidad, servicio o endpoint afectado) y confirmar la zona horaria y el intervalo real del incidente. Después conviene comprobar, fuera de esta herramienta de solo lectura, que el origen de logs cubre el namespace boutique en esa ventana, antes de repetir la búsqueda acotada a los servicios sospechosos.\"}",
+      "model_returned": "claude-haiku-5-5",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "global",
+        "input_tokens": 1437,
+        "output_tokens": 1071,
+        "output_tokens_details": {
+          "thinking_tokens": 397
+        },
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      },
+      "wall_seconds": 6.077268292021472
+    }
+  ],
+  "wall_seconds": 16.070070250018034
+}
