@@ -24,10 +24,18 @@ Consulta el catálogo y contexto cuando ayuden. No dependas de alias exactos: co
 relaciones y destinos. No inventes asociaciones. Transport significa red, no envío de productos.
 Distingue síntoma, componente implicado y causa: conexión rechazada no prueba que alguien escaló a cero.
 Estado actual de Kubernetes no prueba el estado durante un incidente pasado.
+La ventana puede contener varios incidentes. Ordena logs y eventos por hora y distingue episodios:
+errores antiguos no explican automáticamente el síntoma más reciente. Un servicio apagado puede
+dejar de emitir logs. Contrasta los eventos históricos y los llamadores documentados, sin inferir
+salud ni causa por silencio. Prioriza explicar el episodio más reciente compatible con el síntoma.
+Explica qué servicio está afectado, qué dependencia es sospechosa y qué causa está demostrada.
 Para consultar: {"action":"tool","tool":"nombre","args":{},"purpose":"comprobación breve"}.
 Para concluir: {"action":"final","component":"nombre exacto del catálogo o desconocido",
 "finding":"conclusión sustentada","missing":["incertidumbres"],"cites":["Q1"],
-"recommendation":"siguiente comprobación para un humano"}.
+"recommendation":"siguiente comprobación para un humano",
+"other_findings":[{"component":"otro servicio","finding":"episodio separado con horas, evidencia y límites","cites":["Q2"]}]}.
+Incluye en finding y other_findings los cambios de disponibilidad de otros servicios de la ventana,
+aunque los descartes como explicación del síntoma. No mezcles una caída y una recuperación posterior.
 Cita solo consultas realmente observadas. La documentación no acredita salud del entorno.
 Si el presupuesto se agota o no puedes sustentar una conclusión, reconoce información insuficiente.
 Entrega pronto un hallazgo acotado con indicios citados y límites explícitos; no necesitas demostrar la
@@ -44,6 +52,10 @@ acepta síntomas y candidatos apoyados por telemetría citada cuando sus límite
 Una posibilidad declarada como tal no es una causa confirmada; la causa desconocida por sí sola
 no invalida un síntoma observado. Rechaza afirmaciones categóricas sin evidencia, contradicciones
 y conclusiones históricas basadas solo en estado actual. Documentación no acredita salud del entorno.
+Verifica también pertinencia temporal: no apruebes un error antiguo como explicación única de un
+síntoma posterior cuando hay cambios de disponibilidad de otro servicio. Exige separar los episodios,
+contrastar los eventos y distinguir servicio afectado, dependencia sospechosa y causa demostrada.
+Un evento de escala demuestra el cambio informado, no al actor ni toda la disponibilidad del servicio.
 Devuelve SOLO {"supported":true/false,"notes":"sustento o corrección concreta, máximo 600 caracteres"}.
 No calcules porcentajes ni probabilidades de acierto.
 """
@@ -67,12 +79,36 @@ def scrub(value):
     return value
 
 
+class RelatedFinding(BaseModel):
+    component: str = Field(max_length=100)
+    finding: str = Field(min_length=1, max_length=1000)
+    cites: list[str] = Field(default_factory=list, max_length=10)
+
+
 class Finding(BaseModel):
     component: str = Field(max_length=100)
     finding: str = Field(min_length=1, max_length=2000)
     missing: list[str] = Field(default_factory=list, max_length=10)
     cites: list[str] = Field(default_factory=list, max_length=30)
     recommendation: str = Field(default="Revisión humana requerida.", max_length=1000)
+    other_findings: list[RelatedFinding] = Field(default_factory=list, max_length=10)
+
+
+def unaddressed_changes(candidate, observations):
+    """A general conclusion cannot silently omit directly identified workload changes.
+
+    This is a coverage check, not a rule choosing the failed component or cause.
+    Pod-name prefix suggestions are not strong enough to make this check mandatory.
+    """
+    findings = [(candidate.component, candidate.cites), *[(f.component, f.cites) for f in candidate.other_findings]]
+    missing = []
+    for observation in observations:
+        for event in (observation.get('data') or {}).get('events', []):
+            if not event.get('availability_change') or event.get('mapping') != 'exact_workload_name':
+                continue
+            if not any(name == event['service'] and observation['id'] in cites for name, cites in findings):
+                missing.append(f"{event['service']} a {event['timestamp']} ({event['reason']}, {observation['id']})")
+    return list(dict.fromkeys(missing))
 
 
 class Review(BaseModel):
@@ -214,7 +250,8 @@ class AgenticEngine:
             observation = scrub(observation)
             if data and data.get("incomplete"):
                 errors.append({"stage": "tool", "query_id": qid, "tool": name, **data["incomplete"]})
-            refs = [ref for group in (data or {}).get("groups", []) for ref in group.get("signal_ids", [])]
+            refs = [ref for group in [*(data or {}).get("groups", []), *(data or {}).get("events", [])]
+                    for ref in group.get("signal_ids", [])]
             event("investigator", f"{qid} · {name or 'herramienta inválida'} · {result['kind']}",
                   sanitize(str(action.get("purpose") or "Consulta seleccionada según la evidencia."))[:400],
                   refs, "needs_review" if result["kind"] == "error" or (data and data.get("incomplete")) else "completed")
@@ -233,11 +270,18 @@ class AgenticEngine:
             by_id = {o["id"]: o for o in state["observations"]}
             cited = [by_id[c] for c in candidate.cites if c in by_id]
             valid = bool(candidate.cites) and all(c in by_id for c in candidate.cites)
-            telemetry = [o for o in cited if o["kind"] in {"log", "metric", "k8s"}]
+            telemetry = [o for o in cited if o["kind"] in {"log", "metric", "k8s"}
+                         and (o['tool'] != 'search_events' or (o.get('data') or {}).get('events'))]
             valid = valid and bool(telemetry) and candidate.component in tools.names
+            valid = valid and all(f.component in tools.names and f.cites and all(c in by_id for c in f.cites)
+                                  for f in candidate.other_findings)
             supported, notes = False, "Falta telemetría citada o componente válido."
             review_status = "not_run" if valid else "invalid_candidate"
-            if valid and monotonic() < tools.deadline:
+            gaps = unaddressed_changes(candidate, state['observations']) if request.scope == 'general' else []
+            if valid and gaps:
+                review_status = 'temporal_gap'
+                notes = 'Falta contrastar cambios de disponibilidad de otros episodios: ' + '; '.join(gaps)
+            elif valid and monotonic() < tools.deadline:
                 try:
                     raw = complete("judge", JUDGE_SYSTEM,
                         {"request": objective, "finding": candidate.model_dump(),
@@ -268,11 +312,18 @@ class AgenticEngine:
         graph.add_node("tool", use_tool)
         graph.add_node("invalid", invalid)
         graph.add_node("review", review)
+        def initial_events(state):
+            return use_tool({**state, 'action': {'action':'tool', 'tool':'search_events', 'args':{},
+                'purpose':'Contrastar cambios históricos de disponibilidad, incluso donde dejaron de emitirse logs.'}})
+        graph.add_node('initial_events', initial_events)
         # A broad symptom must not rely on the model discovering that the form selected a default service.
         graph.add_edge(START, "tool" if request.scope == "general" else "choose")
         graph.add_conditional_edges("choose", lambda s: {"tool": "tool", "final": "review", "stop": END}.get(
             s["action"].get("action"), "invalid"))
-        graph.add_edge("tool", "choose")
+        graph.add_conditional_edges('tool', lambda s: 'initial_events'
+            if request.scope == 'general' and len(s['observations']) == 1
+            and not tools.mock and self.settings.agent_events_enabled else 'choose')
+        graph.add_edge('initial_events', 'choose')
         graph.add_edge("invalid", "choose")
         graph.add_conditional_edges("review", lambda s: END if s.get("stop_reason") else "choose")
         state = graph.compile().invoke({"steps": 0, "messages": [], "observations": [], "supported": False,
@@ -293,7 +344,7 @@ class AgenticEngine:
             reason = f"Se conservaron {len(tools.signals)} señales de {names}. La investigación no completó una hipótesis; no hay causa confirmada."
         else:
             reason = "No se completó una hipótesis. Consulta el estado de las consultas y la revisión."
-        component = candidate.get("component", "desconocido") if state.get("candidate_valid") else "desconocido"
+        component = candidate.get("component", "desconocido") if state.get("candidate_valid") and review_status != 'temporal_gap' else "desconocido"
         notes = state.get("review", "")
         if state.get("stop_reason") == "budget":
             notes = "Se agotó el presupuesto de investigación. " + notes

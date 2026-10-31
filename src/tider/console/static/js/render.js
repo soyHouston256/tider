@@ -66,7 +66,7 @@ export function showResult(result) {
   $('component').textContent = legacyCandidate?.component || (['hypothesis','partial'].includes(result.status) && result.component !== 'desconocido' ? result.component : 'Sin determinar');
   const review = investigation.review_status || (result.status === 'hypothesis' ? 'passed'
     : result.workflow.verdict?.notes?.includes('No se obtuvo una revisión válida') ? 'error' : 'not_run');
-  const reviewLabels = {passed:'Respaldado', rejected:'No respaldado', error:'Revisión fallida', not_run:'Sin revisión', invalid_candidate:'Sin sustento válido'};
+  const reviewLabels = {passed:'Respaldado', rejected:'No respaldado', error:'Revisión fallida', not_run:'Sin revisión', invalid_candidate:'Sin sustento válido', temporal_gap:'Falta correlación'};
   $('confidence-label').textContent = agentic ? 'Estado de revisión' : 'Confianza del baseline';
   $('confidence').textContent = agentic ? (reviewLabels[review] || 'Sin revisión')
     : result.confidence == null ? 'No disponible' : Math.round(result.confidence * 100) + ' %';
@@ -74,11 +74,14 @@ export function showResult(result) {
   $('signal-count').textContent = result.evidence.length;
   $('recommendation').textContent = result.recommendation;
   $('judge-note').textContent = result.workflow.verdict?.notes || '';
+  const others = investigation.candidate?.other_findings || [];
+  $('other-findings-section').hidden = !others.length;
+  $('other-findings').replaceChildren(...others.map(f=>node('li', `${f.component}: ${f.finding}`)));
   const missing = result.workflow.verdict?.missing || investigation.candidate?.missing || [];
   $('missing-section').hidden = !missing.length;
   $('missing-items').replaceChildren(...missing.map(item=>node('li', item)));
   $('result-mode').textContent = result.evidence_mode === 'mock'
-    ? 'Simulación · señales sintéticas' : 'Cloud Logging · logs reales';
+    ? 'Simulación · señales sintéticas' : 'Cloud Logging · telemetría real';
   $('result-id').textContent = result.incident_id + (result.scope === 'general' ? ' · Análisis general' : ' · Análisis enfocado');
   $('result-time').textContent = result.elapsed_ms.toFixed(0) + ' ms de análisis';
   $('evidence-count').textContent = result.evidence.length + ' señales';

@@ -12,7 +12,7 @@ class Signal(BaseModel):
     id: str = ""
     timestamp: datetime
     service: str
-    source: Literal["log", "metric", "trace"]
+    source: Literal["log", "metric", "trace", "event"]
     message: str
     severity: str = "INFO"
     trace_id: str | None = None

@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""
     agent_web_enabled: bool = False
     agent_metrics_enabled: bool = False
+    agent_events_enabled: bool = True
     history_limit: int = Field(default=50, ge=1, le=100)
 
     @classmethod

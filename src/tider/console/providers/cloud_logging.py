@@ -10,6 +10,7 @@ from tider.llm import error_details
 from ..models import Signal
 from ..settings import Settings
 from .catalog import related_services
+from .error_filter import logging_error_filter
 from .redaction import sanitize
 
 
@@ -37,13 +38,7 @@ def gcp_filter(
 
 
 # Match structured errors as well as applications that log failures at INFO.
-ERROR_FILTER = '(' + ' OR '.join([
-    'severity >= ERROR',
-    '(jsonPayload.error:* AND NOT jsonPayload.error="")',
-    'jsonPayload.level=~"(?i)^(error|fatal|critical)$"',
-    *[f'{field}=~"(?i)(error|exception|failed|failure|unavailable|connection refused|deadline exceeded|timeout)"'
-      for field in ('textPayload', 'jsonPayload.message', 'jsonPayload.msg')],
-]) + ')'
+ERROR_FILTER = logging_error_filter()
 
 
 class SignalBatch(list):

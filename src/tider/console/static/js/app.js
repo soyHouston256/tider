@@ -83,7 +83,7 @@ function modeChanged() {
   $('scenario-fields').hidden = gcp;
   $('time-fields').hidden = !gcp;
   $('mode-note').textContent = gcp
-    ? 'Consulta real de Cloud Logging, limitada al entorno configurado. Las métricas y trazas aún no están conectadas.'
+    ? (configuration.gcp_sources?.includes('event') ? 'Consulta logs y eventos históricos de Kubernetes en Cloud Logging, dentro del entorno configurado.' : 'Consulta real de Cloud Logging, limitada al entorno configurado. Las métricas y trazas aún no están conectadas.')
     : 'Señales sintéticas. No necesita conexión a GCP.';
   if (gcp) setDates();
   updateTimeChoice();

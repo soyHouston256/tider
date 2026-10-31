@@ -36,7 +36,8 @@ def request(**kwargs):
 
 
 def settings(**kwargs):
-    return Settings(llm_provider="anthropic", tider_model="test-model", evidence_mode="gcp", **kwargs)
+    return Settings(llm_provider="anthropic", tider_model="test-model", evidence_mode="gcp",
+                    **{'agent_events_enabled':False, **kwargs})
 
 
 def final(cites=None):

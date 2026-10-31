@@ -11,7 +11,10 @@ import httpx
 
 from tider.tools.base import Tool, ToolRegistry
 
+from .models import Signal
 from .providers.cloud_logging import gcp_signals
+from .providers.error_filter import is_error
+from .providers.kubernetes_events import gcp_events
 from .providers.mock import mock_signals
 from .providers.redaction import sanitize
 
@@ -57,6 +60,11 @@ class InvestigationTools:
                  "Devuelve resumen por servicio, grupos y referencias. truncated indica cobertura incompleta; "
                  "acota servicio/tiempo o aumenta limit para contrastar otras señales.", "log", self.search_logs),
         ])
+        if not self.mock and settings.agent_events_enabled:
+            self.registry.register(Tool("search_events", "Eventos HISTÓRICOS de Kubernetes en Cloud Logging: "
+                "cambios de réplicas, parada/arranque y probes. args opcionales: services, start/end dentro de la "
+                "ventana, limit (1..200, 100 por defecto). Permite contrastar servicios que dejaron de emitir logs. "
+                "No identifica al actor ni convierte un reinicio en causa raíz.", "k8s", self.search_events))
         if not self.mock and settings.agent_reader_kubeconfig and settings.agent_kube_context:
             self.registry.register(Tool("service_state", "Estado ACTUAL, no histórico: réplicas, pods y endpoints. "
                                        "args: service (nombre del catálogo).", "k8s", self.service_state))
@@ -77,6 +85,44 @@ class InvestigationTools:
         if service not in self.names:
             raise ValueError("Servicio fuera del catálogo confirmado.")
         return service
+
+    def remember(self, signal):
+        signal = signal.model_copy(update={"message": sanitize(signal.message, limit=1000)})
+        identity = (signal.timestamp, signal.service, signal.source, signal.message)
+        if identity not in self.seen:
+            self.seen.add(identity)
+            signal.id = f"S{len(self.signals)+1:02}"
+            self.signals.append(signal)
+            return signal
+        return next(x for x in self.signals if (x.timestamp, x.service, x.source, x.message) == identity)
+
+    def search_events(self, services=None, start=None, end=None, limit=100):
+        self.check()
+        services = sorted(self.names) if services is None else services
+        if not isinstance(services, list) or not services or len(services) > len(self.names):
+            raise ValueError("Selecciona servicios del catálogo.")
+        for name in services:
+            self.validate_service(name)
+        start = datetime.fromisoformat(start) if start else self.request.start
+        end = datetime.fromisoformat(end) if end else self.request.end
+        if start.tzinfo is None or end.tzinfo is None or not self.request.start <= start < end <= self.request.end:
+            raise ValueError("La consulta debe estar dentro de la ventana autorizada.")
+        if type(limit) is not int or not 1 <= limit <= 200:
+            raise ValueError("Límite de eventos inválido.")
+        key = json.dumps(['events', services, start.isoformat(), end.isoformat(), limit])
+        if key not in self.cache:
+            if self.log_remaining <= 0:
+                raise ValueError("Presupuesto de registros agotado.")
+            data = gcp_events(start, end, self.settings, services, deadline=self.deadline,
+                              limit=min(limit, self.log_remaining))
+            self.log_remaining -= data['records_read']
+            for event in data['events']:
+                row = self.remember(Signal(timestamp=event['timestamp'], service=event['service'], source='event',
+                    message=f"{event['object_kind']} {event['object_name']} · {event['reason']}: {event['message']}",
+                    severity='WARNING' if event['type']=='Warning' else 'INFO'))
+                event['signal_ids'] = [row.id]
+            self.cache[key] = data
+        return self.cache[key]
 
     def context_search(self, query: str, limit: int = 4):
         if not isinstance(query, str) or not 1 <= len(query) <= 2000 or not 1 <= limit <= 4:
@@ -114,8 +160,7 @@ class InvestigationTools:
                 records = [s for s in mock_signals(None, self.request.start, self.request.end, self.request.scenario)
                            if s.source == "log" and s.service in services and start <= s.timestamp <= end
                            and text.lower() in s.message.lower()
-                           and (not errors_only or s.severity in {"ERROR", "CRITICAL", "FATAL"}
-                                or re.search(r"error|failed|unavailable|refused|timeout", s.message, re.I))]
+                           and (not errors_only or is_error(s.message, s.severity))]
             else:
                 records = gcp_signals("general", start, end, self.settings, services,
                                       max_records=min(limit, self.log_remaining) + 1, text=text, errors_only=errors_only, deadline=self.deadline)
@@ -126,14 +171,7 @@ class InvestigationTools:
             self.log_remaining -= len(records)
             groups = defaultdict(list)
             for s in records:
-                s = s.model_copy(update={"message": sanitize(s.message)})
-                identity = (s.timestamp, s.service, s.source, s.message)
-                if identity not in self.seen:
-                    self.seen.add(identity)
-                    s.id = f"S{len(self.signals)+1:02}"
-                    self.signals.append(s)
-                else:
-                    s = next(x for x in self.signals if (x.timestamp, x.service, x.source, x.message) == identity)
+                s = self.remember(s)
                 groups[(s.service, s.source, s.message)].append(s)
             summaries = [{"service": name, "source": kind, "message": msg[:800], "count": len(rows),
                           "first": min(r.timestamp for r in rows).isoformat(),

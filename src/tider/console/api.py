@@ -107,7 +107,7 @@ def create_app(settings: Settings | None = None, service: AnalysisService | None
             "catalog_status": catalog["status"],
             "scenarios": scenario_catalog(),
             "history_limit": settings.history_limit,
-            "gcp_sources": ["log"],
+            "gcp_sources": ["log", "event"] if settings.agent_events_enabled and settings.llm_provider != "none" else ["log"],
             "execution": "observation",
         }
 

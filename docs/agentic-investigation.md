@@ -1,7 +1,7 @@
 # Investigación adaptativa de Tider
 
-Estado: corrección local del 31/10/2026, con 130 pruebas automatizadas y una validación acotada
-de Haiku 5.5 sobre señales de GKE guardadas. La evaluación independiente con varios incidentes sigue pendiente.
+Estado: corrección local del 31/10/2026, con 149 pruebas automatizadas y reproducciones acotadas
+sobre telemetría de GKE guardada. La evaluación independiente con varios incidentes sigue pendiente.
 
 ## Qué cambia
 
@@ -11,8 +11,8 @@ la regla baseline ni el registro de fallas de ChaosForge. Puede consultar de nue
 hipótesis después de una revisión y terminar reconociendo información insuficiente.
 
 La pantalla comienza en alcance general. Un síntoma como «se cayó el sistema, investiga» inicia
-una consulta de errores en todos los servicios del catálogo confirmado, sin seleccionar cartservice
-por defecto. El modelo recibe la topología compacta y un resumen por servicio antes de elegir
+una consulta de errores y otra de eventos históricos en todos los servicios del catálogo confirmado,
+sin seleccionar cartservice por defecto. El modelo recibe la topología compacta y un resumen por servicio antes de elegir
 comprobaciones adicionales. La API usa alcance general si no se proporcionan servicio ni alcance;
 los clientes anteriores que solo envían un servicio conservan el alcance enfocado.
 
@@ -25,8 +25,8 @@ Instalar los extras `llm` y `gcp` del proyecto en el entorno de ejecución. Conf
 la clave `ANTHROPIC_API_KEY`, `TIDER_MODEL` con un modelo disponible en esa cuenta y
 `LLM_PROVIDER=anthropic`. Nunca pegar credenciales en documentación, commits o consultas web.
 `AGENT_MODEL_EFFORT` es opcional (`low`, `medium`, `high`) y solo debe configurarse en modelos
-compatibles. La instalación local usa Haiku 5.5 con `low`; se verificó en el caso registrado, no
-en un benchmark amplio. Menor esfuerzo puede reducir latencia y también capacidad, según la
+compatibles. Se verificó `low` con Haiku 5.5 en el primer caso y Sonnet 5.5 en el caso posterior
+de frontend; esto no constituye un benchmark amplio. Menor esfuerzo puede reducir latencia y también capacidad, según la
 [documentación de Anthropic](https://platform.claude.com/docs/en/build-with-claude/effort).
 
 Los parámetros se leen del entorno del proceso; el punto de entrada de consola admite el archivo
@@ -49,6 +49,11 @@ construye comandos get; no registra herramientas de modificación ni cambia IAM.
   total. `truncated` e `incomplete` indican cobertura parcial, no ausencia de fallos. Una lectura
   interrumpida conserva los registros que ya recibió. Cada registro conserva su ID.
 - `service_state`: estado actual de réplicas, pods y endpoints. Su timestamp no demuestra estado histórico.
+- `search_events`: eventos históricos del log `events` de GKE, acotados al proyecto, clúster,
+  namespace, catálogo y ventana. Incluye escalados, parada/arranque y probes aunque el contenedor
+  no emita errores. Usa ADC y SDK, sin kubeconfig ni cambios de permisos. Está activa por defecto
+  (`AGENT_EVENTS_ENABLED=false` la deshabilita). La identidad exacta de Deployment se distingue
+  de la asociación sugerida por prefijo de Pod/ReplicaSet. Un escalado no identifica al actor.
 - `service_metrics`: opcional (`AGENT_METRICS_ENABLED=true`), CPU y memoria de Cloud Monitoring.
   La asociación inicial usa prefijo del pod y se declara como tal; no prueba ownership. Muestras limitadas
   indican si queda otra página. No incluye todavía métricas de negocio, latencia o traces.
@@ -63,6 +68,8 @@ construye comandos get; no registra herramientas de modificación ni cambia IAM.
 `list_log_entries` del endpoint fijo `https://logging.googleapis.com/mcp`, protocolo 2026-07-28.
 La misma capa local construye y limita los filtros; el modelo no elige endpoints, proyectos ni
 herramientas MCP arbitrarias. No hay fallback silencioso de MCP a SDK.
+`search_events` utiliza exclusivamente el SDK de Cloud Logging; este transporte explícito no
+cambia la selección de transporte para `search_logs`.
 
 Se comprobó el esquema público `tools/list`; la llamada autenticada permanece pendiente de permisos
 ADC/IAM adecuados y validación en el entorno. No ampliar permisos a administrador automáticamente.
@@ -87,6 +94,12 @@ Un hallazgo observado puede estar respaldado aunque su causa raíz siga sin dete
 revisión aprobada, rechazada, fallida o no ejecutada. `stop_reason` y `errors` separan presupuesto,
 timeout, respuesta truncada, JSON/esquema inválido y error del proveedor. La puntuación del baseline
 por reglas y los JSON históricos se conservan. El resultado se limita siempre a observación.
+
+Las ventanas pueden contener varios incidentes. `other_findings` separa episodios o efectos de
+dependencias del hallazgo principal. Una conclusión general que omite cambios de disponibilidad
+de workloads identificados exactamente queda en `temporal_gap`, aunque cite errores verdaderos
+de un incidente anterior. Este control exige cobertura; no decide automáticamente la causa ni
+convierte el evento más reciente en prueba suficiente. El juez también evalúa la relación temporal.
 
 La ruta `POST /v1/incidents/investigate-stream` transmite eventos NDJSON de consultas completadas
 y el resultado final. La UI muestra esos eventos sin la animación artificial de etapas. Si se corta
@@ -138,3 +151,19 @@ la causa del corte. Es una observación de una ejecución, no un SLA ni una medi
 El archivo guardado solo contiene las señales que recuperó el análisis enfocado original; no
 representa una consulta nueva y completa de todos los servicios. El historial de ChaosForge se
 contrastó por separado como referencia de la prueba y no se entregó al investigador.
+
+## Corrección de la atribución recurrente a Redis
+
+Los análisis de las 09:38–09:46 (Lima) incluían un incidente previo de Redis a las 09:36. El filtro
+de errores capturaba encabezados con `failures/s` y parámetros como `bf-error-rate`; en INC-0050,
+148 de 200 registros eran el mismo encabezado estadístico. La fuente solo consultaba contenedores:
+no veía los eventos de escala de frontend a las 09:38 y 09:40. Redis sí tuvo errores anteriores,
+pero esos registros no explicaban la posterior parada del frontend. El juez comprobaba el sustento
+de esos errores, sin exigir contrastar el episodio posterior.
+
+El filtro ahora distingue palabras de error de encabezados y configuración. Se añaden eventos
+históricos y cobertura explícita de otros episodios. Con el síntoma original, Sonnet 5.5 señaló
+frontend y separó Redis como episodio anterior, en una reproducción de 14,5 segundos y dos
+llamadas al modelo sobre 139 errores y 22 eventos de GKE guardados. No recibió el historial de
+ChaosForge. No hubo inyección nueva ni modificación de GCP. Esta reproducción no mide la
+latencia de una consulta completa en vivo ni demuestra precisión para todos los incidentes.
