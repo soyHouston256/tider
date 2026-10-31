@@ -107,8 +107,8 @@
               </p>
             </div>
             <fieldset class="analysis-scope"><legend>Alcance de la investigación</legend>
-              <label><input type="radio" name="scope" value="general"><span><strong>Análisis general</strong><small>No sé dónde está el problema</small></span></label>
-              <label><input type="radio" name="scope" value="focused" checked><span><strong>Análisis enfocado</strong><small>Sé dónde observé el problema</small></span></label>
+              <label><input type="radio" name="scope" value="general" checked><span><strong>Análisis general</strong><small>No sé dónde está el problema</small></span></label>
+              <label><input type="radio" name="scope" value="focused"><span><strong>Análisis enfocado</strong><small>Sé dónde observé el problema</small></span></label>
             </fieldset><p id="scope-note" class="hint"></p>
             <div id="focused-fields"><label for="service-trigger">Servicio donde observaste el problema</label>
             <div class="service-picker evidence-picker">
@@ -191,9 +191,9 @@
               <h2 id="hypothesis">
               </h2>
               <div class="metrics">
-                <div><span>Componente identificado</span><strong id="component"></strong>
+                <div><span>Componente candidato</span><strong id="component"></strong>
                 </div>
-                <div><span>Confianza del juez</span><strong id="confidence"></strong><small>Puntuación heurística</small>
+                <div><span id="confidence-label">Estado de revisión</span><strong id="confidence"></strong><small id="confidence-note"></small>
                 </div>
                 <div><span>Señales recibidas</span><strong id="signal-count"></strong>
                 </div>
@@ -204,6 +204,7 @@
               </div>
               <p id="judge-note" class="hint">
               </p>
+              <div id="missing-section" hidden><strong>Pendiente de confirmar</strong><ul id="missing-items"></ul></div>
             </div>
             <div class="panel evidence-panel">
               <div class="section-title">

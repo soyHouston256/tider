@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from itertools import chain
 from time import monotonic
 
+from tider.llm import error_details
+
 from ..models import Signal
 from ..settings import Settings
 from .catalog import related_services
@@ -44,6 +46,12 @@ ERROR_FILTER = '(' + ' OR '.join([
 ]) + ')'
 
 
+class SignalBatch(list):
+    """A partial read retains its rows and explicitly records the missing coverage."""
+
+    incomplete: dict | None = None
+
+
 def gcp_signals(
     service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None,
     max_records: int | None = None, text: str = "", errors_only: bool = True, deadline: float | None = None,
@@ -55,10 +63,13 @@ def gcp_signals(
     if max_records is not None and settings.agent_logging_transport == "mcp":
         from .logging_mcp import LoggingMCPClient
         client = LoggingMCPClient(settings.google_cloud_project, deadline=deadline)
+    elif max_records is not None and deadline is not None:
+        from .logging_sdk import BoundedLoggingClient
+        client = BoundedLoggingClient(settings.google_cloud_project, deadline)
     else:
         from google.cloud import logging_v2
         client = logging_v2.Client(project=settings.google_cloud_project)
-    signals = []
+    signals = SignalBatch()
     try:
         base = gcp_filter(service, start, end, settings, services)
         if text:
@@ -83,7 +94,7 @@ def gcp_signals(
             entries = chain([first], iterator) if first is not None else []
         for entry in entries:
             if deadline is not None and monotonic() >= deadline:
-                raise TimeoutError("Presupuesto de consulta agotado; evidencia incompleta descartada.")
+                raise TimeoutError("Presupuesto de consulta agotado")
             payload = entry.payload
             if isinstance(payload, dict):
                 # Keep diagnostic details before the general message so truncation
@@ -110,6 +121,10 @@ def gcp_signals(
                     severity=str(entry.severity or "INFO"),
                 )
             )
+    except Exception as exc:
+        if max_records is None or not signals:
+            raise
+        signals.incomplete = error_details(exc)
     finally:
         client.close()
     return signals

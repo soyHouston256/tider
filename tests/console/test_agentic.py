@@ -30,8 +30,9 @@ class Lake:
 
 def request(**kwargs):
     end = datetime.now(timezone.utc)
-    return AnalyzeRequest(incident_id="ADAPTIVE", scope="general", start=end-timedelta(minutes=10),
-                          end=end, mode="gcp", **kwargs)
+    fields = {"scope": "focused", "service": "frontend", **kwargs}
+    return AnalyzeRequest(incident_id="ADAPTIVE", start=end-timedelta(minutes=10),
+                          end=end, mode="gcp", **fields)
 
 
 def settings(**kwargs):
@@ -240,5 +241,190 @@ def test_model_connection_error_is_not_reported_as_missing_evidence():
     class BrokenModel:
         def complete_json(self, *args):
             raise TypeError('unsupported client parameter')
-    with pytest.raises(RuntimeError, match='modelo'):
-        AgenticEngine(settings(), Lake(), BrokenModel()).analyze_live(request())
+    result = AgenticEngine(settings(), Lake(), BrokenModel()).analyze_live(request())
+    assert result.investigation['stop_reason'] == 'model_error'
+    assert result.investigation['errors'][0]['type'] == 'TypeError'
+    assert 'Falló la consulta' in result.workflow.verdict.notes
+    assert result.confidence is None
+
+
+def test_broad_symptom_starts_with_all_services_without_a_default_component(monkeypatch):
+    import json
+
+    queries = []
+    def logs(*a, **kw):
+        queries.append(a[4])
+        return [Signal(timestamp=a[1], service="frontend", source="log", message="shipping connection refused")]
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", logs)
+    llm = ScriptedLLM({"investigator": final(["Q1"]),
+                       "judge": {"supported": True, "notes": "Fallo observado; causa desconocida."}})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(
+        request(scope="general", service=None, objective="se cayo el sistema investiga"))
+    assert queries == [["frontend", "shippingservice"]]
+    prompt = json.loads(llm.calls[0][1])
+    assert prompt["request"]["service"] is None
+    assert prompt["request"]["objective"] == "se cayo el sistema investiga"
+    assert prompt["observations"][0]["id"] == "Q1"
+    assert result.status == "hypothesis" and result.component == "shippingservice"
+    assert result.confidence is None and result.workflow.verdict.confidence is None
+    assert result.investigation["model_calls"] == 2
+
+
+@pytest.mark.parametrize("failure", ["timeout", "json", "truncated", "schema"])
+def test_failed_judge_preserves_candidate_and_telemetry_without_claiming_zero_confidence(monkeypatch, failure):
+    from tider.llm import ModelResponseError
+
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", lambda *a, **k: [
+        Signal(timestamp=a[1], service="frontend", source="log", message="shipping connection refused")])
+    def judge(_):
+        if failure == "schema":
+            return {"supported": "false", "notes": "not a boolean"}
+        raise {"timeout": TimeoutError("secret-provider-detail"), "json": ModelResponseError("invalid_json"),
+               "truncated": ModelResponseError("truncated_response")}[failure]
+    llm = ScriptedLLM({"investigator": final(["Q1"]), "judge": judge})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope="general"))
+    assert result.status == "partial" and result.component == "shippingservice"
+    assert "Envios no accesible" in result.hypothesis
+    assert result.evidence and not result.workflow.verdict.supported
+    assert result.confidence is None and result.workflow.verdict.confidence is None
+    assert result.investigation["stop_reason"] == "review_error"
+    assert result.investigation["review_status"] == "error"
+    assert result.investigation["model_calls"] == (3 if failure == "timeout" else 2)
+    assert result.investigation["tool_calls"] == 1  # A broken reviewer does not trigger more log searches.
+    assert result.investigation["errors"][0]["code"] == {
+        "timeout": "timeout", "json": "invalid_json", "truncated": "truncated_response", "schema": "invalid_schema"}[failure]
+    assert "secret-provider-detail" not in result.model_dump_json()
+
+
+def test_budget_after_rejected_review_keeps_candidate_and_rejection(monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr("tider.console.agentic.monotonic", lambda: clock[0])
+    monkeypatch.setattr("tider.console.investigation_tools.monotonic", lambda: clock[0])
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", lambda *a, **k: [
+        Signal(timestamp=a[1], service="frontend", source="log", message="shipping connection refused")])
+    def reject(_):
+        clock[0] = 91
+        return {"supported": False, "notes": "Se observa rechazo de conexión; falta comprobar el destino."}
+    llm = ScriptedLLM({"investigator": final(["Q1"]), "judge": reject})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope="general"))
+    assert result.investigation["stop_reason"] == "budget"
+    assert result.investigation["review_status"] == "rejected"
+    assert result.status == "partial" and result.evidence
+    assert "no respaldada" in result.hypothesis
+    assert "presupuesto" in result.workflow.verdict.notes
+
+
+def test_budget_after_first_read_preserves_rows_without_inventing_a_candidate(monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr("tider.console.agentic.monotonic", lambda: clock[0])
+    monkeypatch.setattr("tider.console.investigation_tools.monotonic", lambda: clock[0])
+    def logs(*a, **kw):
+        clock[0] = 91
+        return [Signal(timestamp=a[1], service="frontend", source="log", message="shipping connection refused")]
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", logs)
+    llm = ScriptedLLM({})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope="general"))
+    assert result.status == "partial" and result.evidence
+    assert result.component == "desconocido"
+    assert result.investigation["model_calls"] == 0
+    assert result.investigation["stop_reason"] == "budget"
+
+
+def test_tool_timeout_is_not_an_empty_search(monkeypatch):
+    def timeout(*a, **kw):
+        raise TimeoutError("private server detail")
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", timeout)
+    llm = ScriptedLLM({"investigator": {"action": "final", "component": "desconocido", "finding": "Consulta fallida"}})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope="general"))
+    observation = result.investigation["observations"][0]
+    assert observation["kind"] == "error" and observation["error"]["code"] == "timeout"
+    assert "no equivale a ausencia" in observation["summary"]
+    assert "private server detail" not in result.model_dump_json()
+
+
+def test_query_overview_and_first_page_include_other_services(monkeypatch):
+    def logs(*a, **kw):
+        assert kw['max_records'] == 201  # Leave budget for targeted follow-ups.
+        return [Signal(timestamp=a[1], service='frontend', source='log', message=f'failure {i}') for i in range(8)] + [
+            Signal(timestamp=a[1], service='shippingservice', source='log', message='failure')]
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", logs)
+    result = InvestigationTools(settings(), request(), Lake()).search_logs()
+    assert {g['service'] for g in result['groups']} == {'frontend', 'shippingservice'}
+    assert {s['service'] for s in result['services_with_signals']} == {'frontend', 'shippingservice'}
+
+
+def test_legacy_catalog_is_compacted_without_changing_stored_observations():
+    from tider.console.agentic import prompt_observations
+
+    catalog = Lake().catalog() | {'proposal': {'text': 'do not repeat ' * 5000}}
+    original = [{'tool': 'service_catalog', 'data': catalog}]
+    result = prompt_observations(original)
+    assert 'proposal' not in result[0]['data']
+    assert result[0]['data']['services'] == catalog['confirmed']['services']
+    assert 'proposal' in original[0]['data']
+
+
+def test_no_service_defaults_to_general_but_explicit_focus_is_preserved():
+    raw = request().model_dump()
+    del raw['scope']
+    del raw['service']
+    assert AnalyzeRequest(**raw).scope == 'general'
+    assert AnalyzeRequest(**raw, service='frontend').scope == 'focused'
+    with pytest.raises(ValueError):
+        AnalyzeRequest(**raw, scope='focused')
+
+
+def test_one_transient_recovery_uses_existing_evidence_and_does_not_restart_queries(monkeypatch):
+    import json
+
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", lambda *a, **k: [
+        Signal(timestamp=a[1], service="frontend", source="log", message="shipping connection refused")])
+    prompts = []
+    def investigate(prompt):
+        prompts.append(json.loads(prompt))
+        if len(prompts) == 1:
+            raise TimeoutError()
+        return final(['Q1'])
+    llm = ScriptedLLM({'investigator': investigate, 'judge': {'supported':True,'notes':'Síntoma observado'}})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope='general'))
+    assert result.status == 'hypothesis'
+    assert result.investigation['model_calls'] == 3 and result.investigation['tool_calls'] == 1
+    assert prompts[1]['conclude_now'] is True
+    assert result.investigation['errors'][0]['code'] == 'timeout'
+    assert result.investigation['model_requests'][1]['timeout_seconds'] == 15
+
+
+def test_no_retry_when_deadline_is_too_close(monkeypatch):
+    clock = [0.0]
+    monkeypatch.setattr('tider.console.agentic.monotonic', lambda: clock[0])
+    monkeypatch.setattr('tider.console.investigation_tools.monotonic', lambda: clock[0])
+    def fail(_):
+        clock[0] = 82
+        raise TimeoutError()
+    result = AgenticEngine(settings(), Lake(), ScriptedLLM({'investigator':fail})).analyze_live(request())
+    assert result.investigation['model_calls'] == 1
+    assert result.investigation['stop_reason'] == 'model_error'
+
+
+def test_truncated_coverage_is_visible_even_if_model_omits_it(monkeypatch):
+    monkeypatch.setattr('tider.console.investigation_tools.gcp_signals', lambda *a, **k: [
+        Signal(timestamp=a[1], service='frontend', source='log', message='shipping connection refused')
+        for _ in range(201)])
+    llm = ScriptedLLM({'investigator':final(['Q1']), 'judge':{'supported':True,'notes':'Síntoma observado'}})
+    result = AgenticEngine(settings(), Lake(), llm).analyze_live(request(scope='general'))
+    assert result.status == 'hypothesis'
+    assert any('Cobertura parcial' in item for item in result.workflow.verdict.missing)
+
+
+def test_partial_unscored_result_survives_sqlite_reload(monkeypatch, tmp_path):
+    monkeypatch.setattr('tider.console.investigation_tools.gcp_signals', lambda *a, **k: [
+        Signal(timestamp=a[1], service='frontend', source='log', message='shipping connection refused')])
+    cfg = settings(investigation_history_path=str(tmp_path/'history.sqlite'))
+    llm = ScriptedLLM({'investigator':final(['Q1']), 'judge':{'supported':'invalid','notes':'Invalid boolean'}})
+    engine = AgenticEngine(cfg, Lake(), llm)
+    service = AnalysisService(cfg, object(), engine)
+    original = service.analyze(request(scope='general'))
+    restored = AnalysisService(cfg, object(), engine).history()[0]
+    assert restored.model_dump() == original.model_dump()
+    assert restored.status == 'partial' and restored.confidence is None
+    assert restored.workflow.verdict.confidence is None

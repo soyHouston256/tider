@@ -21,7 +21,7 @@ class Signal(BaseModel):
 class AnalyzeRequest(BaseModel):
     objective: str = Field(default="Investiga el incidente y determina qué evidencia falta.", max_length=2000)
     incident_id: str = Field(min_length=1, max_length=128)
-    scope: Literal["focused", "general"] = "focused"
+    scope: Literal["focused", "general"] = "general"
     service: str | None = Field(default=None, min_length=1, max_length=63, pattern=r"^[a-z0-9](?:[-a-z0-9]*[a-z0-9])?$")
     start: datetime
     end: datetime
@@ -30,6 +30,10 @@ class AnalyzeRequest(BaseModel):
 
     @model_validator(mode="after")
     def valid_window(self):
+        # Older API clients that explicitly provide a service keep their focused scope.
+        # A symptom without a service starts a general investigation.
+        if "scope" not in self.model_fields_set:
+            self.scope = "focused" if self.service else "general"
         if self.scope == "focused" and not self.service:
             raise ValueError("Selecciona un servicio para el análisis enfocado.")
         if self.scope == "general":
@@ -51,11 +55,18 @@ class DecisionStep(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
 
 
+class UnscoredVerdict(BaseModel):
+    confidence: None = None
+    supported: bool = False
+    missing: list[str] = Field(default_factory=list)
+    notes: str = ""
+
+
 class WorkflowResult(BaseModel):
     handler: str = "generic"
     context: list[dict] = Field(default_factory=list)
     hypothesis: Hypothesis | None = None
-    verdict: Verdict | None = None
+    verdict: Verdict | UnscoredVerdict | None = None
     decision: Decision | None = None
     execution: dict = Field(default_factory=dict)
     resolved: bool = False
@@ -68,10 +79,10 @@ class Analysis(BaseModel):
     incident_id: str
     hypothesis: str
     component: str
-    confidence: float = Field(ge=0, le=1)
+    confidence: float | None = Field(ge=0, le=1)
     evidence: list[Signal]
     recommendation: str
-    status: Literal["hypothesis", "insufficient_evidence"] = "hypothesis"
+    status: Literal["hypothesis", "partial", "insufficient_evidence"] = "hypothesis"
     disclaimer: str = "Hipótesis para revisión humana. Sin remediación ejecutada."
     evidence_mode: Literal["mock", "gcp"] = "mock"
     engine: str = "langgraph"

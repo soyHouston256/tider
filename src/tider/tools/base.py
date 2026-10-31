@@ -52,6 +52,7 @@ class ToolRegistry:
                 "kind": "error",
                 "ref": ref,
                 "data": None,
+                "error_type": type(e).__name__,
             }
         return to_result(out, t.kind, ref)
 

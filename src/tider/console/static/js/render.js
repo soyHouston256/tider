@@ -56,12 +56,27 @@ export function showResult(result) {
   $('flow-detail').textContent = '';
   $('flow-replay').hidden = result.reasoning_mode === 'agentic';
   if(result.reasoning_mode === 'agentic') $('flow-caption').textContent='Consultas y comprobaciones reales · sin reparaciones ejecutadas';
-  $('hypothesis').textContent = result.hypothesis;
-  $('component').textContent = result.status === 'hypothesis' ? result.component : 'Sin determinar';
-  $('confidence').textContent = Math.round(result.confidence * 100) + ' %';
+  const agentic = result.reasoning_mode === 'agentic';
+  const investigation = result.investigation || {};
+  // Older history stays immutable; expose its saved candidate without re-scoring the run.
+  const legacyCandidate = agentic && !investigation.review_status && result.status !== 'hypothesis'
+    ? investigation.candidate : null;
+  $('hypothesis').textContent = legacyCandidate?.finding
+    ? 'Hallazgo provisional del registro original, sin validación: ' + legacyCandidate.finding : result.hypothesis;
+  $('component').textContent = legacyCandidate?.component || (['hypothesis','partial'].includes(result.status) && result.component !== 'desconocido' ? result.component : 'Sin determinar');
+  const review = investigation.review_status || (result.status === 'hypothesis' ? 'passed'
+    : result.workflow.verdict?.notes?.includes('No se obtuvo una revisión válida') ? 'error' : 'not_run');
+  const reviewLabels = {passed:'Respaldado', rejected:'No respaldado', error:'Revisión fallida', not_run:'Sin revisión', invalid_candidate:'Sin sustento válido'};
+  $('confidence-label').textContent = agentic ? 'Estado de revisión' : 'Confianza del baseline';
+  $('confidence').textContent = agentic ? (reviewLabels[review] || 'Sin revisión')
+    : result.confidence == null ? 'No disponible' : Math.round(result.confidence * 100) + ' %';
+  $('confidence-note').textContent = agentic ? 'Sustento del hallazgo · no es una probabilidad de causa raíz' : 'Puntuación heurística';
   $('signal-count').textContent = result.evidence.length;
   $('recommendation').textContent = result.recommendation;
   $('judge-note').textContent = result.workflow.verdict?.notes || '';
+  const missing = result.workflow.verdict?.missing || investigation.candidate?.missing || [];
+  $('missing-section').hidden = !missing.length;
+  $('missing-items').replaceChildren(...missing.map(item=>node('li', item)));
   $('result-mode').textContent = result.evidence_mode === 'mock'
     ? 'Simulación · señales sintéticas' : 'Cloud Logging · logs reales';
   $('result-id').textContent = result.incident_id + (result.scope === 'general' ? ' · Análisis general' : ' · Análisis enfocado');
@@ -80,7 +95,8 @@ export function renderHistory(runs, onSelect) {
   $('history').replaceChildren(...runs.map((result) => {
     const button = node('button', undefined, 'history-item');
     button.type = 'button';
-    const component = result.status === 'hypothesis' ? result.component : 'Sin causa respaldada';
+    const component = result.status === 'hypothesis' ? result.component : result.status === 'partial'
+      ? `${result.component === 'desconocido' ? 'Hallazgos' : result.component} · provisional` : 'Sin causa respaldada';
     const source = result.evidence_mode === 'mock' ? 'Simulación' : 'GKE';
     button.append(node('strong', result.incident_id), node('span', `${component} · ${source}`));
     button.addEventListener('click', () => onSelect(result));

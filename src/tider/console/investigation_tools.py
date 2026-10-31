@@ -16,6 +16,16 @@ from .providers.mock import mock_signals
 from .providers.redaction import sanitize
 
 
+def catalog_summary(catalog):
+    """Keep the confirmed topology in the prompt, without repeating document excerpts."""
+    confirmed = catalog.get("confirmed") or {}
+    return {"status": catalog["status"], "revision": catalog.get("revision"),
+            "services": [{k: s[k] for k in ("id", "name", "aliases") if k in s}
+                         for s in confirmed.get("services", [])],
+            "relations": [{k: r[k] for k in ("source", "target", "label") if k in r}
+                          for r in confirmed.get("relations", [])]}
+
+
 class InvestigationTools:
     def __init__(self, settings, request, lake):
         self.settings, self.request, self.lake = settings, request, lake
@@ -40,10 +50,12 @@ class InvestigationTools:
         self.web_calls = 0
         self.registry = ToolRegistry([
             Tool("context_search", "Documentos cargados. args: query (texto), limit (1..4).", "doc", self.context_search),
-            Tool("service_catalog", "Catálogo confirmado y relaciones. Sin argumentos.", "doc", lambda: self.catalog),
+            Tool("service_catalog", "Catálogo confirmado y relaciones. Sin argumentos.", "doc", lambda: catalog_summary(self.catalog)),
             Tool("search_logs", "Consulta NUEVA. args opcionales: services (lista de nombres del catálogo), "
                  "start/end (ISO con zona dentro del intervalo), text (literal), errors_only (bool), "
-                 "offset (página de grupos, 0 por defecto). Devuelve grupos y referencias.", "log", self.search_logs),
+                 "offset (página de grupos, 0 por defecto), limit (1..500, 200 por defecto). "
+                 "Devuelve resumen por servicio, grupos y referencias. truncated indica cobertura incompleta; "
+                 "acota servicio/tiempo o aumenta limit para contrastar otras señales.", "log", self.search_logs),
         ])
         if not self.mock and settings.agent_reader_kubeconfig and settings.agent_kube_context:
             self.registry.register(Tool("service_state", "Estado ACTUAL, no histórico: réplicas, pods y endpoints. "
@@ -77,7 +89,7 @@ class InvestigationTools:
             matches = self.lake.search(query, k=limit)
         return {"matches": matches, "revision": self.catalog["revision"]} if matches else ""
 
-    def search_logs(self, services=None, start=None, end=None, text="", errors_only=True, offset=0):
+    def search_logs(self, services=None, start=None, end=None, text="", errors_only=True, offset=0, limit=200):
         self.check()
         services = sorted(self.names) if services is None else services
         if not isinstance(services, list) or not services or len(services) > len(self.names):
@@ -92,7 +104,9 @@ class InvestigationTools:
             raise ValueError("Filtro inválido.")
         if type(offset) is not int or offset < 0:
             raise ValueError("Página inválida.")
-        key = json.dumps([services, start.isoformat(), end.isoformat(), text, errors_only])
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("Límite de consulta inválido.")
+        key = json.dumps([services, start.isoformat(), end.isoformat(), text, errors_only, limit])
         if key not in self.cache:
             if self.log_remaining <= 0:
                 raise ValueError("Presupuesto de registros agotado; no se consultó otra página.")
@@ -104,9 +118,11 @@ class InvestigationTools:
                                 or re.search(r"error|failed|unavailable|refused|timeout", s.message, re.I))]
             else:
                 records = gcp_signals("general", start, end, self.settings, services,
-                                      max_records=self.log_remaining + 1, text=text, errors_only=errors_only, deadline=self.deadline)
-            truncated = len(records) > self.log_remaining
-            records = records[:self.log_remaining]
+                                      max_records=min(limit, self.log_remaining) + 1, text=text, errors_only=errors_only, deadline=self.deadline)
+            cap = min(limit, self.log_remaining)
+            incomplete = getattr(records, "incomplete", None)
+            truncated = len(records) > cap
+            records = records[:cap]
             self.log_remaining -= len(records)
             groups = defaultdict(list)
             for s in records:
@@ -123,7 +139,18 @@ class InvestigationTools:
                           "first": min(r.timestamp for r in rows).isoformat(),
                           "last": max(r.timestamp for r in rows).isoformat(),
                           "signal_ids": [r.id for r in rows[:3]]} for (name, kind, msg), rows in groups.items()]
-            self.cache[key] = {"groups": summaries, "records": len(records), "truncated": truncated}
+            # Interleave services so a noisy component does not fill the first page of groups.
+            by_service = defaultdict(list)
+            for group in summaries:
+                by_service[group["service"]].append(group)
+            summaries = [rows[i] for i in range(max(map(len, by_service.values()), default=0))
+                         for rows in by_service.values() if i < len(rows)]
+            overview = [{"service": name, "records": sum(g["count"] for g in rows),
+                         "first": min(g["first"] for g in rows), "last": max(g["last"] for g in rows)}
+                        for name, rows in by_service.items()]
+            self.cache[key] = {"groups": summaries, "services_with_signals": overview,
+                               "queried_services": services, "records": len(records), "truncated": truncated,
+                               "incomplete": incomplete}
         result = self.cache[key]
         groups = result["groups"]
         if not groups:

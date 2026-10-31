@@ -9,6 +9,27 @@ from typing import Protocol
 from .config import env
 
 
+class ModelResponseError(ValueError):
+    """Safe, machine-readable failure; never include the provider's raw response."""
+
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__(code)
+
+
+def error_details(exc: Exception) -> dict:
+    name = type(exc).__name__
+    status = getattr(exc, "status_code", None)
+    code = getattr(exc, "code", None)
+    if not isinstance(code, str):
+        code = ("timeout" if "timeout" in name.lower() or "deadline" in name.lower()
+                else "authentication" if status in {401, 403}
+                else "rate_limit" if status == 429
+                else "invalid_response" if isinstance(exc, ValueError)
+                else "provider_error")
+    return {"code": code, "type": name, "http_status": status}
+
+
 def parse_json(text: str) -> dict:
     text = text.strip()
     text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.M).strip()
@@ -24,26 +45,44 @@ class LLM(Protocol):
 
 
 class AnthropicLLM:
-    def __init__(self, model: str | None = None, temperature: float = 0.0):
+    def __init__(self, model: str | None = None, temperature: float = 0.0, *, effort: str | None = None):
         import anthropic
 
         self.client = anthropic.Anthropic(timeout=25.0, max_retries=0)
         self.model = model or env("TIDER_MODEL", "claude-sonnet-5-5")
         self.temperature = temperature
+        self.effort = effort
+        self.last_response_metadata: dict = {}
 
-    def complete_text(self, agent: str, system: str, user: str) -> str:
+    def complete_text(self, agent: str, system: str, user: str, *, timeout: float | None = None) -> str:
+        self.last_response_metadata = {}
         r = self.client.messages.create(
             model=self.model,
             max_tokens=2000,
             system=system,
             messages=[{"role": "user", "content": user}],
+            **({"timeout": timeout} if timeout is not None else {}),
+            **({"output_config": {"effort": self.effort}} if getattr(self, "effort", None) else {}),
         )
+        self.last_response_metadata = {
+            "stop_reason": r.stop_reason,
+            "input_tokens": r.usage.input_tokens,
+            "output_tokens": r.usage.output_tokens,
+        }
+        if r.stop_reason == "max_tokens":
+            raise ModelResponseError("truncated_response")
         return "".join(b.text for b in r.content if b.type == "text")
 
-    def complete_json(self, agent: str, system: str, user: str) -> dict:
-        return parse_json(
-            self.complete_text(agent, system + "\nResponde SOLO con un objeto JSON válido.", user)
-        )
+    def complete_json(self, agent: str, system: str, user: str, *, timeout: float | None = None) -> dict:
+        text = self.complete_text(agent, system + "\nResponde SOLO con un objeto JSON válido.", user,
+                                  timeout=timeout)
+        try:
+            result = parse_json(text)
+            if not isinstance(result, dict):
+                raise ValueError("Expected object")
+            return result
+        except ValueError as exc:
+            raise ModelResponseError("invalid_json") from exc
 
 
 class ScriptedLLM:

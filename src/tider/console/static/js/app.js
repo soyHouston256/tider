@@ -191,12 +191,14 @@ async function init() {
     const gcpOption = new Option('Logs de GKE', 'gcp');
     gcpOption.disabled = !configuration.gcp_enabled;
     $('mode').replaceChildren(new Option('Simulación local', 'mock'), gcpOption);
+    // Respect the configured live source on reload; simulations remain explicitly selectable.
+    $('mode').value = configuration.gcp_enabled ? 'gcp' : 'mock';
     updateServices();
     $('scenario').replaceChildren(...configuration.scenarios.map((item) => new Option(item.name, item.id)));
     scenarioChanged();
     modeChanged();
     $('connection').textContent = 'API conectada';
-    $('run').disabled = false;
+    updateScope();
     runs = await fetchJSON('/v1/incidents');
     updateHistory();
   } catch (error) {
@@ -351,12 +353,13 @@ function updateScope() {
   const general = selectedScope() === 'general', gcp = $('mode').value === 'gcp';
   $('focused-fields').hidden = general;
   $('service').required = !general;
-  $('scope-note').textContent = general ? (gcp ? 'Consulta los servicios del catálogo confirmado, dentro de la ventana indicada. Errores paginados en toda la ventana; sin errores, muestra de actividad reciente. El diagnóstico conserva sus reglas actuales.' : 'Analiza todas las señales del escenario simulado seleccionado. No consulta el entorno real.') : 'Comienza por el servicio elegido y sus vecinos documentados.';
-  const unavailable = general && gcp && configuration?.catalog_status !== 'confirmed';
+  $('scope-note').textContent = general ? (gcp ? 'Busca fallos recientes en todos los servicios del catálogo confirmado y contrasta los candidatos. No necesitas conocer el componente. Las consultas tienen límites de tiempo y registros.' : 'Analiza todas las señales del escenario simulado seleccionado. No consulta el entorno real.') : `Comienza por ${$('service').value || 'el servicio elegido'} y contrasta sus dependencias. Si desconoces el componente, selecciona Análisis general.`;
+  const unavailable = gcp && configuration?.catalog_status !== 'confirmed';
   if(unavailable) $('scope-note').textContent = 'Confirma el catálogo antes de iniciar un análisis general con logs reales.';
   $('run').disabled = analyzing || unavailable || (!general && !$('service').options.length);
 }
 document.querySelectorAll('input[name="scope"]').forEach(input=>input.addEventListener('change',updateScope));
+$('service').addEventListener('change', updateScope);
 
 async function suggestIncident() {
   const reserve = () => {

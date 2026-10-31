@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     investigation_history_path: str = ""
     agent_max_steps: int = Field(default=12, ge=2, le=30)
     agent_timeout_seconds: int = Field(default=90, ge=10, le=300)
+    agent_model_effort: Literal["low", "medium", "high"] | None = None
     agent_log_budget: int = Field(default=2000, ge=10, le=10000)
     agent_kube_context: str = ""
     agent_reader_kubeconfig: str = ""
