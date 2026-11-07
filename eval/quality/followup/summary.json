@@ -1,0 +1,673 @@
+{
+  "protocol": "eb2b81eadc4d267fcb3e5b2db9445f6ca5cf5899a60d4ed02732723c41442c57",
+  "artifacts_sha256": {
+    "before-ranks.json": "12c9a1537908a7ef7af17541de9f7153bad5a661582024110c1cd3650688e833",
+    "after-ranks.json": "86a065aaa7ec976b70727753fbdf3c47ac3d65af47bb4801d9c8c9b77132f824",
+    "before/H01.json": "6cfbcbbd4b4acc0369b37aac77e7f6289903af0ec7ccde59d9d7b434f9c054da",
+    "before/H02.json": "a79a638be3a2dccadfb2bc0a1ac223e0026ede84544b8952630fa3dd7ffd064c",
+    "before/H03.json": "b4854149c1055b13dcf2a4cc07a507f4693410773cf1e4936af168bf27999271",
+    "before/H04.json": "11043b7e4aba624356b7d6fa58c0765ef96735ff549bec75c55c69dfea4cb653",
+    "before/H05.json": "4743cf8505eee69778b7f02ffc6eaf751c24aace0a73bd28f87d593d0f3d025e",
+    "before/H06.json": "d3fac20ea996c69741abef4b7f6fbe29cfbd3f84a7bea7104a57817d920bda25",
+    "before/run.json": "4cda8dada3aad6e7c1501260ed165214190dca8c0b5fd1150d7e25667d8f062c",
+    "after/H01.json": "da84e7645bcdbf10b0896a6da2c4f3e5da0b20def0263987c04e26097067eb5d",
+    "after/H02.json": "53a32f20bbb21032a084e85307a49b15c0ef626e236222c738b2990efecdcb27",
+    "after/H03.json": "676ca21881f951a7595a10f726f420df667dc565aea8f17bdab2b5b2d6633c4d",
+    "after/H04.json": "bf30622f824b0b54d50597df3e4f37fa561fff7de13fa02bfce393ed6c99ffd2",
+    "after/H05.json": "7edc5b223b6833e091e2932e03e0727bc93ef7a34ec113e07762335e25a414cf",
+    "after/H06.json": "7fef88425ba7b7a939639e49363e221cbbfa3e6b78812c9c34e9f1cb3cef99c0",
+    "after/run.json": "9987e58b3efe23d8f4eff5f9778d2cfcbc89df80a45310ff3a5fceec9ce644e4"
+  },
+  "retrieval": {
+    "after": {
+      "hit_at_1": {
+        "hits": 6,
+        "n": 10,
+        "rate": 0.6,
+        "wilson95": [
+          0.3126737697336583,
+          0.8318196702937637
+        ]
+      },
+      "hit_at_4": {
+        "hits": 8,
+        "n": 10,
+        "rate": 0.8,
+        "wilson95": [
+          0.4901624715366419,
+          0.9433178485456246
+        ]
+      },
+      "macro_recall_at_4": 0.75,
+      "mrr_at_4": 0.7,
+      "empty_on_unanswerable": {
+        "hits": 4,
+        "n": 6,
+        "rate": 0.6666666666666666,
+        "wilson95": [
+          0.2999933151383921,
+          0.9032285888942194
+        ]
+      }
+    },
+    "before": {
+      "hit_at_1": {
+        "hits": 1,
+        "n": 10,
+        "rate": 0.1,
+        "wilson95": [
+          0.01787621309507295,
+          0.40415002679523837
+        ]
+      },
+      "hit_at_4": {
+        "hits": 3,
+        "n": 10,
+        "rate": 0.3,
+        "wilson95": [
+          0.10779126740630107,
+          0.6032218525388545
+        ]
+      },
+      "macro_recall_at_4": 0.25,
+      "mrr_at_4": 0.18333333333333332,
+      "empty_on_unanswerable": {
+        "hits": 2,
+        "n": 6,
+        "rate": 0.3333333333333333,
+        "wilson95": [
+          0.09677141110578052,
+          0.7000066848616078
+        ]
+      }
+    },
+    "paired_after_vs_before": {
+      "n": 10,
+      "first_only": 6,
+      "second_only": 1,
+      "difference": 0.5,
+      "exact_two_sided_p": 0.125
+    }
+  },
+  "diagnosis": {
+    "all_required_retrieved": {
+      "before": {
+        "hits": 0,
+        "n": 4,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.48989083645459713
+        ]
+      },
+      "after": {
+        "hits": 4,
+        "n": 4,
+        "rate": 1.0,
+        "wilson95": [
+          0.5101091635454028,
+          0.9999999999999999
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 4,
+        "first_only": 4,
+        "second_only": 0,
+        "difference": 1.0,
+        "exact_two_sided_p": 0.125
+      }
+    },
+    "joint_with_required_evidence": {
+      "before": {
+        "hits": 0,
+        "n": 4,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.48989083645459713
+        ]
+      },
+      "after": {
+        "hits": 4,
+        "n": 4,
+        "rate": 1.0,
+        "wilson95": [
+          0.5101091635454028,
+          0.9999999999999999
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 4,
+        "first_only": 4,
+        "second_only": 0,
+        "difference": 1.0,
+        "exact_two_sided_p": 0.125
+      }
+    },
+    "mechanism_match": {
+      "before": {
+        "hits": 0,
+        "n": 4,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.48989083645459713
+        ]
+      },
+      "after": {
+        "hits": 4,
+        "n": 4,
+        "rate": 1.0,
+        "wilson95": [
+          0.5101091635454028,
+          0.9999999999999999
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 4,
+        "first_only": 4,
+        "second_only": 0,
+        "difference": 1.0,
+        "exact_two_sided_p": 0.125
+      }
+    },
+    "location_match": {
+      "before": {
+        "hits": 2,
+        "n": 5,
+        "rate": 0.4,
+        "wilson95": [
+          0.117620774232648,
+          0.7692757187239869
+        ]
+      },
+      "after": {
+        "hits": 5,
+        "n": 5,
+        "rate": 1.0,
+        "wilson95": [
+          0.5655175352168255,
+          1.0
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 5,
+        "first_only": 3,
+        "second_only": 0,
+        "difference": 0.6,
+        "exact_two_sided_p": 0.25
+      }
+    },
+    "asserted_cause": {
+      "before": {
+        "hits": 0,
+        "n": 2,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.6576197724933468
+        ]
+      },
+      "after": {
+        "hits": 1,
+        "n": 2,
+        "rate": 0.5,
+        "wilson95": [
+          0.09453120573423074,
+          0.9054687942657693
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 2,
+        "first_only": 1,
+        "second_only": 0,
+        "difference": 0.5,
+        "exact_two_sided_p": 1.0
+      }
+    },
+    "explicit_unknown": {
+      "before": {
+        "hits": 2,
+        "n": 2,
+        "rate": 1.0,
+        "wilson95": [
+          0.3423802275066532,
+          1.0
+        ]
+      },
+      "after": {
+        "hits": 1,
+        "n": 2,
+        "rate": 0.5,
+        "wilson95": [
+          0.09453120573423074,
+          0.9054687942657693
+        ]
+      },
+      "paired_after_vs_before": {
+        "n": 2,
+        "first_only": 0,
+        "second_only": 1,
+        "difference": -0.5,
+        "exact_two_sided_p": 1.0
+      }
+    }
+  },
+  "usage": {
+    "before": {
+      "model_calls": 19,
+      "input_tokens": 51352,
+      "output_tokens": 4860,
+      "technical_error": 0,
+      "log_queries": 12,
+      "errors_only_queries": 12
+    },
+    "after": {
+      "model_calls": 14,
+      "input_tokens": 43395,
+      "output_tokens": 5364,
+      "technical_error": 0,
+      "log_queries": 12,
+      "errors_only_queries": 6
+    }
+  },
+  "cases": {
+    "before": {
+      "H01": {
+        "expected_components": [
+          "checkoutservice"
+        ],
+        "expected_mechanism": "cpu_limit",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": false,
+        "required": [
+          2,
+          3
+        ],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1",
+          "Q2",
+          "Q4"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 11111,
+        "output_tokens": 894,
+        "model_calls": 4
+      },
+      "H02": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "wrong_port",
+        "component": "cartservice",
+        "candidate_mechanism": "unknown",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [
+          1,
+          2,
+          3
+        ],
+        "required_retrieved": [
+          1
+        ],
+        "required_cited": [
+          1
+        ],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 1,
+        "errors_only_queries": 1,
+        "input_tokens": 8142,
+        "output_tokens": 840,
+        "model_calls": 3
+      },
+      "H03": {
+        "expected_components": [
+          "checkoutservice",
+          "paymentservice"
+        ],
+        "expected_mechanism": "latency",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": false,
+        "required": [
+          1,
+          2,
+          3
+        ],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1",
+          "Q2",
+          "Q4"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 11230,
+        "output_tokens": 935,
+        "model_calls": 4
+      },
+      "H04": {
+        "expected_components": [
+          "desconocido"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [],
+        "joint_with_required_evidence": null,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 10475,
+        "output_tokens": 893,
+        "model_calls": 4
+      },
+      "H05": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "scale_zero",
+        "component": "cartservice",
+        "candidate_mechanism": "unknown",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [
+          1,
+          2
+        ],
+        "required_retrieved": [
+          1
+        ],
+        "required_cited": [
+          1
+        ],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 1,
+        "errors_only_queries": 1,
+        "input_tokens": 7680,
+        "output_tokens": 776,
+        "model_calls": 3
+      },
+      "H06": {
+        "expected_components": [
+          "paymentservice"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "partial",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": true,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": null,
+        "asserted_cause": false,
+        "queried_documents": false,
+        "log_queries": 1,
+        "errors_only_queries": 1,
+        "input_tokens": 2714,
+        "output_tokens": 522,
+        "model_calls": 1
+      }
+    },
+    "after": {
+      "H01": {
+        "expected_components": [
+          "checkoutservice"
+        ],
+        "expected_mechanism": "cpu_limit",
+        "component": "checkoutservice",
+        "candidate_mechanism": "cpu_limit",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [
+          2,
+          3
+        ],
+        "required_retrieved": [
+          2,
+          3
+        ],
+        "required_cited": [
+          2,
+          3
+        ],
+        "mechanism_cites": [
+          "Q2"
+        ],
+        "joint_with_required_evidence": true,
+        "asserted_cause": true,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 5787,
+        "output_tokens": 739,
+        "model_calls": 2
+      },
+      "H02": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "wrong_port",
+        "component": "cartservice",
+        "candidate_mechanism": "wrong_port",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [
+          1,
+          2,
+          3
+        ],
+        "required_retrieved": [
+          1,
+          2,
+          3
+        ],
+        "required_cited": [
+          1,
+          2,
+          3
+        ],
+        "mechanism_cites": [
+          "Q2"
+        ],
+        "joint_with_required_evidence": true,
+        "asserted_cause": true,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 9776,
+        "output_tokens": 1149,
+        "model_calls": 3
+      },
+      "H03": {
+        "expected_components": [
+          "checkoutservice",
+          "paymentservice"
+        ],
+        "expected_mechanism": "latency",
+        "component": "checkoutservice",
+        "candidate_mechanism": "latency",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [
+          1,
+          2,
+          3
+        ],
+        "required_retrieved": [
+          1,
+          2,
+          3
+        ],
+        "required_cited": [
+          1,
+          2,
+          3
+        ],
+        "mechanism_cites": [
+          "Q2"
+        ],
+        "joint_with_required_evidence": true,
+        "asserted_cause": true,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 5916,
+        "output_tokens": 899,
+        "model_calls": 2
+      },
+      "H04": {
+        "expected_components": [
+          "desconocido"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "partial",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1",
+          "Q2"
+        ],
+        "joint_with_required_evidence": null,
+        "asserted_cause": false,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 3284,
+        "output_tokens": 549,
+        "model_calls": 1
+      },
+      "H05": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "scale_zero",
+        "component": "cartservice",
+        "candidate_mechanism": "scale_zero",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [
+          1,
+          2
+        ],
+        "required_retrieved": [
+          1,
+          2
+        ],
+        "required_cited": [
+          1,
+          2
+        ],
+        "mechanism_cites": [
+          "Q2"
+        ],
+        "joint_with_required_evidence": true,
+        "asserted_cause": true,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 9313,
+        "output_tokens": 1035,
+        "model_calls": 3
+      },
+      "H06": {
+        "expected_components": [
+          "paymentservice"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "paymentservice",
+        "candidate_mechanism": "latency",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q2"
+        ],
+        "joint_with_required_evidence": null,
+        "asserted_cause": true,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 1,
+        "input_tokens": 9319,
+        "output_tokens": 993,
+        "model_calls": 3
+      }
+    }
+  }
+}

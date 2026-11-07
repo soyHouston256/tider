@@ -1,0 +1,259 @@
+[
+  {
+    "id": "I01",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "GET /cart p95 rose from 24 to 286 ms, HTTP 200."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "server cgroup: limit 300m -> 50m; throttled_periods/periods 0.01 -> 0.57 for 90 s."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Load stable at 25 req/s; Redis PING median 3 ms before and during; GetCart p95 280 ms."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "6379 PING returned PONG."
+      }
+    ]
+  },
+  {
+    "id": "I02",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "GET /cart returned HTTP 500."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "GetCart dial tcp redis-cart:6380: connection refused."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Ready; listening on TCP 6379. PING redis-cart:6379 returned PONG from cart namespace."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Effective REDIS_ADDR changed from redis-cart:6379 to redis-cart:6380."
+      }
+    ]
+  },
+  {
+    "id": "I03",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "GET /cart HTTP 200; p95 32 -> 458 ms at stable request volume."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "GetCart trace: Redis client round trip 4 -> 412 ms. CPU throttled periods ratio 0.01, unchanged."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Server command execution 1 ms throughout; all requests succeeded."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Independent PING from cart pod to redis-cart:6379 rose from 3 to 410 ms. Endpoint unchanged."
+      }
+    ]
+  },
+  {
+    "id": "I04",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "INFO",
+        "message": "GET /cart and POST /checkout 200; p95 24 ms matches baseline."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "GetCart 200; cgroup ratio 0.01, Redis PING 2 ms; normal sample."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "6379 responded PONG."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "paymentservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Charge succeeded."
+      }
+    ]
+  },
+  {
+    "id": "I05",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "checkoutservice",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "Charge RPC to paymentservice: no available endpoints."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "paymentservice",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "Deployment status transition: spec.replicas 2 -> 0, ready 0; endpoint count 0."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "POST /checkout 503 while GET /cart 200."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "paymentservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Later spec.replicas 2, ready 2 and charge requests again succeeded."
+      }
+    ]
+  },
+  {
+    "id": "I06",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "GetCart handler p95 rose from 31 ms to 495 ms; all 120 requests returned 200."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "frontend",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "GET /cart p95 503 ms; homepage 25 ms."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Per-dependency timings and cgroup counters missing for this interval."
+      }
+    ]
+  },
+  {
+    "id": "I07",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "checkoutservice",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "Checkout failed at GetCart RPC."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "ERROR",
+        "message": "GetCart: connection refused at redis-cart:6391 after process reconfiguration."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Runtime destination redis-cart:6391. Direct probe from same pod: redis-cart:6379 PONG; redis-cart:6391 refused."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "redis-server bound to port 6379; processed 40 PING/s continuously."
+      }
+    ]
+  },
+  {
+    "id": "I08",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "WARNING",
+        "message": "GetCart p95 29 -> 350 ms, successful responses. CPU usage is 85% of limit."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "CPU quota unchanged at 300m. Throttled periods ratio remained 0.00 throughout."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:00Z",
+        "service": "cartservice",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Client span to Redis p95 3 -> 332 ms at constant demand; PING from cart to Redis shows the same extra time."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:00Z",
+        "service": "redis-cart",
+        "source": "log",
+        "severity": "INFO",
+        "message": "Internal command duration p95 1.2 ms stable. All commands completed."
+      }
+    ]
+  }
+]

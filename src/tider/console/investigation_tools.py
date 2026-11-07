@@ -16,6 +16,7 @@ from .providers.cloud_logging import gcp_signals
 from .providers.error_filter import is_error
 from .providers.kubernetes_events import gcp_events
 from .providers.mock import mock_signals
+from .providers.operational_observer import observer_url, read_observations
 from .providers.redaction import sanitize
 
 
@@ -51,12 +52,14 @@ class InvestigationTools:
         self.signals, self.seen = [], set()
         self.log_remaining = settings.agent_log_budget
         self.web_calls = 0
+        severity_option = "true por defecto; false incluye INFO y WARNING" if settings.agent_expand_log_activity else "bool"
         self.registry = ToolRegistry([
             Tool("context_search", "Documentos cargados. args: query (texto), limit (1..4).", "doc", self.context_search),
             Tool("service_catalog", "Catálogo confirmado y relaciones. Sin argumentos.", "doc", lambda: catalog_summary(self.catalog)),
             Tool("search_logs", "Consulta NUEVA. args opcionales: services (lista de nombres del catálogo), "
-                 "start/end (ISO con zona dentro del intervalo), text (literal), errors_only (bool), "
+                 f"start/end (ISO con zona dentro del intervalo), text (literal), errors_only ({severity_option}), "
                  "offset (página de grupos, 0 por defecto), limit (1..500, 200 por defecto). "
+                 "refresh=true permite una nueva lectura por consulta si pueden haber llegado logs tardíos. "
                  "Devuelve resumen por servicio, grupos y referencias. truncated indica cobertura incompleta; "
                  "acota servicio/tiempo o aumenta limit para contrastar otras señales.", "log", self.search_logs),
         ])
@@ -70,12 +73,39 @@ class InvestigationTools:
                                        "args: service (nombre del catálogo).", "k8s", self.service_state))
         if not self.mock and settings.agent_metrics_enabled:
             self.registry.register(Tool("service_metrics", "Cloud Monitoring en la ventana del incidente. "
-                                       "args: service, metric (cpu|memory).", "metric", self.service_metrics))
+                                       "args: service, metric (cpu|cpu_limit|memory). CPU consumida no demuestra throttling.", "metric", self.service_metrics))
+        if not self.mock and settings.agent_observer_url:
+            observer_url(settings.agent_observer_url)
+            self.registry.register(Tool("operation_evidence", "Observaciones históricas independientes del carrito: "
+                "configuración permitida, latencia HTTP/Redis, errores y limitación CPU si está disponible. "
+                "args: service, start/end opcionales dentro de la ventana. No contiene registros del inyector. "
+                "Revisar cobertura, tiempos y si los datos son simulados.", "metric", self.operation_evidence))
         if settings.agent_web_enabled and settings.tavily_api_key:
             self.registry.register(Tool("search_documentation", "Documentación oficial externa; no es telemetría. "
                                        "args: query (pregunta técnica genérica sin datos privados). Máximo 2 consultas.",
                                        "doc", self.search_documentation))
         self.cache = {}
+        self.refreshed_logs = set()
+
+    def remaining_timeout(self, cap=10):
+        self.check()
+        remaining = self.deadline - monotonic() - 5  # reserve time for conclusion/review
+        if remaining <= 0:
+            raise TimeoutError("No queda presupuesto para otra consulta.")
+        return min(cap, remaining)
+
+    def operation_evidence(self, service, start=None, end=None):
+        self.validate_service(service)
+        first = datetime.fromisoformat(start) if start else self.request.start
+        last = datetime.fromisoformat(end) if end else self.request.end
+        if first.tzinfo is None or last.tzinfo is None or not self.request.start <= first < last <= self.request.end:
+            raise ValueError("Ventana fuera del intervalo autorizado.")
+        if (last - first).total_seconds() > 3600:
+            raise ValueError("Acota la consulta a una hora como máximo.")
+        result = read_observations(self.settings.agent_observer_url, service, first, last, self.remaining_timeout())
+        if any(b.get('synthetic') for b in result['buckets']):
+            raise ValueError('El observador contiene simulaciones; no son evidencia de un incidente GCP.')
+        return result
 
     def check(self):
         if monotonic() >= self.deadline:
@@ -135,7 +165,7 @@ class InvestigationTools:
             matches = self.lake.search(query, k=limit)
         return {"matches": matches, "revision": self.catalog["revision"]} if matches else ""
 
-    def search_logs(self, services=None, start=None, end=None, text="", errors_only=True, offset=0, limit=200):
+    def search_logs(self, services=None, start=None, end=None, text="", errors_only=True, offset=0, limit=200, refresh=False):
         self.check()
         services = sorted(self.names) if services is None else services
         if not isinstance(services, list) or not services or len(services) > len(self.names):
@@ -153,6 +183,13 @@ class InvestigationTools:
         if type(limit) is not int or not 1 <= limit <= 500:
             raise ValueError("Límite de consulta inválido.")
         key = json.dumps([services, start.isoformat(), end.isoformat(), text, errors_only, limit])
+        if type(refresh) is not bool:
+            raise ValueError("refresh debe ser booleano.")
+        if refresh:
+            if offset or key in self.refreshed_logs:
+                raise ValueError("Solo se permite un refresco por consulta, desde la primera página.")
+            self.refreshed_logs.add(key)
+            self.cache.pop(key, None)
         if key not in self.cache:
             if self.log_remaining <= 0:
                 raise ValueError("Presupuesto de registros agotado; no se consultó otra página.")
@@ -191,7 +228,7 @@ class InvestigationTools:
                                "incomplete": incomplete}
         result = self.cache[key]
         groups = result["groups"]
-        if not groups:
+        if not groups and not result["incomplete"]:
             return ""
         return {**result, "groups": groups[offset:offset+5], "total_groups": len(groups),
                 "next_offset": offset+5 if offset+5 < len(groups) else None,
@@ -228,19 +265,30 @@ class InvestigationTools:
                           "containers": [{"name": c["name"], "ready": c.get("ready"),
                                           "restarts": c.get("restartCount"), "state": c.get("state")}
                                          for c in p.get("status", {}).get("containerStatuses", [])]} for p in pods],
-                "endpoints": [e for item in endpoints for e in item.get("endpoints", [])]}
+                "endpoints": [e for item in endpoints for e in item.get("endpoints", [])],
+                "configuration": {"generation": dep.get("metadata", {}).get("generation"),
+                    "containers": [{"name": c["name"], "image": c.get("image"), "resources": c.get("resources", {}),
+                        "dependencies": {e["name"]: e["value"] for e in c.get("env", [])
+                            if e["name"] in {"REDIS_ADDR", "PRODUCT_CATALOG_SERVICE_ADDR"} and isinstance(e.get("value"), str)
+                            and re.fullmatch(r"[a-z0-9.-]+:[0-9]{1,5}", e["value"])}}
+                        for c in dep["spec"].get("template", {}).get("spec", {}).get("containers", [])]}}
 
     def service_metrics(self, service: str, metric: str = "cpu"):
         self.validate_service(service)
         self.check()
         metrics = {"cpu": "kubernetes.io/container/cpu/core_usage_time",
+                   "cpu_limit": "kubernetes.io/container/cpu/limit_cores",
                    "memory": "kubernetes.io/container/memory/used_bytes"}
         if metric not in metrics:
             raise ValueError("Métrica no permitida.")
         import google.auth
         from google.auth.transport.requests import Request
         credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/monitoring.read"])
-        credentials.refresh(Request())
+        class BoundedRequest(Request):
+            def __call__(inner, *args, **kwargs):
+                kwargs['timeout'] = self.remaining_timeout()
+                return super().__call__(*args, **kwargs)
+        credentials.refresh(BoundedRequest())
         q = json.dumps
         filters = [f'metric.type={q(metrics[metric])}', 'resource.type="k8s_container"',
                    f'resource.labels.cluster_name={q(self.settings.gcp_cluster)}',
@@ -249,7 +297,7 @@ class InvestigationTools:
                    f'resource.labels.pod_name=starts_with({q(service + "-")})']
         response = httpx.get(
             f"https://monitoring.googleapis.com/v3/projects/{self.settings.google_cloud_project}/timeSeries",
-            headers={"Authorization": f"Bearer {credentials.token}"}, timeout=15,
+            headers={"Authorization": f"Bearer {credentials.token}"}, timeout=self.remaining_timeout(),
             params={"filter": " AND ".join(filters), "interval.startTime": self.request.start.isoformat(),
                     "interval.endTime": self.request.end.isoformat(), "pageSize": 5,
                     "aggregation.alignmentPeriod": "60s", "aggregation.perSeriesAligner": "ALIGN_RATE" if metric == "cpu" else "ALIGN_MEAN", "view": "FULL"})

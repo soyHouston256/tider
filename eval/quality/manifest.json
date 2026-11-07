@@ -1,0 +1,20 @@
+{
+  "version": "boutique-quality-v1",
+  "k": 4,
+  "unit": "one fixed query or incident window; one model attempt per window",
+  "source": "author-labelled local development set",
+  "files": {
+    "docs/runbooks/cpu-alta.md": "790ec83fcdef8995a27e0c18a95413bb803c4a3b22e9966fcc2e3c9c9c37f520",
+    "docs/runbooks/crashloop-config.md": "058e3ca6a5587fdc8f48d009a8909a8af3aa86d7fd2c2325a7f782e26c8324cc",
+    "docs/runbooks/errores-5xx-servicio.md": "b4e868d402243bd4820dbfb789ecf0d808af53962e1e46cf36658c2dae482347",
+    "docs/runbooks/memoria-oomkilled.md": "4946daa3bd88437d2da696c867d1ab6675280d8ff3a25ea622027b4cc1d31a90",
+    "eval/quality/corpus/05-boutique-gke-completa.drawio": "52ee418a4781ea796bd110b38d02d7d0016cc0630f9ef5d5f2dc30b4bb1cb151",
+    "eval/quality/corpus/06-alcance-arquitectura-gke.md": "91202a64f16943350745fc42c2109b80642a5cf8615c5dd5fc39fb5cd59b3bbf",
+    "eval/quality/incident_labels.json": "5476414cd597bfd17f190e7dfe519874c9241ec950825797b3e8273abdde6699",
+    "eval/quality/passage_labels.json": "fabc6d6b6b16fc71b33ffefbf5ca7bfc6d927db968849085ce6b7d8807325e42",
+    "eval/quality/queries.json": "59ad0a9c3b3ba918a956c55156be9d92559cf852ba9196eb3ec171c49fe50b96",
+    "eval/quality/topology.md": "f30d888120a36c53081fe5af25d614b6d182629318a116f098d8f10596db1ecf",
+    "eval/quality/windows.json": "840f909d39a9a6ab19b63d6b900dfbe091dc52e605aa84887b5bd12c209e5fdf",
+    "eval/quality/PROTOCOL.md": "c6f61bade0c30a8003003538702c79a238a9ff800c72dfb3e80e4ad0d915b7d8"
+  }
+}

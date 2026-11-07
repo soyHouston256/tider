@@ -429,3 +429,55 @@ def test_partial_unscored_result_survives_sqlite_reload(monkeypatch, tmp_path):
     assert restored.model_dump() == original.model_dump()
     assert restored.status == 'partial' and restored.confidence is None
     assert restored.workflow.verdict.confidence is None
+
+
+def test_unknown_cause_reads_activity_once_in_the_same_service_and_time_range(monkeypatch):
+    import json
+
+    req = request()
+    since = (req.start + timedelta(minutes=2)).isoformat()
+    calls = []
+
+    def logs(service, start, end, cfg, services, **kwargs):
+        calls.append((services, start.isoformat(), kwargs["errors_only"], kwargs["max_records"]))
+        rows = [Signal(timestamp=start, service="shippingservice", source="log", message="socket failed")]
+        if not kwargs["errors_only"]:
+            rows.append(Signal(timestamp=end, service="shippingservice", source="log",
+                               message="effective port 4401; listener accepts port 4400"))
+        return rows
+
+    def investigator(prompt):
+        obs = json.loads(prompt)["observations"]
+        if not obs:
+            return {"action": "tool", "tool": "search_logs",
+                    "args": {"services": ["shippingservice"], "start": since, "text": "socket"}}
+        if len(obs) == 1:
+            return {**final(["Q1"]), "mechanism": "unknown"}
+        return {**final(["Q1", "Q2"]), "mechanism": "wrong_port", "mechanism_cites": ["Q2"]}
+
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", logs)
+    llm = ScriptedLLM({"investigator": investigator, "judge": {"supported": True, "notes": "Dos puertos."}})
+    result = AgenticEngine(settings(agent_log_budget=20, agent_expand_log_activity=True), Lake(), llm).analyze_live(req)
+    assert calls == [(["shippingservice"], since, True, 21), (["shippingservice"], since, False, 20)]
+    assert result.status == "hypothesis"
+    assert result.investigation["candidate"]["mechanism"] == "wrong_port"
+    assert result.investigation["observations"][1]["args"].get("text", "") == ""
+
+
+@pytest.mark.parametrize("broken", [True, False])
+def test_empty_initial_scan_expands_before_decision_but_provider_failure_does_not(monkeypatch, broken):
+    seen = []
+
+    def logs(service, start, end, cfg, services, **kwargs):
+        seen.append(kwargs["errors_only"])
+        if broken:
+            raise ConnectionError()
+        return []
+
+    monkeypatch.setattr("tider.console.investigation_tools.gcp_signals", logs)
+    llm = ScriptedLLM({"investigator": {"action": "final", "component": "desconocido",
+                      "mechanism": "unknown", "finding": "Sin evidencia", "cites": []}})
+    result = AgenticEngine(settings(agent_expand_log_activity=True), Lake(), llm).analyze_live(request(scope="general"))
+    assert seen == ([True] if broken else [True, False])
+    assert result.component == "desconocido"
+    assert bool(result.investigation["errors"]) == broken

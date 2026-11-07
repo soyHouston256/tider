@@ -1,0 +1,145 @@
+{
+  "id": "I08",
+  "result": {
+    "component": "desconocido",
+    "status": "insufficient_evidence",
+    "evidence": [],
+    "candidate": {
+      "component": "desconocido",
+      "finding": "No se puede identificar ningún componente afectado. Las consultas de logs sin filtros (Q1), solo errores (Q2) y con la ventana completa 12:00-12:10 y limit 500 (Q4) no devolvieron resultados para ninguno de los cinco servicios del catálogo (cartservice, checkoutservice, frontend, paymentservice, redis-cart). La ausencia de logs no prueba salud ni caída: puede ser falta de ingesta, un problema de cobertura o un servicio que dejó de emitir. La documentación recuperada (Q3) es un runbook genérico de errores 5xx y no aporta evidencia del entorno. No hay evidencia de otros cambios de disponibilidad en la ventana.",
+      "missing": [
+        "Logs del periodo: no hay datos, ni siquiera para confirmar si se ingestaron",
+        "Eventos de Kubernetes, estado de despliegues y métricas de latencia, CPU o puertos, que no están disponibles con estas herramientas",
+        "Síntoma concreto de usuario, como el servicio o la ruta afectados",
+        "Confirmación de que la ventana y el namespace son correctos"
+      ],
+      "cites": [
+        "Q1",
+        "Q2",
+        "Q4",
+        "Q3"
+      ],
+      "recommendation": "Verificar que la ingesta de logs cubra el namespace boutique entre 12:00 y 12:10 UTC del 2026-11-01 y ampliar la ventana. Si hay logs, revisar primero frontend, checkoutservice y cartservice con sus dependencias redis-cart y paymentservice.",
+      "other_findings": [],
+      "mechanism": "unknown",
+      "mechanism_cites": [
+        "Q1",
+        "Q2",
+        "Q4"
+      ]
+    },
+    "stop_reason": "insufficient",
+    "review_status": "invalid_candidate",
+    "observations": [
+      {
+        "id": "Q1",
+        "tool": "search_logs",
+        "args": {},
+        "kind": "empty",
+        "data": null,
+        "summary": "sin resultados",
+        "elapsed_seconds": 0.003
+      },
+      {
+        "id": "Q2",
+        "tool": "search_logs",
+        "args": {
+          "errors_only": true,
+          "limit": 200
+        },
+        "kind": "empty",
+        "data": null,
+        "summary": "sin resultados",
+        "elapsed_seconds": 1.831
+      },
+      {
+        "id": "Q3",
+        "tool": "context_search",
+        "args": {
+          "query": "incidente caída error latencia escalado",
+          "limit": 4
+        },
+        "kind": "doc",
+        "data": {
+          "matches": [
+            {
+              "page": "Documento",
+              "doc_id": "650afd5758259690b51982583619ad131be420c0c817fac8fd6d878c3b8f46b1",
+              "title": "errores-5xx-servicio.md",
+              "doc_type": "runbook",
+              "chunk": 1,
+              "text": "# Aumento de errores en un servicio\n",
+              "distance": 0.5247
+            },
+            {
+              "doc_type": "runbook",
+              "chunk": 3,
+              "page": "Documento",
+              "doc_id": "650afd5758259690b51982583619ad131be420c0c817fac8fd6d878c3b8f46b1",
+              "title": "errores-5xx-servicio.md",
+              "text": "## Mitigación\n- Dependencia en `CrashLoopBackOff`: seguir el runbook de CrashLoopBackOff; reiniciar o escalar réplicas de un pod que no arranca no ayuda.\n- Dependencia sana pero saturada (CPU o latencia alta, sin HPA): `runbook:scale` hacia arriba (máx. 5).\n- Error introducido por un despliegue reciente del propio servicio: `runbook:rollout-undo` (requiere `deployment_status` con un rollout reciente).\n- Pods sanos y errores de aplicación o de feature flag: `escalate`.\n- Sin evidencia clara: `escalate`.",
+              "distance": 0.543
+            }
+          ],
+          "revision": 6
+        },
+        "summary": "",
+        "elapsed_seconds": 3.583
+      },
+      {
+        "id": "Q4",
+        "tool": "search_logs",
+        "args": {
+          "start": "2026-11-01T12:00:00+00:00",
+          "end": "2026-11-01T12:10:00+00:00",
+          "limit": 500
+        },
+        "kind": "empty",
+        "data": null,
+        "summary": "sin resultados",
+        "elapsed_seconds": 5.567
+      }
+    ],
+    "errors": [],
+    "model": "claude-sonnet-5-5",
+    "model_calls": 4,
+    "model_requests": [
+      {
+        "agent": "investigator",
+        "input_chars": 2225,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 1.826,
+        "stop_reason": "end_turn",
+        "input_tokens": 2397,
+        "output_tokens": 83
+      },
+      {
+        "agent": "investigator",
+        "input_chars": 2392,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 1.616,
+        "stop_reason": "end_turn",
+        "input_tokens": 2476,
+        "output_tokens": 81
+      },
+      {
+        "agent": "investigator",
+        "input_chars": 3556,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 1.983,
+        "stop_reason": "end_turn",
+        "input_tokens": 3029,
+        "output_tokens": 111
+      },
+      {
+        "agent": "investigator",
+        "input_chars": 3777,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 4.937,
+        "stop_reason": "end_turn",
+        "input_tokens": 3142,
+        "output_tokens": 582
+      }
+    ]
+  }
+}

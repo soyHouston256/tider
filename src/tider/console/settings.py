@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""
     agent_web_enabled: bool = False
     agent_metrics_enabled: bool = False
+    agent_observer_url: str = ""  # Operator-configured localhost port-forward; never model supplied.
+    agent_expand_log_activity: bool = False  # Opt-in pending independent false-attribution checks.
     agent_events_enabled: bool = True
     history_limit: int = Field(default=50, ge=1, le=100)
 

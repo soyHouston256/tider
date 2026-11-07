@@ -1,0 +1,18 @@
+{
+  "T01": "¿Qué servicio tiene configurado EMAIL_SERVICE_ADDR y a qué destino apunta?",
+  "T02": "¿Cómo verifico si un rollout reciente coincide con el comienzo de una fuga de memoria?",
+  "T03": "El manifiesto fija un límite de memoria inferior al uso normal. ¿Dónde se debe corregir?",
+  "T04": "¿Qué acción corresponde si cambió la plantilla del pod y ahora el proceso no arranca?",
+  "T05": "¿Qué archivos o volúmenes inspecciono si tras montar un ConfigMap el pod entra en bucle?",
+  "T06": "Are there signs of throttling and how should I compare consumption with the CPU limit?",
+  "T07": "¿Por qué no basta reiniciar una dependencia que sigue en CrashLoopBackOff?",
+  "T08": "¿En qué namespace vive el administrador que accede a la tienda?",
+  "T09": "¿Cómo interpreto la dirección de las flechas del inventario obtenido en GKE?",
+  "T10": "¿Qué microservicio utiliza SHIPPING_SERVICE_ADDR al procesar una compra?",
+  "T11": "¿Qué archivo de facturación incluye el saldo de créditos de este mes?",
+  "T12": "¿Qué porcentaje de CPU consume cartservice en este instante?",
+  "T13": "¿Cuál fue el nombre exacto del pod OOMKilled en el incidente de anoche?",
+  "T14": "¿Qué huella SHA256 tiene el certificado activo de redis-cart?",
+  "T15": "¿Quién aprobó el último cambio de réplicas de checkoutservice?",
+  "T16": "¿En qué minuto exacto falló hoy el endpoint de pagos?"
+}

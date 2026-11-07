@@ -1,0 +1,3 @@
+{"stage": "desarrollo", "measure": "RAG Hit@4", "before": "8/16", "after": "13/16", "correct_empty_before": "4/6", "correct_empty_after": "6/6", "evidence": "development-ranks.json"}
+{"stage": "reservado", "measure": "RAG Hit@4", "before": "3/10", "after": "8/10", "correct_empty_before": "2/6", "correct_empty_after": "4/6", "decision": "integrar", "evidence": "summary.json"}
+{"stage": "reservado", "measure": "servicio y mecanismo con evidencia", "before": "0/4", "after": "4/4", "false_attributions_before": "0/2", "false_attributions_after": "1/2", "decision": "solo experimental", "evidence": "summary.json"}

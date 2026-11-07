@@ -3,9 +3,11 @@
 import base64
 import hashlib
 import html
+import math
 import re
 import unicodedata
 import zlib
+from collections import Counter
 from copy import deepcopy
 from threading import RLock
 from urllib.parse import unquote
@@ -37,13 +39,45 @@ def terms(value: str) -> set[str]:
     }
 
 
-def relevant(query: str, text: str, distance: float) -> bool:
+# A static operations manual can explain how to measure something. An answer about
+# a relative time needs a passage anchored to that time, too.
+RELATIVE_TIME = re.compile(r"\b(hoy|ayer|anoche|ahora(?: mismo)?|en este (?:momento|instante)|"
+                           r"today|yesterday|tonight|right now|currently)\b", re.I)
+
+
+def rank_passages(query, rows, k):
+    """Rank by semantic similarity and corpus-weighted word matches; return citable passages."""
     keywords = terms(query)
     if not keywords:
-        return False
-    overlap = len(keywords & terms(text)) / len(keywords)
-    return distance <= MAX_DISTANCE or overlap >= 0.65
+        return []
+    documents = [(row, terms(row["text"])) for row in rows
+                 if any(line.strip() and not line.lstrip().startswith("#") for line in row["text"].splitlines())]
+    frequency = Counter(word for _, words in documents for word in words)
+    time_anchor = RELATIVE_TIME.search(query)
+    asks_for_method = bool(re.search(r"\b(c[oó]mo|how)\b", query, re.I))
 
+    def weight(word):
+        return 1 + math.log((1 + len(documents)) / (1 + frequency[word]))
+
+    query_weight = sum(weight(t) for t in sorted(keywords))
+    ranked = []
+    for row, words in documents:
+        if time_anchor and not asks_for_method and time_anchor[0].casefold() not in row["text"].casefold():
+            continue
+        hits = keywords & words
+        matched = sum(weight(t) for t in sorted(hits))
+        coverage = matched / query_weight
+        distance = row["distance"]
+        identifier = any("_" in t or "-" in t for t in hits)
+        lexical = (len(hits) >= 2 and coverage >= 0.20) or identifier or coverage >= 0.65
+        semantic = distance <= 0.43 or (distance <= MAX_DISTANCE and bool(hits))
+        if not (semantic or lexical):
+            continue
+        # Coverage retains rare technical names; cosine similarity helps paraphrases.
+        score = coverage + 0.45 * (1 - distance)
+        ranked.append((-score, distance, row["doc_id"], row["chunk"], row))
+    ranked.sort(key=lambda item: item[:4])
+    return [{**item[-1], "distance": round(item[1], 4)} for item in ranked[:k]]
 
 def plain(value: str) -> str:
     return html.unescape(re.sub(r"<[^>]+>", " ", value)).strip()
@@ -176,13 +210,10 @@ class ContextLake:
             result = self.collection.query(
                 query_texts=[query], n_results=count, include=["documents", "metadatas", "distances"]
             )
-            return [
-                {**meta, "text": text, "distance": round(distance, 4)}
-                for meta, text, distance in zip(
-                    result["metadatas"][0], result["documents"][0], result["distances"][0]
-                )
-                if relevant(query, text, distance)
-            ][:k]
+            rows = [{**meta, "text": text, "distance": distance}
+                    for meta, text, distance in zip(result["metadatas"][0], result["documents"][0],
+                                                    result["distances"][0], strict=True)]
+            return rank_passages(query, rows, k)
 
     def snapshot_documents(self):
         """Freeze source text and metadata for one investigation, without embeddings."""

@@ -132,6 +132,8 @@ El servicio Postgres del motor se activa por separado con
 
 ## Validar un cambio
 
+La evaluación local mide por separado los fragmentos que encuentra el RAG, los servicios localizados y los mecanismos identificados con evidencia. Incluye una corrida grabada que se puede volver a puntuar. [Comandos y resultados de la evaluación](eval/quality/README.md).
+
 ```bash
 make test
 make lint

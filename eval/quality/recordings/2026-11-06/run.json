@@ -1,0 +1,17 @@
+{
+  "protocol": "581fa9c67efe1bf2391b4b250ebfe171e39fc475b4984e4df525ae2139439067",
+  "model": "claude-sonnet-5-5",
+  "effort": "low",
+  "steps": 6,
+  "timeout_seconds": 100,
+  "log_budget": 80,
+  "started_utc": "2026-11-06T20:15:23.225529+00:00",
+  "code": {
+    "eval/quality/live.py": "d81b7357323be3a7e288cf796105790c71f1bde4dfe8d67040e63295ba95bf9f",
+    "src/tider/console/agentic.py": "c4781b118bc809cedb556a0967cdb172411469fa17b312d80eb91dbeedf1123e",
+    "src/tider/console/investigation_tools.py": "235bc473ead31b276c97a0f139aceaa66750a567af6fbbabc387b9cbb28e1fb8",
+    "src/tider/console/context_lake.py": "bdb07534b7929333aee55895c9e2d531d2891f83c2ed69f1efea0e58a43dd4c5",
+    "src/tider/llm.py": "cc1737cb9b35c8bfac30df635eafabd00e79d09688c8b5a3e046397b2dd70e06",
+    "uv.lock": "873a6d91d029241c4d806b1e589cb66b8838a53340d531d426a5df1a662c5f2d"
+  }
+}

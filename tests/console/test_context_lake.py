@@ -109,13 +109,24 @@ def test_front_matter_does_not_become_a_search_passage():
 
 
 def test_retrieval_abstains_for_weak_matches_but_keeps_explicit_terms():
-    from tider.console.context_lake import relevant
+    from tider.console.context_lake import rank_passages
 
-    text = "Región: us-central1. Laboratorio GKE. frontend llama a cartservice."
-    assert relevant("¿En qué región está el laboratorio?", text, 0.72)
-    assert not relevant("¿Cómo rotar certificados en GKE?", text, 0.62)
-    assert not relevant("Dame la lista de pods de mi infra", text, 0.7)
-    assert not relevant("¿Qué?", text, 0.1)
+    row = {"text": "Región: us-central1. Laboratorio GKE. frontend llama a cartservice.",
+           "doc_id": "doc", "chunk": 1, "distance": 0.72}
+    assert rank_passages("¿En qué región está el laboratorio?", [row], 4)
+    assert not rank_passages("¿Cómo rotar certificados en GKE?", [row], 4)
+    assert not rank_passages("Dame la lista de pods de mi infra", [row], 4)
+    assert not rank_passages("¿Qué?", [row], 4)
     lake = ContextLake(TinyEmbedding())
     lake.add("cart.md", "# Cart\ncart troubleshooting")
     assert lake.search("payment") == []
+
+
+def test_technical_identifier_beats_unrelated_heading_and_old_manual_cannot_supply_live_value():
+    from tider.console.context_lake import rank_passages
+
+    rows = [{"doc_id": "a", "chunk": 1, "text": "# CPU", "distance": .1},
+            {"doc_id": "b", "chunk": 1, "text": "Configura el destino mediante PAYMENT_SERVICE_ADDR.", "distance": .72}]
+    assert [r["doc_id"] for r in rank_passages("Destino de PAYMENT_SERVICE_ADDR", rows, 4)] == ["b"]
+    assert rank_passages("¿Cuál es el destino de PAYMENT_SERVICE_ADDR ahora?", rows, 4) == []
+    assert rank_passages("¿Cómo consulto PAYMENT_SERVICE_ADDR ahora?", rows, 4)

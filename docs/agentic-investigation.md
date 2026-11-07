@@ -19,6 +19,15 @@ los clientes anteriores que solo envían un servicio conservan el alcance enfoca
 Con `LLM_PROVIDER=none` se conserva el motor anterior. La opción de síntoma libre está desactivada
 en ese modo para no aparentar que las reglas interpretan lenguaje natural.
 
+En el laboratorio, `AGENT_EXPAND_LOG_ACTIVITY=true` habilita una lectura automática adicional
+de todas las severidades cuando el filtro de errores queda vacío o cuando el investigador intenta
+cerrar con mecanismo desconocido. Reutiliza la ventana y los servicios consultados, elimina el
+filtro de texto y consume como máximo 30 registros del saldo disponible. La primera lectura
+general reserva parte de ese saldo. Un fallo del proveedor se registra como tal. Si el borrador
+ya estaba listo, el modelo lo reconsidera cuando aparecen referencias nuevas. La opción requiere
+al menos 15 segundos disponibles y margen para concluir. Por defecto queda desactivada debido
+a una falsa atribución observada en una ventana ambigua. [Comparación pareada](../eval/quality/followup/summary.json)
+
 ## Activación
 
 Instalar los extras `llm` y `gcp` del proyecto en el entorno de ejecución. Configurar de forma local

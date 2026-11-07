@@ -1,0 +1,17 @@
+{
+  "protocol": "eb2b81eadc4d267fcb3e5b2db9445f6ca5cf5899a60d4ed02732723c41442c57",
+  "model": "claude-sonnet-5-5",
+  "effort": "low",
+  "steps": 6,
+  "timeout_seconds": 100,
+  "log_budget": 80,
+  "started_utc": "2026-11-06T21:41:33.570698+00:00",
+  "code": {
+    "live.py": "88bcfcede8d26cd60718af1e713d259395a8fd42e77494e7d45894cabb7fb8fd",
+    "uv.lock": "873a6d91d029241c4d806b1e589cb66b8838a53340d531d426a5df1a662c5f2d",
+    "agentic.py": "da5dc8cf7fc2fdaa0f1ba9da91e744b8050d29c3caa2f942d61c721cedf2aebf",
+    "investigation_tools.py": "48b1b3a21ab66fd54b5f9d5c9b851d071ab1f553e677763ef571ad129a9a672f",
+    "context_lake.py": "b9a278669df02b8c60f4d7ab0177cb36b84bc01242072b716586a92e4028e0fc",
+    "llm.py": "cc1737cb9b35c8bfac30df635eafabd00e79d09688c8b5a3e046397b2dd70e06"
+  }
+}

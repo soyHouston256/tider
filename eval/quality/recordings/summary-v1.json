@@ -1,0 +1,1027 @@
+{
+  "protocol_sha256": "581fa9c67efe1bf2391b4b250ebfe171e39fc475b4984e4df525ae2139439067",
+  "recordings_sha256": {
+    "retrieval": "ac649aced8ee15e11e1aae9757f86a76905cf2b04fdc3ba1a0fdb904af004c5f",
+    "I01.json": "0fa7e04b095e189953c755d2ad01d64468448d186f96c7046a52f06e1a80e5f8",
+    "I02.json": "c0c230f104174613f811adf7785be53acf0f80ec40e25c500c640b666e1d8966",
+    "I03.json": "8d9a61fc9b1d74b7b51a663d43a428a09b895bcb0d15cf1c175d1b280e5c720a",
+    "I04.json": "93ed9c79bb8365139148cded282c4cd54299396b6856a53598757f31682ddfae",
+    "I05.json": "cad4a698c0eba276b4faa5731e20670694fc218f124dc54e3755748238ecccc5",
+    "I06.json": "1c43dabe3770f90f25095ee5de3925d1f2845cdd3b0b475c73c762144c47574a",
+    "I07.json": "73c7eedaa322be0fc10eb7fa208558b379c99ec13d984556302103c0dc083b6b",
+    "I08.json": "5c82e3bf455fc029ac77a1fac4aefe052f86f8cb2bb0ea034c96f3047cb91781",
+    "run.json": "0235ffecf223582d13efc75181b4dc6b4d768397d345adac4d6c1b512f909773"
+  },
+  "retrieval": {
+    "summary": {
+      "tider": {
+        "hit_at_1": {
+          "hits": 6,
+          "n": 16,
+          "rate": 0.375,
+          "wilson95": [
+            0.1848123255886364,
+            0.6135895945449727
+          ]
+        },
+        "hit_at_4": {
+          "hits": 8,
+          "n": 16,
+          "rate": 0.5,
+          "wilson95": [
+            0.2799956361032602,
+            0.7200043638967397
+          ]
+        },
+        "macro_recall_at_4": 0.5,
+        "mrr_at_4": 0.4375,
+        "empty_on_unanswerable": {
+          "hits": 4,
+          "n": 6,
+          "rate": 0.6666666666666666,
+          "wilson95": [
+            0.2999933151383921,
+            0.9032285888942194
+          ]
+        }
+      },
+      "lexical": {
+        "hit_at_1": {
+          "hits": 10,
+          "n": 16,
+          "rate": 0.625,
+          "wilson95": [
+            0.38641040545502736,
+            0.8151876744113636
+          ]
+        },
+        "hit_at_4": {
+          "hits": 15,
+          "n": 16,
+          "rate": 0.9375,
+          "wilson95": [
+            0.7167126242970108,
+            0.9888806552353575
+          ]
+        },
+        "macro_recall_at_4": 0.90625,
+        "mrr_at_4": 0.7708333333333334,
+        "empty_on_unanswerable": {
+          "hits": 2,
+          "n": 6,
+          "rate": 0.3333333333333333,
+          "wilson95": [
+            0.09677141110578052,
+            0.7000066848616078
+          ]
+        }
+      }
+    },
+    "paired_hit_at_4": {
+      "n": 16,
+      "first_only": 0,
+      "second_only": 7,
+      "difference": -0.4375,
+      "exact_two_sided_p": 0.015625
+    },
+    "cases": {
+      "R01": {
+        "query": "¿Cómo distinguir más peticiones de mayor consumo de CPU por petición?",
+        "expected": [
+          "cpu-alta.md#2"
+        ],
+        "tider": {
+          "ranked": [
+            "cpu-alta.md#2"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "cpu-alta.md#2",
+            "cpu-alta.md#1",
+            "cpu-alta.md#3",
+            "errores-5xx-servicio.md#3"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R02": {
+        "query": "¿Qué hago si el autoscaler sobrescribe el escalado manual de réplicas?",
+        "expected": [
+          "cpu-alta.md#3"
+        ],
+        "tider": {
+          "ranked": [
+            "cpu-alta.md#3",
+            "cpu-alta.md#2",
+            "errores-5xx-servicio.md#3",
+            "06-alcance-arquitectura-gke.md#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "cpu-alta.md#2",
+            "cpu-alta.md#3",
+            "errores-5xx-servicio.md#3",
+            "06-alcance-arquitectura-gke.md#1"
+          ],
+          "first_rank": 2,
+          "recall": 1.0
+        }
+      },
+      "R03": {
+        "query": "Which counter should I graph to distinguish a memory leak from a sudden spike?",
+        "expected": [
+          "memoria-oomkilled.md#3"
+        ],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": 0.0
+        }
+      },
+      "R04": {
+        "query": "¿Dónde aparece el motivo de la última terminación cuando el contenedor supera la memoria?",
+        "expected": [
+          "memoria-oomkilled.md#2"
+        ],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "memoria-oomkilled.md#2",
+            "memoria-oomkilled.md#1",
+            "memoria-oomkilled.md#3"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R05": {
+        "query": "La fuga vuelve después de reiniciar el pod. ¿Qué corrección se propone?",
+        "expected": [
+          "memoria-oomkilled.md#4"
+        ],
+        "tider": {
+          "ranked": [
+            "crashloop-config.md#2"
+          ],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "crashloop-config.md#3",
+            "memoria-oomkilled.md#3",
+            "memoria-oomkilled.md#4",
+            "memoria-oomkilled.md#1"
+          ],
+          "first_rank": 3,
+          "recall": 1.0
+        }
+      },
+      "R06": {
+        "query": "¿Cómo leo el error de arranque de un contenedor que siempre se reinicia?",
+        "expected": [
+          "crashloop-config.md#2"
+        ],
+        "tider": {
+          "ranked": [
+            "errores-5xx-servicio.md#1",
+            "memoria-oomkilled.md#4",
+            "crashloop-config.md#3"
+          ],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "crashloop-config.md#2",
+            "crashloop-config.md#3",
+            "errores-5xx-servicio.md#3"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R07": {
+        "query": "Si se editó un ConfigMap en su lugar, ¿sirve volver a la revisión anterior del Deployment?",
+        "expected": [
+          "crashloop-config.md#3"
+        ],
+        "tider": {
+          "ranked": [
+            "crashloop-config.md#3",
+            "memoria-oomkilled.md#4"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "crashloop-config.md#3",
+            "cpu-alta.md#3",
+            "crashloop-config.md#2"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R08": {
+        "query": "¿Cómo rastreo el origen de errores en cascada cuando el servicio frontal es el más ruidoso?",
+        "expected": [
+          "errores-5xx-servicio.md#2"
+        ],
+        "tider": {
+          "ranked": [
+            "errores-5xx-servicio.md#1",
+            "errores-5xx-servicio.md#2"
+          ],
+          "first_rank": 2,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "errores-5xx-servicio.md#1",
+            "errores-5xx-servicio.md#2",
+            "errores-5xx-servicio.md#3",
+            "cpu-alta.md#2"
+          ],
+          "first_rank": 2,
+          "recall": 1.0
+        }
+      },
+      "R09": {
+        "query": "Pago rechazado por lógica de aplicación con pods sanos. ¿Qué acción tomar?",
+        "expected": [
+          "errores-5xx-servicio.md#2",
+          "errores-5xx-servicio.md#3"
+        ],
+        "tider": {
+          "ranked": [
+            "errores-5xx-servicio.md#2",
+            "crashloop-config.md#2",
+            "cpu-alta.md#2",
+            "errores-5xx-servicio.md#3"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "errores-5xx-servicio.md#2",
+            "errores-5xx-servicio.md#3",
+            "crashloop-config.md#2",
+            "06-alcance-arquitectura-gke.md#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R10": {
+        "query": "¿Qué servicio utiliza cartservice mediante REDIS_ADDR?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#2",
+          "05-boutique-gke-completa.drawio#1"
+        ],
+        "tider": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#2",
+            "errores-5xx-servicio.md#1",
+            "06-alcance-arquitectura-gke.md#4",
+            "05-boutique-gke-completa.drawio#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "errores-5xx-servicio.md#1",
+            "05-boutique-gke-completa.drawio#1",
+            "06-alcance-arquitectura-gke.md#2",
+            "errores-5xx-servicio.md#3"
+          ],
+          "first_rank": 2,
+          "recall": 1.0
+        }
+      },
+      "R11": {
+        "query": "¿A quién llama recommendationservice para leer el catálogo?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#3",
+          "05-boutique-gke-completa.drawio#2"
+        ],
+        "tider": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#4"
+          ],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#3",
+            "05-boutique-gke-completa.drawio#2",
+            "06-alcance-arquitectura-gke.md#4",
+            "05-boutique-gke-completa.drawio#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R12": {
+        "query": "¿Dónde corrió el inventario de arquitectura y en qué fecha se obtuvo?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#1"
+        ],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#1",
+            "errores-5xx-servicio.md#2",
+            "06-alcance-arquitectura-gke.md#5"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R13": {
+        "query": "¿Qué dependencia configuró frontend aunque no se encontró el despliegue correspondiente?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#4"
+        ],
+        "tider": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#1",
+            "06-alcance-arquitectura-gke.md#4",
+            "crashloop-config.md#1",
+            "06-alcance-arquitectura-gke.md#5"
+          ],
+          "first_rank": 2,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#4",
+            "05-boutique-gke-completa.drawio#2",
+            "errores-5xx-servicio.md#3",
+            "05-boutique-gke-completa.drawio#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R14": {
+        "query": "¿Qué túnel abre el operador para llegar al administrador de ChaosForge?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#5"
+        ],
+        "tider": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#5",
+            "06-alcance-arquitectura-gke.md#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        },
+        "lexical": {
+          "ranked": [
+            "06-alcance-arquitectura-gke.md#5",
+            "crashloop-config.md#2",
+            "06-alcance-arquitectura-gke.md#1"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R15": {
+        "query": "¿A qué componente dirige loadgenerator la carga mediante FRONTEND_ADDR?",
+        "expected": [
+          "06-alcance-arquitectura-gke.md#2",
+          "05-boutique-gke-completa.drawio#2"
+        ],
+        "tider": {
+          "ranked": [
+            "cpu-alta.md#2"
+          ],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "05-boutique-gke-completa.drawio#2",
+            "06-alcance-arquitectura-gke.md#2",
+            "cpu-alta.md#2",
+            "cpu-alta.md#3"
+          ],
+          "first_rank": 1,
+          "recall": 1.0
+        }
+      },
+      "R16": {
+        "query": "What deployment signal helps decide whether to undo a recent change after CPU consumption jumps?",
+        "expected": [
+          "cpu-alta.md#2",
+          "cpu-alta.md#3"
+        ],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": 0.0
+        },
+        "lexical": {
+          "ranked": [
+            "cpu-alta.md#1",
+            "cpu-alta.md#3",
+            "errores-5xx-servicio.md#3",
+            "crashloop-config.md#3"
+          ],
+          "first_rank": 2,
+          "recall": 0.5
+        }
+      },
+      "R17": {
+        "query": "¿Cuánto fue el p99 de GetCart durante la incidencia del lunes?",
+        "expected": [],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        }
+      },
+      "R18": {
+        "query": "¿Cuál es la fecha exacta de expiración del certificado TLS de checkoutservice?",
+        "expected": [],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [
+            "05-boutique-gke-completa.drawio#1",
+            "06-alcance-arquitectura-gke.md#2"
+          ],
+          "first_rank": null,
+          "recall": null
+        }
+      },
+      "R19": {
+        "query": "¿Qué valor numérico tenía el límite de memoria de paymentservice ayer?",
+        "expected": [],
+        "tider": {
+          "ranked": [
+            "errores-5xx-servicio.md#1"
+          ],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [
+            "memoria-oomkilled.md#1",
+            "memoria-oomkilled.md#3",
+            "05-boutique-gke-completa.drawio#1",
+            "memoria-oomkilled.md#2"
+          ],
+          "first_rank": null,
+          "recall": null
+        }
+      },
+      "R20": {
+        "query": "¿Qué versión exacta de la imagen ejecuta frontend en este momento?",
+        "expected": [],
+        "tider": {
+          "ranked": [
+            "errores-5xx-servicio.md#1"
+          ],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [
+            "05-boutique-gke-completa.drawio#2",
+            "crashloop-config.md#3",
+            "05-boutique-gke-completa.drawio#1",
+            "06-alcance-arquitectura-gke.md#4"
+          ],
+          "first_rank": null,
+          "recall": null
+        }
+      },
+      "R21": {
+        "query": "¿Cuántas ventas se perdieron en soles por la caída del carrito?",
+        "expected": [],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [
+            "errores-5xx-servicio.md#2",
+            "06-alcance-arquitectura-gke.md#5"
+          ],
+          "first_rank": null,
+          "recall": null
+        }
+      },
+      "R22": {
+        "query": "¿Cuál es el horario del próximo eclipse lunar visible en Lima?",
+        "expected": [],
+        "tider": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        },
+        "lexical": {
+          "ranked": [],
+          "first_rank": null,
+          "recall": null
+        }
+      }
+    }
+  },
+  "diagnosis": {
+    "model": "claude-sonnet-5-5",
+    "windows": 8,
+    "summary": {
+      "location_including_unknown": {
+        "hits": 4,
+        "n": 8,
+        "rate": 0.5,
+        "wilson95": [
+          0.21521606221387762,
+          0.7847839377861223
+        ]
+      },
+      "location_known": {
+        "hits": 3,
+        "n": 7,
+        "rate": 0.42857142857142855,
+        "wilson95": [
+          0.1582198552514698,
+          0.7495416354723428
+        ]
+      },
+      "mechanism_on_known": {
+        "hits": 0,
+        "n": 6,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.3903342879021652
+        ]
+      },
+      "all_required_retrieved": {
+        "hits": 0,
+        "n": 6,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.3903342879021652
+        ]
+      },
+      "joint_with_required_evidence": {
+        "hits": 0,
+        "n": 6,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.3903342879021652
+        ]
+      },
+      "explicit_unknown_on_controls": {
+        "hits": 2,
+        "n": 2,
+        "rate": 1.0,
+        "wilson95": [
+          0.3423802275066532,
+          1.0
+        ]
+      },
+      "false_attribution_on_controls": {
+        "hits": 0,
+        "n": 2,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.6576197724933468
+        ]
+      },
+      "technical_errors": 0,
+      "outcomes": {
+        "insufficient": 5,
+        "supported": 3
+      },
+      "windows_with_document_query": 6,
+      "log_queries": 18,
+      "errors_only_queries": 18,
+      "model_calls": 28,
+      "input_tokens": 77882,
+      "output_tokens": 7078
+    },
+    "cases": {
+      "I01": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "cpu_limit",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": false,
+        "required": [
+          2,
+          3
+        ],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": false,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 7427,
+        "output_tokens": 734,
+        "model_calls": 3
+      },
+      "I02": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "wrong_port",
+        "component": "cartservice",
+        "candidate_mechanism": "unknown",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [
+          2,
+          3,
+          4
+        ],
+        "required_retrieved": [
+          2
+        ],
+        "required_cited": [
+          2
+        ],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 1,
+        "errors_only_queries": 1,
+        "input_tokens": 8668,
+        "output_tokens": 852,
+        "model_calls": 3
+      },
+      "I03": {
+        "expected_components": [
+          "cartservice",
+          "redis-cart"
+        ],
+        "expected_mechanism": "latency",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": false,
+        "required": [
+          1,
+          2,
+          4
+        ],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1",
+          "Q2"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 2,
+        "errors_only_queries": 2,
+        "input_tokens": 7561,
+        "output_tokens": 683,
+        "model_calls": 3
+      },
+      "I04": {
+        "expected_components": [
+          "desconocido"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": true,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [],
+        "joint_with_required_evidence": null,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 11111,
+        "output_tokens": 898,
+        "model_calls": 4
+      },
+      "I05": {
+        "expected_components": [
+          "paymentservice"
+        ],
+        "expected_mechanism": "scale_zero",
+        "component": "paymentservice",
+        "candidate_mechanism": "unknown",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [
+          1,
+          2
+        ],
+        "required_retrieved": [
+          1
+        ],
+        "required_cited": [
+          1
+        ],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": false,
+        "log_queries": 2,
+        "errors_only_queries": 2,
+        "input_tokens": 8320,
+        "output_tokens": 944,
+        "model_calls": 3
+      },
+      "I06": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "unknown",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": true,
+        "required": [],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [],
+        "joint_with_required_evidence": null,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 11236,
+        "output_tokens": 947,
+        "model_calls": 4
+      },
+      "I07": {
+        "expected_components": [
+          "cartservice"
+        ],
+        "expected_mechanism": "wrong_port",
+        "component": "cartservice",
+        "candidate_mechanism": "unknown",
+        "status": "hypothesis",
+        "stop_reason": "supported",
+        "technical_error": false,
+        "location_match": true,
+        "mechanism_match": false,
+        "required": [
+          2,
+          3
+        ],
+        "required_retrieved": [
+          2
+        ],
+        "required_cited": [
+          2
+        ],
+        "mechanism_cites": [
+          "Q1"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 1,
+        "errors_only_queries": 1,
+        "input_tokens": 12515,
+        "output_tokens": 1163,
+        "model_calls": 4
+      },
+      "I08": {
+        "expected_components": [
+          "cartservice",
+          "redis-cart"
+        ],
+        "expected_mechanism": "latency",
+        "component": "desconocido",
+        "candidate_mechanism": "unknown",
+        "status": "insufficient_evidence",
+        "stop_reason": "insufficient",
+        "technical_error": false,
+        "location_match": false,
+        "mechanism_match": false,
+        "required": [
+          1,
+          3
+        ],
+        "required_retrieved": [],
+        "required_cited": [],
+        "mechanism_cites": [
+          "Q1",
+          "Q2",
+          "Q4"
+        ],
+        "joint_with_required_evidence": false,
+        "asserted_cause": false,
+        "queried_documents": true,
+        "log_queries": 3,
+        "errors_only_queries": 3,
+        "input_tokens": 11044,
+        "output_tokens": 857,
+        "model_calls": 4
+      }
+    }
+  },
+  "log_filter_control": {
+    "all_required_retrieved": {
+      "errors_only": {
+        "hits": 0,
+        "n": 6,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.3903342879021652
+        ]
+      },
+      "all_severities": {
+        "hits": 6,
+        "n": 6,
+        "rate": 1.0,
+        "wilson95": [
+          0.6096657120978348,
+          1.0
+        ]
+      }
+    },
+    "cases": {
+      "I01": {
+        "required": [
+          2,
+          3
+        ],
+        "errors_only": [],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I02": {
+        "required": [
+          2,
+          3,
+          4
+        ],
+        "errors_only": [
+          1,
+          2
+        ],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I03": {
+        "required": [
+          1,
+          2,
+          4
+        ],
+        "errors_only": [],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I04": {
+        "required": [],
+        "errors_only": [],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I05": {
+        "required": [
+          1,
+          2
+        ],
+        "errors_only": [
+          1,
+          3
+        ],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I06": {
+        "required": [],
+        "errors_only": [],
+        "all_severities": [
+          1,
+          2,
+          3
+        ]
+      },
+      "I07": {
+        "required": [
+          2,
+          3
+        ],
+        "errors_only": [
+          1,
+          2
+        ],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "I08": {
+        "required": [
+          1,
+          3
+        ],
+        "errors_only": [],
+        "all_severities": [
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "H01": {
+    "accepted_components": [
+      "checkoutservice"
+    ],
+    "mechanism": "cpu_limit",
+    "required_records": [
+      2,
+      3
+    ]
+  },
+  "H02": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "wrong_port",
+    "required_records": [
+      1,
+      2,
+      3
+    ]
+  },
+  "H03": {
+    "accepted_components": [
+      "checkoutservice",
+      "paymentservice"
+    ],
+    "mechanism": "latency",
+    "required_records": [
+      1,
+      2,
+      3
+    ]
+  },
+  "H04": {
+    "accepted_components": [
+      "desconocido"
+    ],
+    "mechanism": "unknown",
+    "required_records": []
+  },
+  "H05": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "scale_zero",
+    "required_records": [
+      1,
+      2
+    ]
+  },
+  "H06": {
+    "accepted_components": [
+      "paymentservice"
+    ],
+    "mechanism": "unknown",
+    "required_records": []
+  }
+}

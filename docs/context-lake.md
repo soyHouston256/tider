@@ -27,13 +27,12 @@ real en español e inglés antes de fijarlo definitivamente.
 - Máximo 1 MB por archivo, 20 documentos y 300 fragmentos por sesión.
 - Cargar el mismo nombre y contenido no crea un duplicado. Versiones con contenido
   distinto se conservan por separado hasta retirarlas.
-- La búsqueda muestra hasta cuatro vecinos semánticos con su procedencia. Puede
-  devolver candidatos irrelevantes; no afirma que sean respuestas ni evidencia
-  de causalidad. Un filtro heurístico admite distancia coseno hasta 0,55 o
-  coincidencia de al menos 65 % de los términos relevantes de la consulta. Si
-  ninguno pasa, muestra que no encontró información suficiente. No es un
-  clasificador de preguntas respondibles: puede descartar paráfrasis válidas
-  o aceptar texto que mencione el tema sin resolverlo; requiere evaluación amplia.
+- La búsqueda devuelve hasta cuatro pasajes con procedencia. Combina similitud semántica con
+  coincidencias de términos ponderadas por su rareza en el corpus. Conserva identificadores
+  técnicos y excluye fragmentos de solo encabezados. Para preguntas de estado en un momento
+  relativo, como «hoy», exige que el pasaje incluya esa referencia temporal. Esta regla léxica
+  puede perder documentos fechados de otra forma y una mención temporal requiere verificación.
+  Las preguntas sobre cómo realizar una comprobación pueden recuperar manuales.
 
 ## Catálogo revisable
 
@@ -68,10 +67,9 @@ Los escenarios mock conservan su catálogo fijo. Sin documentos, GKE conserva el
 predeterminado de Online Boutique. El catálogo documental no verifica que los recursos
 existan actualmente ni concede acceso al clúster.
 
-El diagnóstico sigue con reglas y contexto empaquetado: esta etapa no conecta la
-recuperación de documentos al razonamiento del investigador. No usar el baseline de
-Boutique como diagnóstico general de otra plataforma. Queda pendiente elegir un LLM,
-conectar el contexto revisado al grafo y evaluar con casos independientes.
+En modo agente, el investigador puede buscar en los documentos cargados mediante
+`context_search`. Para sostener un diagnóstico debe citar además telemetría de la ventana.
+El modo por reglas utiliza su contexto empaquetado.
 
 ## API local
 

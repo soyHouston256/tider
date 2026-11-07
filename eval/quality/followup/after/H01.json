@@ -1,0 +1,170 @@
+{
+  "id": "H01",
+  "result": {
+    "component": "checkoutservice",
+    "status": "hypothesis",
+    "evidence": [
+      {
+        "id": "S01",
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "frontend",
+        "source": "log",
+        "message": "Checkout submission p95 climbed from 44 to 460 ms; HTTP 200.",
+        "severity": "WARNING",
+        "trace_id": null
+      },
+      {
+        "id": "S02",
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "checkoutservice",
+        "source": "log",
+        "message": "Container quota fell from 400m to 80m; cgroup throttled periods fraction rose 0.02 to 0.64 throughout the slow interval.",
+        "severity": "INFO",
+        "trace_id": null
+      },
+      {
+        "id": "S03",
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "checkoutservice",
+        "source": "log",
+        "message": "Request volume held at 18/s, payment RPC p95 steady at 9 ms; local handler time rose by 402 ms.",
+        "severity": "INFO",
+        "trace_id": null
+      }
+    ],
+    "candidate": {
+      "component": "checkoutservice",
+      "finding": "El síntoma es lentitud en el envío del checkout en frontend: p95 pasó de 44 a 460 ms con HTTP 200 (12:01:15, Q2). En checkoutservice, a las 12:02:15, la cuota de contenedor bajó de 400m a 80m y la fracción de periodos limitados por cgroup subió de 0,02 a 0,64 durante el intervalo lento (Q2). A las 12:03:15 el volumen se mantuvo en 18/s y el p95 del RPC a paymentservice siguió estable en 9 ms, mientras el tiempo local del handler subió 402 ms (Q2). Esto apunta a un límite de CPU en checkoutservice y descarta a paymentservice como causa. Otros servicios no mostraron señales ni cambios de disponibilidad en la ventana (cobertura no truncada, Q2). Los logs de errores no devolvieron nada (Q1).",
+      "missing": [
+        "No se observó quién o qué redujo la cuota; solo consta el cambio",
+        "No hay métricas de CPU de cartservice ni redis-cart; se descartan solo por ausencia de señales, no por prueba de salud",
+        "Las horas describen solo lo observado"
+      ],
+      "cites": [
+        "Q1",
+        "Q2"
+      ],
+      "recommendation": "Revisar el historial de cambios de resources.limits.cpu de checkoutservice y comparar el throttling con la cuota anterior de 400m.",
+      "other_findings": [],
+      "mechanism": "cpu_limit",
+      "mechanism_cites": [
+        "Q2"
+      ]
+    },
+    "stop_reason": "supported",
+    "review_status": "passed",
+    "observations": [
+      {
+        "id": "Q1",
+        "tool": "search_logs",
+        "args": {
+          "limit": 54
+        },
+        "kind": "empty",
+        "data": null,
+        "summary": "sin resultados",
+        "elapsed_seconds": 0.005
+      },
+      {
+        "id": "Q2",
+        "tool": "search_logs",
+        "args": {
+          "errors_only": false,
+          "limit": 30
+        },
+        "kind": "log",
+        "data": {
+          "groups": [
+            {
+              "service": "frontend",
+              "source": "log",
+              "message": "Checkout submission p95 climbed from 44 to 460 ms; HTTP 200.",
+              "count": 1,
+              "first": "2026-11-01T12:01:15+00:00",
+              "last": "2026-11-01T12:01:15+00:00",
+              "signal_ids": [
+                "S01"
+              ]
+            },
+            {
+              "service": "checkoutservice",
+              "source": "log",
+              "message": "Container quota fell from 400m to 80m; cgroup throttled periods fraction rose 0.02 to 0.64 throughout the slow interval.",
+              "count": 1,
+              "first": "2026-11-01T12:02:15+00:00",
+              "last": "2026-11-01T12:02:15+00:00",
+              "signal_ids": [
+                "S02"
+              ]
+            },
+            {
+              "service": "checkoutservice",
+              "source": "log",
+              "message": "Request volume held at 18/s, payment RPC p95 steady at 9 ms; local handler time rose by 402 ms.",
+              "count": 1,
+              "first": "2026-11-01T12:03:15+00:00",
+              "last": "2026-11-01T12:03:15+00:00",
+              "signal_ids": [
+                "S03"
+              ]
+            }
+          ],
+          "services_with_signals": [
+            {
+              "service": "frontend",
+              "records": 1,
+              "first": "2026-11-01T12:01:15+00:00",
+              "last": "2026-11-01T12:01:15+00:00"
+            },
+            {
+              "service": "checkoutservice",
+              "records": 2,
+              "first": "2026-11-01T12:02:15+00:00",
+              "last": "2026-11-01T12:03:15+00:00"
+            }
+          ],
+          "queried_services": [
+            "cartservice",
+            "checkoutservice",
+            "frontend",
+            "paymentservice",
+            "redis-cart"
+          ],
+          "records": 3,
+          "truncated": false,
+          "incomplete": null,
+          "total_groups": 3,
+          "next_offset": null,
+          "remaining_log_budget": 77,
+          "start": "2026-11-01T12:00:00+00:00",
+          "end": "2026-11-01T12:10:00+00:00"
+        },
+        "summary": "",
+        "elapsed_seconds": 0.006
+      }
+    ],
+    "errors": [],
+    "model": "claude-sonnet-5-5",
+    "model_calls": 2,
+    "model_requests": [
+      {
+        "agent": "investigator",
+        "input_chars": 3786,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 4.747,
+        "stop_reason": "end_turn",
+        "input_tokens": 3247,
+        "output_tokens": 536
+      },
+      {
+        "agent": "judge",
+        "input_chars": 4292,
+        "timeout_seconds": 25,
+        "elapsed_seconds": 2.651,
+        "stop_reason": "end_turn",
+        "input_tokens": 2540,
+        "output_tokens": 203
+      }
+    ]
+  }
+}

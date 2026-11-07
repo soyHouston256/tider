@@ -1,0 +1,267 @@
+{
+  "protocol": "581fa9c67efe1bf2391b4b250ebfe171e39fc475b4984e4df525ae2139439067",
+  "k": 4,
+  "versions": {
+    "chromadb": "1.5.9",
+    "onnxruntime": "1.31.0",
+    "tokenizers": "0.23.3"
+  },
+  "model": "all-MiniLM-L6-v2 (local)",
+  "model_files": {
+    "config.json": "b567c7d5a55b636c95186aaf993f9a8920842b7e05a9e703e68b23cab2c3a670",
+    "model.onnx": "4f148ba8ae9c2c7fbee4af2b132db8d06c6a6545b47fc83bbb98c3d22b8393e6",
+    "special_tokens_map.json": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3",
+    "tokenizer.json": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0",
+    "tokenizer_config.json": "7702051bbc4953b94d47fa1d61b42ed4cbb3c71b501a8dd7183a823f8bea1f20",
+    "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  },
+  "code": {
+    "src/tider/console/context_lake.py": "b9a278669df02b8c60f4d7ab0177cb36b84bc01242072b716586a92e4028e0fc",
+    "src/tider/lake/ingest.py": "53f2eb6f911fddbe676ced8693f4216876a2ca5ae753bff592502f17556edc86",
+    "eval/quality/retrieve.py": "0c82cd7d2daffab96b01783fa178f5e048452acf26af5f4ed7d094607fa94630",
+    "uv.lock": "873a6d91d029241c4d806b1e589cb66b8838a53340d531d426a5df1a662c5f2d"
+  },
+  "passages": [
+    "05-boutique-gke-completa.drawio#1",
+    "05-boutique-gke-completa.drawio#2",
+    "06-alcance-arquitectura-gke.md#1",
+    "06-alcance-arquitectura-gke.md#2",
+    "06-alcance-arquitectura-gke.md#3",
+    "06-alcance-arquitectura-gke.md#4",
+    "06-alcance-arquitectura-gke.md#5",
+    "cpu-alta.md#1",
+    "cpu-alta.md#2",
+    "cpu-alta.md#3",
+    "crashloop-config.md#1",
+    "crashloop-config.md#2",
+    "crashloop-config.md#3",
+    "errores-5xx-servicio.md#1",
+    "errores-5xx-servicio.md#2",
+    "errores-5xx-servicio.md#3",
+    "memoria-oomkilled.md#1",
+    "memoria-oomkilled.md#2",
+    "memoria-oomkilled.md#3",
+    "memoria-oomkilled.md#4"
+  ],
+  "rankings": {
+    "R01": {
+      "tider": [
+        "cpu-alta.md#2"
+      ],
+      "lexical": [
+        "cpu-alta.md#2",
+        "cpu-alta.md#1",
+        "cpu-alta.md#3",
+        "errores-5xx-servicio.md#3"
+      ]
+    },
+    "R02": {
+      "tider": [
+        "cpu-alta.md#3",
+        "cpu-alta.md#2",
+        "errores-5xx-servicio.md#3",
+        "06-alcance-arquitectura-gke.md#1"
+      ],
+      "lexical": [
+        "cpu-alta.md#2",
+        "cpu-alta.md#3",
+        "errores-5xx-servicio.md#3",
+        "06-alcance-arquitectura-gke.md#1"
+      ]
+    },
+    "R03": {
+      "tider": [],
+      "lexical": []
+    },
+    "R04": {
+      "tider": [
+        "memoria-oomkilled.md#2"
+      ],
+      "lexical": [
+        "memoria-oomkilled.md#2",
+        "memoria-oomkilled.md#1",
+        "memoria-oomkilled.md#3"
+      ]
+    },
+    "R05": {
+      "tider": [
+        "crashloop-config.md#3",
+        "memoria-oomkilled.md#4",
+        "errores-5xx-servicio.md#3",
+        "memoria-oomkilled.md#3"
+      ],
+      "lexical": [
+        "crashloop-config.md#3",
+        "memoria-oomkilled.md#3",
+        "memoria-oomkilled.md#4",
+        "memoria-oomkilled.md#1"
+      ]
+    },
+    "R06": {
+      "tider": [
+        "crashloop-config.md#3",
+        "crashloop-config.md#2"
+      ],
+      "lexical": [
+        "crashloop-config.md#2",
+        "crashloop-config.md#3",
+        "errores-5xx-servicio.md#3"
+      ]
+    },
+    "R07": {
+      "tider": [
+        "crashloop-config.md#3"
+      ],
+      "lexical": [
+        "crashloop-config.md#3",
+        "cpu-alta.md#3",
+        "crashloop-config.md#2"
+      ]
+    },
+    "R08": {
+      "tider": [
+        "errores-5xx-servicio.md#2",
+        "errores-5xx-servicio.md#3"
+      ],
+      "lexical": [
+        "errores-5xx-servicio.md#1",
+        "errores-5xx-servicio.md#2",
+        "errores-5xx-servicio.md#3",
+        "cpu-alta.md#2"
+      ]
+    },
+    "R09": {
+      "tider": [
+        "errores-5xx-servicio.md#2",
+        "errores-5xx-servicio.md#3",
+        "crashloop-config.md#2"
+      ],
+      "lexical": [
+        "errores-5xx-servicio.md#2",
+        "errores-5xx-servicio.md#3",
+        "crashloop-config.md#2",
+        "06-alcance-arquitectura-gke.md#1"
+      ]
+    },
+    "R10": {
+      "tider": [
+        "06-alcance-arquitectura-gke.md#2",
+        "05-boutique-gke-completa.drawio#1",
+        "errores-5xx-servicio.md#2"
+      ],
+      "lexical": [
+        "errores-5xx-servicio.md#1",
+        "05-boutique-gke-completa.drawio#1",
+        "06-alcance-arquitectura-gke.md#2",
+        "errores-5xx-servicio.md#3"
+      ]
+    },
+    "R11": {
+      "tider": [
+        "06-alcance-arquitectura-gke.md#4"
+      ],
+      "lexical": [
+        "06-alcance-arquitectura-gke.md#3",
+        "05-boutique-gke-completa.drawio#2",
+        "06-alcance-arquitectura-gke.md#4",
+        "05-boutique-gke-completa.drawio#1"
+      ]
+    },
+    "R12": {
+      "tider": [
+        "06-alcance-arquitectura-gke.md#1"
+      ],
+      "lexical": [
+        "06-alcance-arquitectura-gke.md#1",
+        "errores-5xx-servicio.md#2",
+        "06-alcance-arquitectura-gke.md#5"
+      ]
+    },
+    "R13": {
+      "tider": [
+        "06-alcance-arquitectura-gke.md#4",
+        "errores-5xx-servicio.md#3",
+        "06-alcance-arquitectura-gke.md#1"
+      ],
+      "lexical": [
+        "06-alcance-arquitectura-gke.md#4",
+        "05-boutique-gke-completa.drawio#2",
+        "errores-5xx-servicio.md#3",
+        "05-boutique-gke-completa.drawio#1"
+      ]
+    },
+    "R14": {
+      "tider": [
+        "06-alcance-arquitectura-gke.md#5",
+        "06-alcance-arquitectura-gke.md#1"
+      ],
+      "lexical": [
+        "06-alcance-arquitectura-gke.md#5",
+        "crashloop-config.md#2",
+        "06-alcance-arquitectura-gke.md#1"
+      ]
+    },
+    "R15": {
+      "tider": [
+        "05-boutique-gke-completa.drawio#2",
+        "06-alcance-arquitectura-gke.md#2",
+        "cpu-alta.md#2"
+      ],
+      "lexical": [
+        "05-boutique-gke-completa.drawio#2",
+        "06-alcance-arquitectura-gke.md#2",
+        "cpu-alta.md#2",
+        "cpu-alta.md#3"
+      ]
+    },
+    "R16": {
+      "tider": [],
+      "lexical": [
+        "cpu-alta.md#1",
+        "cpu-alta.md#3",
+        "errores-5xx-servicio.md#3",
+        "crashloop-config.md#3"
+      ]
+    },
+    "R17": {
+      "tider": [],
+      "lexical": []
+    },
+    "R18": {
+      "tider": [],
+      "lexical": [
+        "05-boutique-gke-completa.drawio#1",
+        "06-alcance-arquitectura-gke.md#2"
+      ]
+    },
+    "R19": {
+      "tider": [],
+      "lexical": [
+        "memoria-oomkilled.md#1",
+        "memoria-oomkilled.md#3",
+        "05-boutique-gke-completa.drawio#1",
+        "memoria-oomkilled.md#2"
+      ]
+    },
+    "R20": {
+      "tider": [],
+      "lexical": [
+        "05-boutique-gke-completa.drawio#2",
+        "crashloop-config.md#3",
+        "05-boutique-gke-completa.drawio#1",
+        "06-alcance-arquitectura-gke.md#4"
+      ]
+    },
+    "R21": {
+      "tider": [],
+      "lexical": [
+        "errores-5xx-servicio.md#2",
+        "06-alcance-arquitectura-gke.md#5"
+      ]
+    },
+    "R22": {
+      "tider": [],
+      "lexical": []
+    }
+  }
+}

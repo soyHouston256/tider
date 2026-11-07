@@ -1,0 +1,165 @@
+[
+  {
+    "id": "H01",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "frontend",
+        "severity": "WARNING",
+        "source": "log",
+        "message": "Checkout submission p95 climbed from 44 to 460 ms; HTTP 200."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "checkoutservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Container quota fell from 400m to 80m; cgroup throttled periods fraction rose 0.02 to 0.64 throughout the slow interval."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "checkoutservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Request volume held at 18/s, payment RPC p95 steady at 9 ms; local handler time rose by 402 ms."
+      }
+    ]
+  },
+  {
+    "id": "H02",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "cartservice",
+        "severity": "ERROR",
+        "source": "log",
+        "message": "GetCart dial to redis-cart:6402 refused after process reload."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "redis-cart",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Active listener remains 6379, TCP 6402 is closed."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "cartservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Configuration readback REDIS_ADDR=redis-cart:6402; a probe from this pod to redis-cart:6379 received PONG."
+      },
+      {
+        "timestamp": "2026-11-01T12:04:15Z",
+        "service": "frontend",
+        "severity": "WARNING",
+        "source": "log",
+        "message": "Cart read 503, catalog page 200."
+      }
+    ]
+  },
+  {
+    "id": "H03",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "checkoutservice",
+        "severity": "WARNING",
+        "source": "log",
+        "message": "SubmitOrder all 200; p95 grew 58 to 640 ms at the same order rate."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "checkoutservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Payment RPC round trip from checkout rose 14 to 590 ms; network echo on that link rose similarly; CPU quota and throttled ratio stable."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "paymentservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Charge handler p95 8 ms throughout; server processing time and queue depth stable."
+      }
+    ]
+  },
+  {
+    "id": "H04",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "frontend",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Cart and checkout probes completed 200 in 22 and 48 ms, both inside their reference ranges."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "cartservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "GetCart throughput and tail latency stable; all Redis calls succeeded."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "checkoutservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Rolling CPU consumption 75%, identical to yesterday at the same throughput. No end-user degradation observed."
+      }
+    ]
+  },
+  {
+    "id": "H05",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "frontend",
+        "severity": "ERROR",
+        "source": "log",
+        "message": "GetCart: cartservice has no available endpoints."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "cartservice",
+        "severity": "WARNING",
+        "source": "log",
+        "message": "Controller snapshot: desired replicas decreased 3 to 0; ready 0; endpoints 0."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "cartservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Later desired replicas returned to 3; ready 3; GetCart began serving again."
+      }
+    ]
+  },
+  {
+    "id": "H06",
+    "signals": [
+      {
+        "timestamp": "2026-11-01T12:01:15Z",
+        "service": "paymentservice",
+        "severity": "WARNING",
+        "source": "log",
+        "message": "Charge handler rose from 15 to 380 ms; all requests completed; client latency rose at the same time."
+      },
+      {
+        "timestamp": "2026-11-01T12:02:15Z",
+        "service": "checkoutservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "Checkout waits inside Charge RPC; other spans remain at baseline."
+      },
+      {
+        "timestamp": "2026-11-01T12:03:15Z",
+        "service": "paymentservice",
+        "severity": "INFO",
+        "source": "log",
+        "message": "CPU counters, downstream spans and runtime configuration samples unavailable this interval."
+      }
+    ]
+  }
+]

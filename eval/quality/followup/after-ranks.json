@@ -1,0 +1,74 @@
+{
+  "protocol": "eb2b81eadc4d267fcb3e5b2db9445f6ca5cf5899a60d4ed02732723c41442c57",
+  "code": "b9a278669df02b8c60f4d7ab0177cb36b84bc01242072b716586a92e4028e0fc",
+  "passages": [
+    "05-boutique-gke-completa.drawio#1",
+    "05-boutique-gke-completa.drawio#2",
+    "06-alcance-arquitectura-gke.md#1",
+    "06-alcance-arquitectura-gke.md#2",
+    "06-alcance-arquitectura-gke.md#3",
+    "06-alcance-arquitectura-gke.md#4",
+    "06-alcance-arquitectura-gke.md#5",
+    "cpu-alta.md#1",
+    "cpu-alta.md#2",
+    "cpu-alta.md#3",
+    "crashloop-config.md#1",
+    "crashloop-config.md#2",
+    "crashloop-config.md#3",
+    "errores-5xx-servicio.md#1",
+    "errores-5xx-servicio.md#2",
+    "errores-5xx-servicio.md#3",
+    "memoria-oomkilled.md#1",
+    "memoria-oomkilled.md#2",
+    "memoria-oomkilled.md#3",
+    "memoria-oomkilled.md#4"
+  ],
+  "rankings": {
+    "T01": [
+      "06-alcance-arquitectura-gke.md#1",
+      "06-alcance-arquitectura-gke.md#2",
+      "05-boutique-gke-completa.drawio#1"
+    ],
+    "T02": [
+      "memoria-oomkilled.md#3",
+      "memoria-oomkilled.md#4",
+      "crashloop-config.md#3",
+      "errores-5xx-servicio.md#3"
+    ],
+    "T03": [
+      "memoria-oomkilled.md#3",
+      "memoria-oomkilled.md#4"
+    ],
+    "T04": [],
+    "T05": [
+      "crashloop-config.md#2"
+    ],
+    "T06": [],
+    "T07": [
+      "errores-5xx-servicio.md#3",
+      "errores-5xx-servicio.md#2",
+      "memoria-oomkilled.md#4"
+    ],
+    "T08": [
+      "06-alcance-arquitectura-gke.md#5"
+    ],
+    "T09": [
+      "06-alcance-arquitectura-gke.md#1"
+    ],
+    "T10": [
+      "06-alcance-arquitectura-gke.md#2",
+      "05-boutique-gke-completa.drawio#1"
+    ],
+    "T11": [],
+    "T12": [],
+    "T13": [],
+    "T14": [
+      "06-alcance-arquitectura-gke.md#2",
+      "05-boutique-gke-completa.drawio#1"
+    ],
+    "T15": [
+      "cpu-alta.md#2"
+    ],
+    "T16": []
+  }
+}

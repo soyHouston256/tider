@@ -1,0 +1,61 @@
+{
+  "R01": [
+    "cpu-alta.md#2"
+  ],
+  "R02": [
+    "cpu-alta.md#3"
+  ],
+  "R03": [
+    "memoria-oomkilled.md#3"
+  ],
+  "R04": [
+    "memoria-oomkilled.md#2"
+  ],
+  "R05": [
+    "memoria-oomkilled.md#4"
+  ],
+  "R06": [
+    "crashloop-config.md#2"
+  ],
+  "R07": [
+    "crashloop-config.md#3"
+  ],
+  "R08": [
+    "errores-5xx-servicio.md#2"
+  ],
+  "R09": [
+    "errores-5xx-servicio.md#2",
+    "errores-5xx-servicio.md#3"
+  ],
+  "R10": [
+    "06-alcance-arquitectura-gke.md#2",
+    "05-boutique-gke-completa.drawio#1"
+  ],
+  "R11": [
+    "06-alcance-arquitectura-gke.md#3",
+    "05-boutique-gke-completa.drawio#2"
+  ],
+  "R12": [
+    "06-alcance-arquitectura-gke.md#1"
+  ],
+  "R13": [
+    "06-alcance-arquitectura-gke.md#4"
+  ],
+  "R14": [
+    "06-alcance-arquitectura-gke.md#5"
+  ],
+  "R15": [
+    "06-alcance-arquitectura-gke.md#2",
+    "05-boutique-gke-completa.drawio#2"
+  ],
+  "R16": [
+    "cpu-alta.md#2",
+    "cpu-alta.md#3"
+  ],
+  "R17": [],
+  "R18": [],
+  "R19": [],
+  "R20": [],
+  "R21": [],
+  "R22": []
+}

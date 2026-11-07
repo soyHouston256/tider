@@ -1,0 +1,80 @@
+{
+  "I01": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "cpu_limit",
+    "required_records": [
+      2,
+      3
+    ]
+  },
+  "I02": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "wrong_port",
+    "required_records": [
+      2,
+      3,
+      4
+    ]
+  },
+  "I03": {
+    "accepted_components": [
+      "cartservice",
+      "redis-cart"
+    ],
+    "mechanism": "latency",
+    "required_records": [
+      1,
+      2,
+      4
+    ]
+  },
+  "I04": {
+    "accepted_components": [
+      "desconocido"
+    ],
+    "mechanism": "unknown",
+    "required_records": []
+  },
+  "I05": {
+    "accepted_components": [
+      "paymentservice"
+    ],
+    "mechanism": "scale_zero",
+    "required_records": [
+      1,
+      2
+    ]
+  },
+  "I06": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "unknown",
+    "required_records": []
+  },
+  "I07": {
+    "accepted_components": [
+      "cartservice"
+    ],
+    "mechanism": "wrong_port",
+    "required_records": [
+      2,
+      3
+    ]
+  },
+  "I08": {
+    "accepted_components": [
+      "cartservice",
+      "redis-cart"
+    ],
+    "mechanism": "latency",
+    "required_records": [
+      1,
+      3
+    ]
+  }
+}
