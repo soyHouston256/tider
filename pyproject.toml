@@ -34,7 +34,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 tider = [
-  "decision/*.yaml", "lake/*.sql",
+  "lake/*.sql",
   "console/resources/*.json", "console/resources/context/*.md",
   "console/static/*.html", "console/static/css/*.css", "console/static/js/*.js",
 ]
@@ -42,10 +42,13 @@ tider = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Tests del grafo antiguo archivado (ver docs/archive/remediacion/README.md): no corren por defecto.
+addopts = "--ignore=tests/_archivo"
 
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+extend-exclude = ["tests/_archivo", "archive"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]

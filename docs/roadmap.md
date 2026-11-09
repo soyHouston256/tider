@@ -3,15 +3,18 @@
 ## Disponible localmente
 
 - Consola web en `/`, Swagger en `/docs` y API de diagnóstico.
-- Integración con el motor LangGraph existente: recepción, contexto, investigador,
-  juez, decisor, propuesta, verificación y reporte.
-- Cuatro escenarios sintéticos de Online Boutique y baseline por reglas.
+- Un único motor agéntico (`src/tider/console/agentic.py`), solo asesor: investiga,
+  contrasta la evidencia con un juez y propone; no ejecuta cambios.
+- Modo por reglas como línea base sin LLM: investigador → juez → decisor → reporte.
+- Cuatro escenarios sintéticos de Online Boutique.
+- El grafo anterior con ejecutor (dominio OpenTelemetry Demo) está archivado desde el
+  09/11/2026: [archivo de remediación](archive/remediacion/README.md).
 - Resultados con evidencia, auditoría, descarga JSON e historial de 50 ejecuciones.
-- Modo observación independiente de la variable global de ejecución del motor.
+- Modo observación: la consola no tiene ruta de ejecución.
 - Conector Cloud Logging limitado a `tider-ops / chaosforge-lab / boutique`, preparado
   para credenciales ADC. Pruebas automáticas con cliente simulado.
-- Adaptador opcional para investigador/juez con Anthropic, activación explícita.
-- Arranque nativo y configuración Docker que reutilizan el mismo motor.
+- Adaptador opcional con Anthropic para el motor agéntico, activación explícita.
+- Arranque nativo y configuración Docker de la misma consola.
 
 ## Pendiente: elección del proveedor LLM
 
@@ -23,10 +26,9 @@ mantiene `LLM_PROVIDER=none` como valor predeterminado.
 - [ ] Al decidirlo, revisar el adaptador en `src/tider/llm.py`, su selección en
   `src/tider/console/analysis.py`, la configuración en `src/tider/console/settings.py`
   y `.env.example`, las dependencias y las pruebas correspondientes.
-- [ ] Actualizar conjuntamente el README, las guías y
-  `docs/diagrams/TiderOps_Arquitectura.drawio`: todas las vistas que mencionen al
-  proveedor, incluidas contexto, contenedores, componentes y despliegue.
-  Sincronizar también las fuentes Mermaid, `catalog.json`, las vistas SVG y la galería.
+- [ ] Actualizar conjuntamente el README, las guías y el blueprint vigente
+  `docs/designs/tider-blueprint.drawio` en las capas que mencionen al proveedor.
+  El atlas anterior (`docs/archive/remediacion/atlas/`) está archivado y no se actualiza.
 
 Cerrar este pendiente cuando la elección quede registrada y código, configuración
 y diagramas identifiquen al mismo proveedor y modelo.

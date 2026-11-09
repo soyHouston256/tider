@@ -1,8 +1,11 @@
 /** Replay recorded stages. Animation time is never reported as execution time. */
-const stages = [
-  ['intake','Recepción'],['context','Contexto'],['investigator','Investigador'],['judge','Juez'],
-  ['decisor','Decisor'],['ejecutor','Propuesta'],['verificador','Verificación'],['reporter','Reporte'],
-];
+// Rules mode records only the steps that run: investigator → judge → decisor → reporter.
+// The archived graph's intake/context/ejecutor/verificador stages are no longer drawn by default.
+const stages = [['investigator','Investigador'],['judge','Juez'],['decisor','Decisor'],['reporter','Reporte']];
+const labels = {
+  intake:'Recepción', context:'Contexto', investigator:'Investigador', judge:'Juez',
+  decisor:'Decisor', ejecutor:'Propuesta', verificador:'Verificación', reporter:'Reporte',
+};
 const paths = {
   intake: 'M12 3v12m-4-4 4 4 4-4M4 15v5h16v-5',
   context: 'M3 6l9-4 9 4-9 4-9-4m0 6 9 4 9-4m-18 6 9 4 9-4',
@@ -17,10 +20,16 @@ const $=id=>document.getElementById(id);
 function icon(id) {
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   for(const [k,v] of Object.entries({viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','stroke-width':'1.6','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true'})) svg.setAttribute(k,v);
-  const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',paths[id]);svg.append(path);return svg;
+  const path=document.createElementNS(svg.namespaceURI,'path');path.setAttribute('d',paths[id]||paths.reporter);svg.append(path);return svg;
 }
-export function renderFlow(audit=[], adaptive=false) {
-  const displayed=adaptive ? audit.map((e,i)=>[e.agent,`${i+1}. ${e.agent==='investigator' ? 'Consulta' : e.agent==='judge' ? 'Evaluación' : e.agent==='reporter' ? 'Conclusión' : 'Objetivo'}`]) : stages;
+/** Stages present in the recorded run, in first-seen order; the 4 rules stages when nothing was recorded. */
+function presentStages(ids=[]) {
+  const unique=[...new Set(ids.filter(Boolean))];
+  return unique.length ? unique.map(id=>[id,labels[id]||id]) : stages;
+}
+export function renderFlow(audit=[], adaptive=false, order=null) {
+  const displayed=adaptive ? audit.map((e,i)=>[e.agent,`${i+1}. ${e.agent==='investigator' ? 'Consulta' : e.agent==='judge' ? 'Evaluación' : e.agent==='reporter' ? 'Conclusión' : 'Objetivo'}`]) : presentStages(order || audit.map(e=>e.agent));
+  $('flow').style.setProperty('--flow-columns', String(Math.min(Math.max(displayed.length,1),8)));
   $('flow').replaceChildren(...displayed.map(([id,label])=>{
     const events=audit.filter(e=>e.agent===id), event=events.at(-1);
     const item=document.createElement('li');item.dataset.stage=id;
@@ -52,7 +61,7 @@ async function transfer(from,to,signal,reduced) {
   await wait(260,signal);motion.cancel();dot.remove();
 }
 export async function replayFlow(result,signal) {
-  renderFlow();
+  renderFlow([], false, result.decision_steps.map(step=>step.stage));
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   $('flow').classList.toggle('reduced-motion',reduced);
   $('flow').setAttribute('aria-busy','true');

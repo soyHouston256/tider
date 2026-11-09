@@ -1,8 +1,8 @@
 # Arquitectura de TiderOps
 
-El [atlas editable de draw.io](diagrams/TiderOps_Arquitectura.drawio) desarrolla estas
-responsabilidades en 13 páginas con referencias al código. La [guía](diagrams/README.md)
-explica cada vista y la [galería visual](diagrams/index.html) conserva sus vistas previas.
+El [atlas editable de draw.io](atlas/TiderOps_Arquitectura.drawio) desarrolla estas
+responsabilidades en 13 páginas con referencias al código. La [guía](atlas/README.md)
+explica cada vista y la [galería visual](atlas/index.html) conserva sus vistas previas.
 
 ## Recorrido de una solicitud
 

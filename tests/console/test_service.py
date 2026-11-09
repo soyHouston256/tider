@@ -48,7 +48,7 @@ def test_parallel_analyses_keep_separate_evidence_and_decisions():
     assert len(app.history()) == len(requests)
 
 
-def test_decision_trace_links_only_observed_signals_and_preserves_rounds():
+def test_decision_trace_links_only_observed_signals_without_execution_steps():
     app = service()
     for scenario in ("redis_down", "healthy", "missing_telemetry"):
         result = app.analyze(request(scenario=scenario))
@@ -58,11 +58,9 @@ def test_decision_trace_links_only_observed_signals_and_preserves_rounds():
         ids = {signal.id for signal in result.evidence}
         assert all(set(step.evidence_ids) <= ids for step in steps)
         assert all(step.reason and step.outcome for step in steps)
-        verification = next(step for step in steps if step.stage == "verificador")
-        assert verification.status == "skipped"
-        assert "sin acción ejecutada" in verification.reason
-        if scenario != "redis_down":
-            assert len([step for step in steps if step.stage == "judge"]) == 2
+        assert not {"ejecutor", "verificador"} & {step.stage for step in steps}
+        assert result.workflow.execution["executed"] is False
+        assert len([step for step in steps if step.stage == "judge"]) == 1
         for step in steps:
             if step.stage == "judge":
                 assert step.status == ("completed" if scenario == "redis_down" else "needs_review")

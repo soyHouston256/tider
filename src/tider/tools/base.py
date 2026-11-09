@@ -63,12 +63,17 @@ class FixtureRegistry(ToolRegistry):
       "tool": "salida" | {...}                                       -> cualquier argumento
       "tool": [{"match": {"arg": "subcadena" | [alternativas]}, "out": "salida" | {...}}, ...]  -> primera que coincida
     Herramientas o argumentos sin grabación devuelven "sin resultados" (kind=empty), como una consulta vacía.
-    Se graban con scripts/record_fixture.py."""
+    Se graban con scripts/record_fixture.py (archivado).
+
+    Sin `spec` usaba default_registry(), archivada con el grafo antiguo: hoy lanza
+    RuntimeError("archivado: ver docs/archive/remediacion"). Con `spec` sigue funcionando."""
 
     def __init__(self, fixture_path: str | Path, spec: ToolRegistry | None = None):
-        from . import default_registry
+        if spec is None:
+            from . import ARCHIVED
 
-        super().__init__(list((spec or default_registry())._tools.values()))
+            raise RuntimeError(ARCHIVED)
+        super().__init__(list(spec._tools.values()))
         self.data = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
 
     def call(self, tool: str, /, **kwargs) -> dict:
