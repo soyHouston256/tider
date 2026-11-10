@@ -15,7 +15,7 @@ construye después del barrido y solo sirve para nombrar enlaces y separar causa
 
 `neutralizar` (P9, opción A): la redirección a un componente del laboratorio cuenta como evidencia, pero su
 nombre (`chaosforge-*`) se reemplaza por `componente-auxiliar` antes de llegar al LLM o a la traza. La Fase 3
-lo aplica al serializar la tabla, el grafo y los veredictos.
+lo aplica a todo lo que serializa para el Investigador, el Juez y el análisis guardado (`pipeline_v2`).
 """
 
 from __future__ import annotations
@@ -75,7 +75,11 @@ class TopologiaLake(BaseModel):
 
     @classmethod
     def desde_yaml(cls, texto: str) -> "TopologiaLake":
-        data = yaml.safe_load(texto) or {}
+        return cls.desde_dict(yaml.safe_load(texto) or {})
+
+    @classmethod
+    def desde_dict(cls, data: dict) -> "TopologiaLake":
+        """Desde el mapa ya cargado (`ContextLake.get_topology()`, Lake v3 en memoria)."""
         return cls(
             servicios={s["nombre"]: s.get("rol", "tienda") for s in data.get("servicios", [])},
             auxiliares=[a["nombre"] for a in data.get("componentes_auxiliares", [])],

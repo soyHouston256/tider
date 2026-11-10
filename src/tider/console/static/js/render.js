@@ -66,17 +66,24 @@ export function showResult(result) {
   $('component').textContent = legacyCandidate?.component || (['hypothesis','partial'].includes(result.status) && result.component !== 'desconocido' ? result.component : 'Sin determinar');
   const review = investigation.review_status || (result.status === 'hypothesis' ? 'passed'
     : result.workflow.verdict?.notes?.includes('No se obtuvo una revisión válida') ? 'error' : 'not_run');
-  const reviewLabels = {passed:'Respaldado', rejected:'No respaldado', error:'Revisión fallida', not_run:'Sin revisión', invalid_candidate:'Sin sustento válido', temporal_gap:'Falta correlación'};
+  const reviewLabels = {passed:'Respaldado', rejected:'No respaldado', error:'Revisión fallida', not_run:'Sin revisión', invalid_candidate:'Sin sustento válido', temporal_gap:'Falta correlación',
+    rules_passed:'Reglas fijas aprobadas', rules_rejected:'Rechazado por reglas fijas', no_confirmed:'Sin firma confirmada', investigator_error:'Investigador no disponible'};
   $('confidence-label').textContent = agentic ? 'Estado de revisión' : 'Confianza del baseline';
   $('confidence').textContent = agentic ? (reviewLabels[review] || 'Sin revisión')
     : result.confidence == null ? 'No disponible' : Math.round(result.confidence * 100) + ' %';
   $('confidence-note').textContent = agentic ? 'Sustento del hallazgo · no es una probabilidad de causa raíz' : 'Puntuación heurística';
   $('signal-count').textContent = result.evidence.length;
-  $('recommendation').textContent = result.recommendation;
+  const rec = result.recomendacion_estructurada;
+  $('recommendation').textContent = rec ? `${rec.validada ? 'Verificada (catálogo)' : 'No verificada'} · ${rec.texto}` : result.recommendation;
   $('judge-note').textContent = result.workflow.verdict?.notes || '';
-  const others = investigation.candidate?.other_findings || [];
+  // v2: hipótesis ordenadas con sus citas; v1: otros hallazgos del candidato.
+  const entity = e => e.tipo === 'enlace' ? `${e.origen}→${e.destino}` : e.servicio;
+  const others = result.schema_version === 2
+    ? (result.hipotesis || []).map(h => `${h.orden}. ${h.razon} en ${entity(h.entidad)}${h.t_inicio ? ' desde ' + h.t_inicio.slice(11, 19) : ''} · citas: ${h.citas.map(c => c.id).join(', ')}`)
+    : (investigation.candidate?.other_findings || []).map(f => `${f.component}: ${f.finding}`);
+  $('other-findings-title').textContent = result.schema_version === 2 ? 'Hipótesis ordenadas' : 'Otros episodios o hallazgos';
   $('other-findings-section').hidden = !others.length;
-  $('other-findings').replaceChildren(...others.map(f=>node('li', `${f.component}: ${f.finding}`)));
+  $('other-findings').replaceChildren(...others.map(text=>node('li', text)));
   const missing = result.workflow.verdict?.missing || investigation.candidate?.missing || [];
   $('missing-section').hidden = !missing.length;
   $('missing-items').replaceChildren(...missing.map(item=>node('li', item)));

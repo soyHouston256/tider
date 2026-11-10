@@ -143,7 +143,25 @@ window.addEventListener('hashchange',loadCatalogPage);
 loadCatalogPage();
 
 let selectedDiagnosis;
+/** Análisis v2: mapa de nodos de la plataforma con estado y rol, aristas con origen y estado. */
+function markDiagnosisV2(result) {
+  const cause = result.hipotesis?.[0]?.entidad;
+  renderCatalogMap(el('architecture-map'),
+    result.nodos.map(n=>({id:n.servicio,original:n.servicio,name:{value:n.servicio},check:{checked:true},estado:n.estado,rol:n.rol_en_principal,tipo:n.tipo})),
+    result.aristas.map(a=>({source:{value:a.origen},target:{value:a.destino},label:{value:`${a.origen_dato} · ${a.estado.replace('_',' ')}`},check:{checked:true},estado:a.estado,origen_dato:a.origen_dato})),
+    ()=>{}, {causeEdge: cause?.tipo === 'enlace' ? cause : null});
+  el('architecture-status').textContent='Grafo del análisis · inventario de la plataforma';
+  const note = el('architecture-diagnosis');
+  note.hidden = false;
+  const causa = cause ? (cause.tipo === 'enlace' ? `enlace ${cause.origen}→${cause.destino}` : cause.servicio) : null;
+  const victimas = result.nodos.filter(n=>n.rol_en_principal==='victima').map(n=>n.servicio);
+  note.textContent = `${result.incident_id} · Color: falla (rojo), sano (verde), sin datos (gris). Borde grueso: causa; punteado: víctima.`
+    + (causa ? ` Causa: ${causa}.` : ' Sin causa confirmada.') + (victimas.length ? ` Víctimas: ${victimas.join(', ')}.` : '')
+    + (result.discrepancias?.length ? ` Discrepancias: ${result.discrepancias.join('; ')}.` : '')
+    + ' Estado reconstruido para la ventana del incidente; no es salud en vivo.';
+}
 function markDiagnosis() {
+  if (selectedDiagnosis?.schema_version === 2 && selectedDiagnosis.nodos?.length) { markDiagnosisV2(selectedDiagnosis); return; }
   const historical=selectedDiagnosis?.investigation?.catalog?.confirmed;
   if(historical) {
     renderCatalogMap(el('architecture-map'), historical.services.map(s=>({...s,original:s.name,name:{value:s.name},check:{checked:true}})),
@@ -162,4 +180,4 @@ function markDiagnosis() {
   const source = result.evidence_mode === 'mock' ? 'Simulación' : 'Logs reales';
   note.textContent = `${source} · ${result.incident_id} · ` + (match ? `Rojo: ${component}, componente señalado por la hipótesis.` : component ? `El componente ${component} no aparece en el catálogo actual.` : 'Sin componente respaldado para resaltar.') + (historical ? ' Mapa documental conservado del incidente; no indica salud en vivo.' : ' Mapa documental actual; no indica salud en vivo.');
 }
-document.addEventListener('diagnosis-selected',event=>{const hadSnapshot=Boolean(selectedDiagnosis?.investigation?.catalog?.confirmed);selectedDiagnosis=event.detail;if(hadSnapshot&&!selectedDiagnosis?.investigation?.catalog?.confirmed)refresh().catch(()=>markDiagnosis());else markDiagnosis();});
+document.addEventListener('diagnosis-selected',event=>{const hadSnapshot=Boolean(selectedDiagnosis?.investigation?.catalog?.confirmed)||selectedDiagnosis?.schema_version===2;selectedDiagnosis=event.detail;if(hadSnapshot&&!selectedDiagnosis?.investigation?.catalog?.confirmed)refresh().catch(()=>markDiagnosis());else markDiagnosis();});

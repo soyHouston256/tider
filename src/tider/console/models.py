@@ -96,10 +96,20 @@ class Analysis(BaseModel):
     workflow: WorkflowResult = Field(default_factory=WorkflowResult)
     investigation: dict = Field(default_factory=dict)
     decision_steps: list[DecisionStep] = Field(default_factory=list)
+    # Contrato v2 (§5). Un análisis v1 guardado no trae estos campos y se sigue leyendo con los valores
+    # por defecto (`schema_version = 1`). En v2, `component` es el alias de la hipótesis 1
+    # (`Entidad.componente`), para no romper la UI ni el historial.
+    schema_version: Literal[1, 2] = 1
+    hipotesis: list["Hipotesis"] = Field(default_factory=list)
+    nodos: list["Nodo"] = Field(default_factory=list)
+    aristas: list["Arista"] = Field(default_factory=list)
+    discrepancias: list[str] = Field(default_factory=list)
+    recomendacion_estructurada: "Recomendacion | None" = None
+    incompleto: bool = False  # regla 5 del juez: cobertura del barrido baja (marca, no rechaza)
 
 
-# --- Pipeline v2 (Fase 2): entidad, nodo y arista del contrato (§5). Cita, Hipotesis y Recomendacion
-# llegan en la Fase 3 junto con `Analysis` v2.
+# --- Pipeline v2: tipos del contrato de diagnóstico (§5, con A06: las hipótesis son solo causas;
+# las víctimas se expresan como `Nodo.rol_en_principal`).
 
 EstadoEntidad = Literal["falla", "sano", "sin_datos"]
 
@@ -176,3 +186,56 @@ class Arista(BaseModel):
     variable: str | None = None  # variable *_ADDR que la define, si se conoce
     valor: str | None = None  # valor observado en el spec (o el del Lake si solo es configurada)
     ids: list[str] = Field(default_factory=list)  # observaciones que la muestran o la ponen en falla
+
+
+Razon = Literal[
+    "servicio-sin-instancias",
+    "configuracion-incorrecta",
+    "dependencia-lenta",
+    "saturacion-cpu",
+    "se-cae-al-arrancar",
+    "sin-memoria",
+    "desconocida",
+]
+
+
+class Cita(BaseModel):
+    """`S####`: observación del modelo común (evidencia). `D##`: documento del Context Lake (antecedente)."""
+
+    id: str = Field(pattern=r"^(S\d{4,}|D\d{2,})$")
+    clase: Literal["evidencia", "antecedente"]
+
+
+class Hipotesis(BaseModel):
+    """Una causa candidata. `firma_id` es nulo solo con `razon = desconocida`; el Investigador solo puede
+    usar firmas CONFIRMADAS (lo comprueban las reglas fijas del Juez, no este modelo)."""
+
+    orden: int = Field(ge=1)
+    entidad: Entidad
+    t_inicio: datetime | None = None
+    razon: Razon
+    firma_id: str | None = None
+    rol: Literal["causa", "independiente"] = "causa"
+    citas: list[Cita] = Field(default_factory=list, max_length=30)
+    justificacion_orden: str = Field(default="", max_length=1000)
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if (self.firma_id is None) != (self.razon == "desconocida"):
+            raise ValueError("`firma_id` es nulo solo si la razón es `desconocida`.")
+        if self.razon != "desconocida" and not any(c.clase == "evidencia" for c in self.citas):
+            raise ValueError("Una hipótesis necesita al menos una cita de evidencia.")
+        return self
+
+
+class Recomendacion(BaseModel):
+    """Salida del Proponente (P1, determinista). `catalogo` solo con firma CONFIRMADA y runbook
+    `validado: true`; en otro caso, pasos de solo lectura del runbook (`diagnostico_no_verificado`)."""
+
+    tipo: Literal["catalogo", "diagnostico_no_verificado"]
+    runbook_id: str | None = None
+    texto: str
+    validada: bool = False
+
+
+Analysis.model_rebuild()

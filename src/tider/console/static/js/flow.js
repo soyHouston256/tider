@@ -2,9 +2,14 @@
 // Rules mode records only the steps that run: investigator → judge → decisor → reporter.
 // The archived graph's intake/context/ejecutor/verificador stages are no longer drawn by default.
 const stages = [['investigator','Investigador'],['judge','Juez'],['decisor','Decisor'],['reporter','Reporte']];
+// Pipeline v2 (TIDER_PIPELINE=v2): barrido → Cartógrafo → verificador de firmas → Investigador → Proponente
+// → Juez → Reporte. `signatures` no reutiliza `verificador`, que es la etapa del grafo archivado.
+export const stagesV2 = [['sweep','Barrido'],['cartographer','Cartógrafo'],['signatures','Verificador de firmas'],
+  ['investigator','Investigador'],['proposer','Proponente'],['judge','Juez'],['reporter','Reporte']];
 const labels = {
   intake:'Recepción', context:'Contexto', investigator:'Investigador', judge:'Juez',
   decisor:'Decisor', ejecutor:'Propuesta', verificador:'Verificación', reporter:'Reporte',
+  ...Object.fromEntries(stagesV2),
 };
 const paths = {
   intake: 'M12 3v12m-4-4 4 4 4-4M4 15v5h16v-5',
@@ -15,6 +20,10 @@ const paths = {
   ejecutor: 'M6 3h9l4 4v14H6zM14 3v5h5M9 12h7m-7 4h5',
   verificador: 'M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6l8-4m-4 10 3 3 5-6',
   reporter: 'M5 2h10l4 4v16H5zM14 2v5h5M8 11h8m-8 4h8m-8 4h5',
+  sweep: 'M4 6h16M4 12h16M4 18h10',
+  cartographer: 'M5 5h4v4H5zM15 5h4v4h-4zM10 15h4v4h-4zM9 7h6M7 9l5 6m5-6-5 6',
+  signatures: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',
+  proposer: 'M6 3h9l4 4v14H6zM14 3v5h5M9 12h7m-7 4h5',
 };
 const $=id=>document.getElementById(id);
 function icon(id) {
@@ -28,7 +37,8 @@ function presentStages(ids=[]) {
   return unique.length ? unique.map(id=>[id,labels[id]||id]) : stages;
 }
 export function renderFlow(audit=[], adaptive=false, order=null) {
-  const displayed=adaptive ? audit.map((e,i)=>[e.agent,`${i+1}. ${e.agent==='investigator' ? 'Consulta' : e.agent==='judge' ? 'Evaluación' : e.agent==='reporter' ? 'Conclusión' : 'Objetivo'}`]) : presentStages(order || audit.map(e=>e.agent));
+  const adaptiveLabel=id=>({investigator:'Consulta',judge:'Evaluación',reporter:'Conclusión',intake:'Objetivo'})[id]||labels[id]||id;
+  const displayed=adaptive ? audit.map((e,i)=>[e.agent,`${i+1}. ${adaptiveLabel(e.agent)}`]) : presentStages(order || audit.map(e=>e.agent));
   $('flow').style.setProperty('--flow-columns', String(Math.min(Math.max(displayed.length,1),8)));
   $('flow').replaceChildren(...displayed.map(([id,label])=>{
     const events=audit.filter(e=>e.agent===id), event=events.at(-1);

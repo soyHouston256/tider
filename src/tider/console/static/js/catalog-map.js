@@ -6,7 +6,12 @@ function svgNode(tag, attrs = {}, text) {
   if (text !== undefined) node.textContent = text;
   return node;
 }
-export function renderCatalogMap(container, services, relations, onSelect) {
+// Pipeline v2: el nodo se pinta por su estado y lleva un borde según su rol en la hipótesis principal; la
+// arista se pinta por su estado y se dibuja punteada si solo es observada. El enlace causa se resalta.
+const NODE_STATE = {falla:['#fbe3df','#c43d35'], sano:['#e3f0ea','#176d5b'], sin_datos:['#eef0ee','#9ca9a4']};
+const ROLE_BORDER = {causa:{width:3.5,dash:''}, victima:{width:2.5,dash:'5 3'}};
+const EDGE_STATE = {falla:'#c43d35', sano:'#176d5b', sin_datos:'#9ca9a4'};
+export function renderCatalogMap(container, services, relations, onSelect, options = {}) {
   const prefix = container.id;
   const ids = new Set(services.map(s=>s.id));
   const edges = relations.filter(e=>e.check.checked && ids.has(e.source.value) && ids.has(e.target.value));
@@ -44,7 +49,7 @@ export function renderCatalogMap(container, services, relations, onSelect) {
   }
   const svg=svgNode('svg',{viewBox:`0 0 ${width} ${height}`,width,height,role:'group','aria-label':'Servicios candidatos y relaciones documentadas'});
   const defs=svgNode('defs');
-  for(const [name,color] of [['active','#176d5b'],['pending','#9ca9a4']]) {
+  for(const [name,color] of [['active','#176d5b'],['pending','#9ca9a4'],['falla','#c43d35']]) {
     const marker=svgNode('marker',{id:`${prefix}-arrow-${name}`,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'});
     marker.append(svgNode('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:color})); defs.append(marker);
   }
@@ -55,13 +60,16 @@ export function renderCatalogMap(container, services, relations, onSelect) {
   for(const edge of edges) {
     const from=positions.get(edge.source.value), to=positions.get(edge.target.value);
     const active=byId.get(edge.source.value).check.checked && byId.get(edge.target.value).check.checked;
-    const color=active?'#176d5b':'#9ca9a4';
+    const state=edge.estado && EDGE_STATE[edge.estado];
+    const color=state || (active?'#176d5b':'#9ca9a4');
+    const marker=edge.estado==='falla'?'falla':edge.estado==='sin_datos'||!active?'pending':'active';
+    const cause=options.causeEdge && options.causeEdge.origen===edge.source.value && options.causeEdge.destino===edge.target.value;
     const x1=from.x+165,y1=from.y+28,x2=to.x,y2=to.y+28;
     const skip=to.x-from.x>columnGap+1 || to.x<=from.x;
     const lane=55+(bypass++%6)*7;
     const d=skip ? `M ${x1} ${y1} L ${x1+20} ${y1} L ${x1+20} ${lane} L ${x2-20} ${lane} L ${x2-20} ${y2} L ${x2} ${y2}`
       : `M ${x1} ${y1} C ${x1+48} ${y1}, ${x2-48} ${y2}, ${x2} ${y2}`;
-    const path=svgNode('path',{d,fill:'none',class:'catalog-map-edge','data-source':edge.source.value,'data-target':edge.target.value,stroke:color,'stroke-width':1.7,'marker-end':`url(#${prefix}-arrow-${active?'active':'pending'})`});
+    const path=svgNode('path',{d,fill:'none',class:'catalog-map-edge'+(cause?' diagnosis-cause-edge':''),'data-source':edge.source.value,'data-target':edge.target.value,stroke:color,'stroke-width':cause?4:1.7,'marker-end':`url(#${prefix}-arrow-${marker})`,...(edge.origen_dato==='observada'?{'stroke-dasharray':'6 4'}:{})});
     path.append(svgNode('title',{},`${byId.get(edge.source.value).name.value} → ${byId.get(edge.target.value).name.value}: ${edge.label.value}`));
     svg.append(path);
 
@@ -69,14 +77,19 @@ export function renderCatalogMap(container, services, relations, onSelect) {
   for(const service of services) {
     const pos=positions.get(service.id), active=service.check.checked;
     const group=svgNode('g',{tabindex:0,role:'button','aria-label':`Ver fuente de ${service.name.value}`,class:'catalog-map-node','data-service':service.name.value});
-    group.append(svgNode('rect',{x:pos.x,y:pos.y,width:165,height:56,rx:10,fill:active?'#e3f0ea':'#f4f6f3',stroke:active?'#176d5b':'#b8c3bd'}));
+    const [fill,stroke]=NODE_STATE[service.estado] || (active?['#e3f0ea','#176d5b']:['#f4f6f3','#b8c3bd']);
+    const role=ROLE_BORDER[service.rol];
+    group.append(svgNode('rect',{x:pos.x,y:pos.y,width:165,height:56,rx:10,fill,stroke:role?'#192b29':stroke,
+      ...(role?{'stroke-width':role.width,...(role.dash?{'stroke-dasharray':role.dash}:{})}:{}),...(service.tipo==='auxiliar'?{opacity:.75}:{})}));
+    if(service.estado) group.dataset.estado=service.estado;
+    if(service.rol) group.dataset.rol=service.rol;
     const name=service.name.value || service.original;
     group.append(svgNode('text',{x:pos.x+82.5,y:pos.y+32,'text-anchor':'middle','font-size':12,fill:'#192b29'},name.length>23?name.slice(0,21)+'…':name));
-    group.append(svgNode('title',{},`${name} — ${active?'incluido en la revisión':'pendiente de selección'}`));
+    group.append(svgNode('title',{},service.estado ? `${name} — estado: ${service.estado.replace('_',' ')} · rol: ${service.rol||'ninguno'}${service.tipo==='auxiliar'?' · auxiliar':''}` : `${name} — ${active?'incluido en la revisión':'pendiente de selección'}`));
     const highlight=()=>{svg.querySelectorAll('.catalog-map-edge').forEach(path=>{const connected=path.dataset.source===service.id||path.dataset.target===service.id;path.style.opacity=connected?'1':'.12';path.style.strokeWidth=connected?'3':'1.7';});};
     const reset=()=>{svg.querySelectorAll('.catalog-map-edge').forEach(path=>{path.style.opacity='';path.style.strokeWidth='';});};
     group.addEventListener('mouseenter',highlight);group.addEventListener('mouseleave',reset);group.addEventListener('focus',highlight);group.addEventListener('blur',reset);
-    const reveal=()=>{if(onSelect){onSelect(service);return;}service.box.querySelector('details').open=true;service.box.scrollIntoView({block:'center',behavior:'smooth'});service.check.focus({preventScroll:true});};
+    const reveal=()=>{if(onSelect){onSelect(service);return;}if(!service.box)return;service.box.querySelector('details').open=true;service.box.scrollIntoView({block:'center',behavior:'smooth'});service.check.focus({preventScroll:true});};
     group.addEventListener('click',reveal);group.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();reveal();}});
     svg.append(group);
   }
