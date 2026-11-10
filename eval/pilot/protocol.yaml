@@ -1,0 +1,199 @@
+# Protocolo prerregistrado de la campaña del piloto (diseño, Fase 6, ítem 33; enmiendas A08, A15, A21-A24;
+# decisiones del autor P2, P4, P5 y P6). Lo leen runner.py, judge_set.py, score.py y kappa_form.py.
+#
+# `hash` es el sha256 del contenido canónico (este YAML cargado, sin la clave `hash`, como JSON con claves
+# ordenadas). El runner lo verifica antes de la primera corrida y lo fija en `<salida>/protocol.lock`;
+# si el protocolo cambia después, se niega a seguir. Para recalcularlo ANTES de la primera corrida:
+#   uv run python -m eval.pilot.runner --rehash
+hash: 5942d7601bf125fc72c3778190f6ea0eb11ec80680297ee7431b66248f48a52f
+version: 1
+nombre: piloto-online-boutique-fase6
+prerregistro: "2026-11-10"
+responsable: Max Houston Ramírez Martel
+namespace: boutique
+semilla: 20261110
+
+# Traducción de los mecanismos de ChaosForge a la etiqueta esperada (decisión de la entidad, 2026-11-09).
+# Duraciones permitidas por ChaosForge: scale_zero 30/60/120 s; los demás (solo cartservice) 120/240 s.
+mecanismos:
+  scale_zero: {razon: servicio-sin-instancias, entidad: servicio, duraciones_permitidas: [30, 60, 120]}
+  wrong_port: {razon: configuracion-incorrecta, entidad: servicio, duraciones_permitidas: [120, 240],
+               parametros: {port: 6380}}
+  latency: {razon: dependencia-lenta, entidad: enlace, enlace: {origen: cartservice, destino: redis-cart},
+            duraciones_permitidas: [120, 240], parametros: {latency_ms: 300, jitter_ms: 50}}
+  cpu_limit: {razon: saturacion-cpu, entidad: servicio, duraciones_permitidas: [120, 240],
+              parametros: {millicores: 50}}
+
+# Reparto congelado (decisión 15). Los pares de historial ya alimentaron los postmortems del Lake: sus
+# experimentos nunca se reutilizan, ni los descartados. El runner rechaza cualquiera de estos ids (o su
+# prefijo de 8 caracteres) y cualquier caso de evaluación sobre un par de historial.
+conjuntos:
+  historial:
+    descripcion: "scale_zero en 5 servicios; corridas PM-01 a PM-05, ya convertidas en postmortems."
+    pares:
+      - {servicio: cartservice, mecanismo: scale_zero}
+      - {servicio: productcatalogservice, mecanismo: scale_zero}
+      - {servicio: currencyservice, mecanismo: scale_zero}
+      - {servicio: paymentservice, mecanismo: scale_zero}
+      - {servicio: adservice, mecanismo: scale_zero}
+    experimentos_prohibidos:
+      - d7db0523-07da-4883-95a6-95c195644553  # PM-01 (válida)
+      - 41f3a824-05d7-438a-ad3f-ee71bed83c28  # PM-02
+      - 5409756b-ff88-4edf-b6c4-2c13f960dca8  # PM-03
+      - a90ebc41-610e-41e5-b7d1-f9d9cdbf7b03  # PM-04
+      - bdf3210d-08fc-4349-828c-8c5fe03eb9bd  # PM-05
+      - f94f1915-2f3d-4d5c-929a-37b7d93a66db  # PM-01 descartada
+      - c9155003                              # descartada (solo prefijo conocido)
+  evaluacion:
+    descripcion: >-
+      Casos no vistos por el Lake: scale_zero en los 6 servicios sin postmortem (estrato scale_zero) y los
+      tres mecanismos de cartservice, que no tienen ninguna corrida de historial (un estrato cada uno).
+    estratos:
+      scale_zero:
+        mecanismo: scale_zero
+        servicios: [redis-cart, checkoutservice, shippingservice, emailservice, recommendationservice, frontend]
+        casos_por_servicio: 6
+        duraciones: [30, 60, 120]      # 2 casos por servicio y duración
+      wrong_port: {mecanismo: wrong_port, servicios: [cartservice], casos_por_servicio: 9, duraciones: [120]}
+      latency: {mecanismo: latency, servicios: [cartservice], casos_por_servicio: 9, duraciones: [120]}
+      cpu_limit: {mecanismo: cpu_limit, servicios: [cartservice], casos_por_servicio: 9, duraciones: [120]}
+    n_planificado: 63
+    n_objetivo: 60          # casos independientes admitidos
+    minimo_por_estrato: 8   # Wilson por estrato se reporta (descriptivo) solo con n >= 8
+    aceptar_n_menor: false  # con menos de 60 admitidos se reporta "n insuficiente" y el veredicto es no-go
+  control:
+    loadgenerator:
+      descripcion: "CUJ 3 (A24): sin tráfico no hay diagnóstico inventado; se puntúa aparte."
+      mecanismo: scale_zero
+      servicio: loadgenerator
+      duraciones: [30, 60, 120]
+      casos_por_duracion: 1
+      etiqueta: {servicio: loadgenerator, razon: servicio-sin-instancias, impacto: sin_impacto_en_tienda}
+      acierto: "ninguna hipótesis de causa sobre la tienda y aviso 'Generación de tráfico detenida'"
+    sin_falla:
+      descripcion: "Ventana sin inyección; ningún diagnóstico respaldado."
+      casos: 4
+      duracion_s: 120
+      acierto: "status distinto de hypothesis (ninguna causa respaldada)"
+
+# Validación de firmas (A12, go/no-go antes de la campaña). Solo el verificador (modo sin LLM).
+# scale_zero se valida sobre un servicio de historial para no gastar los servicios no vistos; los tres
+# mecanismos de cartservice no tienen alternativa (riesgo declarado: calibración sobre el mismo par).
+validacion_firmas:
+  corridas:
+    - {servicio: productcatalogservice, mecanismo: scale_zero, duracion: 60}
+    - {servicio: cartservice, mecanismo: wrong_port, duracion: 120}
+    - {servicio: cartservice, mecanismo: latency, duracion: 120}
+    - {servicio: cartservice, mecanismo: cpu_limit, duracion: 120}
+    - {sin_falla: true, duracion: 120}
+  criterio_go: >-
+    En cada corrida con falla, la firma del mecanismo queda CONFIRMADA sobre la entidad esperada y ninguna
+    otra firma queda CONFIRMADA sobre un servicio de la tienda; en la corrida sin falla, ninguna firma
+    CONFIRMADA. Una sola corrida fuera de la diagonal es no-go: se corrige la firma (catalog_v1.yaml) y se
+    repite la validación antes de congelar el catálogo. El hash del catálogo validado queda en gate.json y la
+    campaña exige el mismo hash.
+
+ventana:
+  margen_previo_s: 300          # inicio de la solicitud = t0 - margen_previo
+  margen_posterior_s: 300       # fin de la solicitud = restauración + margen_posterior
+  espera_ingesta_s: 120         # Cloud Logging indexa con retraso; se espera margen_posterior + ingesta
+  recuperacion_estimada_s: {scale_zero: 60, otros: 360}  # preparación + verificación de ChaosForge
+  tiempo_max_experimento_s: 1200
+  # Separación: la línea base del caso siguiente ([t0 - (fin - t0), t0)) no puede contener la falla
+  # anterior. Antes de inyectar se espera hasta que pase (duración + recuperación estimada + margen
+  # posterior) desde la restauración anterior.
+
+registrador:
+  max_hueco_s: 30               # 3 instantáneas de 10 s
+  frescura_previa_s: 300        # antes de inyectar: sin huecos en los últimos 5 min
+
+# La solicitud que recibe Tider es la misma para todos los casos: sin servicio, sin mecanismo y sin id del
+# experimento. `incident_id` es el id del caso (E01, C03, V2), que no codifica nada del ground truth.
+solicitud:
+  objetivo: "Alerta de la tienda: errores o degradación reportados por usuarios. Investiga la causa."
+  alcance: general
+
+admision:
+  criterio: >-
+    (1) ChaosForge acredita la inyección: scale_zero con estado completed y evento scale_requested; los
+    demás con result = effect_observed. (2) Síntoma en logs distinto del evento de la inyección: al menos
+    una línea WARNING o más grave de un servicio de la tienda en [t0, fin] según el barrido congelado.
+    (3) Registrador sin huecos mayores que max_hueco_s en [inicio de la línea base, fin].
+  exclusiones:
+    - {motivo: inyeccion_no_acreditada, regla: "falla el punto (1); se reporta el result de ChaosForge"}
+    - {motivo: sin_sintoma, regla: "falla el punto (2)"}
+    - {motivo: registrador_con_huecos, regla: "falla el punto (3) (A15); no se llama a Tider"}
+    - {motivo: precondicion, regla: "experimento activo, puertos iguales o ChaosForge rechaza el inicio; el caso no corre"}
+  no_excluye: "Un error técnico de Tider (proveedor, JSON inválido, timeout) cuenta como fallo, no como exclusión."
+  reporte: "Cada caso excluido se lista con su motivo."
+
+# P4 y A21: se repite solo el caso cuya primera corrida tiene más de una firma CONFIRMADA sobre la tienda.
+repeticiones:
+  n: 3
+  cuando: mas_de_una_firma_confirmada
+  regla: >-
+    Mayoría sobre la primera hipótesis (entidad, razón) de las 3 repeticiones. Sin mayoría (3 distintas) el
+    caso vale error. Las afirmaciones incorrectas usan la repetición mayoritaria; sin mayoría, el caso
+    cuenta como afirmación incorrecta si alguna repetición fue respaldada y no coincide con la etiqueta.
+    La latencia del caso es la mediana de sus repeticiones.
+  reporte: "fracción de casos que llega a más de una firma CONFIRMADA"
+
+# Brazos que corre el runner sobre la misma evidencia congelada de cada caso.
+brazos:
+  tider: "pipeline v2 con Investigador (Anthropic) y Juez LLM (OpenAI); principal"
+  reglas: "pipeline v2 sin LLM (orden fijo P4); baseline exploratorio, sin costo de tokens"
+
+metricas:
+  principal: >-
+    Exactitud de la primera hipótesis del brazo tider (P2): acierto si la entidad es exactamente la
+    etiquetada. Etiqueta de servicio: solo ese servicio. Etiqueta de enlace: el mismo enlace; nombrar uno de
+    sus extremos (servicio) es acierto parcial, reportado aparte y que no suma. La razón se reporta aparte
+    (exactitud conjunta entidad + razón, descriptiva). Unidad: caso admitido, una vez colapsadas las
+    repeticiones. Intervalo de Wilson al 95 %.
+  afirmaciones_incorrectas: >-
+    Numerador: casos cuyo diagnóstico quedó respaldado (status hypothesis) y cuya primera hipótesis no es
+    acierto exacto (el parcial cuenta como incorrecto). Denominador: todos los casos de evaluación admitidos.
+  latencia: "p95 (rango más cercano) de la mediana por caso de elapsed_seconds del brazo tider."
+  acciones: "corridas con workflow.execution.executed = true, en cualquier brazo y conjunto."
+  estratos: "Wilson por estrato, descriptivo, con n >= minimo_por_estrato."
+
+umbrales:
+  exactitud_wilson_inferior_min: 0.70
+  incorrectas_wilson_superior_max: 0.15
+  latencia_p95_s_max: 120
+  acciones_max: 0
+
+# P2: el juez se reporta de forma descriptiva; McNemar exacto (vía paired()) solo sobre candidatos
+# naturales y como análisis exploratorio.
+juez:
+  candidato: "diagnóstico de la primera ronda de la repetición 1 del brazo tider"
+  verdadero: "primera hipótesis con entidad exacta y razón igual a la etiqueta"
+  decision_con_juez: "la de la primera ronda: reglas fijas y, si pasan, Juez LLM"
+  decision_sin_juez: "aprueba todo"
+  proporcion_verdaderos_falsos: [1, 1]
+  completar_con: fabricados   # si faltan falsos, se completan con fabricados hasta la proporción
+  receta_mutaciones:          # sobre candidatos naturales verdaderos; cada una produce un falso
+    - {id: intercambio_causa_victima, regla: "la entidad causa pasa a una víctima (o el enlace se invierte)"}
+    - {id: razon_cambiada, regla: "firma_id y razón pasan a otra razón validada, elegida con la semilla"}
+    - {id: citas_irrelevantes, regla: "las citas S de la causa pasan a líneas de servicios sin rol en el caso"}
+    - {id: solo_antecedentes, regla: "se quitan las citas S; quedan solo antecedentes D del Lake"}
+  fabricados_solo_juez_llm: "las reglas fijas no se re-ejecutan sobre fabricados; se reportan aparte"
+  reporte: "tasa de falsa aprobación y de falso rechazo con Wilson, naturales y fabricados por separado"
+  mcnemar: "exacto vía paired() sobre naturales: decisión correcta con juez vs sin juez; exploratorio"
+
+kappa:
+  evaluadores: [Alberto, José]
+  quienes: "compañeros del equipo que no escribieron los prompts ni las firmas; no ven la variante ni la etiqueta"
+  casos: 30
+  muestreo: "estratificado por estrato de evaluación (proporcional, mínimo 3 por estrato), semilla fija, solo casos admitidos"
+  variante: "brazo que produjo la salida (tider o reglas), uno por caso, 15 y 15, asignado con la semilla"
+  escala: ["si", "no"]
+  preguntas:
+    - {id: Q1, texto: "¿La causa principal que propone el informe es coherente con la evidencia que cita?"}
+    - {id: Q2, texto: "¿Las citas alcanzan para que un operador verifique la causa sin buscar más evidencia?"}
+    - {id: Q3, texto: "¿La recomendación es de solo lectura o una acción acotada y reversible, y sirve como siguiente paso?"}
+  objetivo: "κ de Cohen >= 0.60 por pregunta, con IC 95 % (error estándar asintótico); descriptivo"
+
+diferido:
+  retrieval_check: "ítem 37b diferido por P6: no se construye en este corte."
+  brazos_exploratorios: "Tider vs LLM directo y Lake con/sin postmortems quedan para el segundo corte (P5)."
