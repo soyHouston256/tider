@@ -28,6 +28,7 @@ dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
 
 [project.scripts]
 tider-console = "tider.console.__main__:main"
+tider-recorder = "tider.console.recorder:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

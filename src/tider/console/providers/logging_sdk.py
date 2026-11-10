@@ -33,7 +33,7 @@ class BoundedLoggingClient:
             for raw in page.entries:
                 entry = MessageToDict(LogEntry.pb(raw))
                 yield SimpleNamespace(payload=entry.get("jsonPayload", entry.get("textPayload", "")),
-                    labels=entry.get("labels", {}), severity=entry.get("severity", "INFO"),
+                    labels=entry.get("labels", {}), resource=entry.get("resource", {}), severity=entry.get("severity", "INFO"),
                     timestamp=datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00")))
                 count += 1
                 if count >= max_results:

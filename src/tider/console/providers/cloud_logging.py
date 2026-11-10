@@ -1,6 +1,7 @@
 """Cloud Logging adapter: bounded reads scoped to the configured lab."""
 
 import json
+import re
 from datetime import datetime, timezone
 from itertools import chain
 from time import monotonic
@@ -50,7 +51,12 @@ class SignalBatch(list):
 def gcp_signals(
     service: str, start: datetime, end: datetime, settings: Settings, services: list[str] | None = None,
     max_records: int | None = None, text: str = "", errors_only: bool = True, deadline: float | None = None,
+    severity: str | None = None,
 ) -> list[Signal]:
+    """`severity` (por ejemplo `>=WARNING` o `<WARNING`) agrega un filtro de severidad: el barrido v2 hace
+    dos lecturas por servicio con cuotas propias (A14). Sin él, el comportamiento v1 no cambia."""
+    if severity is not None and not re.fullmatch(r"(>=|<=|<|>|=)[A-Z]+", severity):
+        raise ValueError("Filtro de severidad inválido.")
     if settings.evidence_mode != "gcp":
         raise ValueError("Activa EVIDENCE_MODE=gcp en el servidor para consultar Cloud Logging.")
     if not settings.google_cloud_project:
@@ -69,6 +75,8 @@ def gcp_signals(
         base = gcp_filter(service, start, end, settings, services)
         if text:
             base += " AND " + json.dumps(text)
+        if severity:
+            base += f" AND severity{severity}"
         entries = client.list_entries(
             filter_=base + (" AND " + ERROR_FILTER if errors_only else ""),
             order_by="timestamp desc",
@@ -107,6 +115,8 @@ def gcp_signals(
             if not message:
                 continue
             observed_service = (entry.labels or {}).get("k8s-pod/app", service)
+            resource = getattr(entry, "resource", None)
+            resource_labels = resource.get("labels", {}) if isinstance(resource, dict) else getattr(resource, "labels", None) or {}
             signals.append(
                 Signal(
                     timestamp=entry.timestamp or start,
@@ -114,6 +124,7 @@ def gcp_signals(
                     source="log",
                     message=sanitize(str(message)),
                     severity=str(entry.severity or "INFO"),
+                    instance=resource_labels.get("pod_name"),
                 )
             )
     except Exception as exc:
