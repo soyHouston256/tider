@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" agent="Claude Code" version="24.7.17">
+  <diagram id="blueprint" name="Blueprint Tider">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="comm" value="&lt;b&gt;Communication Layer&lt;/b&gt;&lt;br&gt;&lt;b&gt;No conversacional&lt;/b&gt;&lt;br&gt;&lt;i&gt;Entra: incidente (servicio, ventana de tiempo, síntoma) · Sale: mapa de servicios + informe + JSON · Consola web · Español&lt;/i&gt; ✅" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="820" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ctx" value="&lt;b&gt;Context Definition&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="820" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="domain" value="&lt;b&gt;Domain Definition&lt;/b&gt;&lt;br&gt;&lt;i&gt;Rol en el system prompt&lt;/i&gt;&lt;br&gt;Operación de microservicios en contenedores.&lt;br&gt;Rol: asesor de diagnóstico de incidentes, solo lectura.&lt;br&gt;Fuera de rol: ejecutar o proponer cambios al sistema. ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9f7ed;strokeColor=#36393d;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="380" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="objectives" value="&lt;b&gt;Objectives Definition&lt;/b&gt;&lt;br&gt;&lt;i&gt;Metas en el system prompt&lt;/i&gt;&lt;br&gt;1. Causa raíz = componente + inicio + razón&lt;br&gt;2. Separar la causa de las víctimas&lt;br&gt;3. Reparación verificable o pasos de diagnóstico" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9f7ed;strokeColor=#36393d;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="460" y="190" width="380" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="env" value="&lt;b&gt;Environment Definition&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#b1ddf0;strokeColor=#10739e;fontSize=16;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="820" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="knowledge" value="&lt;b&gt;Knowledge&lt;/b&gt;&lt;br&gt;&lt;i&gt;Context Lake&lt;/i&gt;&lt;br&gt;Catálogo confirmado ✅ · topologia.yaml 🔧&lt;br&gt;Fichas por servicio 🔧&lt;br&gt;Runbooks 🔧&lt;br&gt;Postmortems 🔧&lt;br&gt;Catálogo de fallas v1 🔧&lt;br&gt;Búsqueda BM25 + vectorial 🔧&lt;br&gt;&lt;i&gt;Ground truth: ChaosForge, aislado 🔧&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="60" y="380" width="250" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="tools" value="&lt;b&gt;Tools&lt;/b&gt;&lt;br&gt;&lt;i&gt;Solo lectura, argumentos validados&lt;/i&gt;&lt;br&gt;Barrido fijo previo 🔧&lt;br&gt;Logs: Cloud Logging ✅ · CloudWatch 🗓&lt;br&gt;Eventos: K8s ✅ · ECS 🗓&lt;br&gt;Estado actual (kubectl) ✅&lt;br&gt;context_search ✅&lt;br&gt;&lt;i&gt;MCP = transporte dentro de un adaptador&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="325" y="380" width="250" height="245" as="geometry" />
+        </mxCell>
+        <mxCell id="ltm" value="&lt;b&gt;Long Term Memory&lt;/b&gt;&lt;br&gt;Postmortems en el Lake 🔧&lt;br&gt;Historial de investigaciones (SQLite) ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="590" y="380" width="250" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="stm" value="&lt;b&gt;Short Term Memory&lt;/b&gt;&lt;br&gt;Estado de la investigación: mapa previo, evidencia por servicio, mensajes y observaciones ✅" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="590" y="510" width="250" height="115" as="geometry" />
+        </mxCell>
+
+        <mxCell id="autonomy" value="&lt;b&gt;Autonomy Dimension Definition&lt;/b&gt;&lt;br&gt;&lt;b&gt;Restringido (asesor):&lt;/b&gt; diagnostica y recomienda; una persona decide y ejecuta ✅&lt;br&gt;&lt;i&gt;Remediación automática: versión futura&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="640" width="820" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="criticality" value="&lt;b&gt;Criticality Dimension Definition&lt;/b&gt;&lt;br&gt;&lt;b&gt;Guardrails:&lt;/b&gt; no ejecuta nada ✅ · filtro de comandos de escritura 🔧 · enmascarado ✅ · al LLM solo datos anonimizados&lt;br&gt;&lt;b&gt;Evals:&lt;/b&gt; firmas confirmada / descartada / sin datos 🔧 · Wilson, McNemar, κ 🗓&lt;br&gt;&lt;b&gt;LLMaaJ:&lt;/b&gt; Juez de otra familia de modelo + reglas fijas 🔧" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="730" width="820" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="✅ existe · 🔧 se construye en esta iteración · 🗓 plan (siguiente etapa)" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="850" width="820" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="a1" value="&lt;b&gt;Análisis de dimensiones&lt;/b&gt;&lt;br&gt;¿Cómo va a actuar? &lt;b&gt;Aconsejando:&lt;/b&gt; entrega al operador la causa probable, las víctimas y una reparación sugerida." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="900" width="820" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="&lt;b&gt;¿Qué puede salir mal?&lt;/b&gt;&lt;br&gt;Culpa a una víctima en vez de la causa y recomienda con seguridad una reparación equivocada (p. ej., reiniciar frontend cuando cayó redis-cart)." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1000" width="780" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="&lt;b&gt;¿Cómo lo controlamos?&lt;/b&gt;&lt;br&gt;La evidencia es la fuente de verdad · firmas con tres veredictos · la causa falla primero y por sí misma · Juez de otra familia + reglas · catálogo verificado · &quot;sugerencia no verificada&quot; sin comandos." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="120" y="1100" width="740" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a1a2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="a1" target="a2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a2a3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="a2" target="a3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="side" value="&lt;b&gt;Tider · asesor de incidentes para microservicios en contenedores&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Communication Layer:&lt;/b&gt;&lt;br&gt;&amp;nbsp;&amp;nbsp;no conversacional · consola web · español&lt;br&gt;&lt;br&gt;&lt;b&gt;domain:&lt;/b&gt; operación de microservicios (Kubernetes principal, AWS ECS como extensión), cualquier nube&lt;br&gt;&lt;b&gt;context:&lt;/b&gt; piloto en Online Boutique sobre GKE (fallas inyectadas con ChaosForge); generalidad con un incidente real de SIBI (AWS ECS Fargate) en replay, sin acceso a producción&lt;br&gt;&lt;b&gt;objective:&lt;/b&gt; ante un incidente, identificar componente + inicio + razón, separar la causa de las víctimas y sugerir una reparación&lt;br&gt;👉 &lt;b&gt;Agentes:&lt;/b&gt; Cartógrafo · Recolector · &lt;b&gt;Investigador (LLM)&lt;/b&gt; · Proponente · &lt;b&gt;Juez (LLM, otro modelo)&lt;/b&gt; · Reportero&lt;br&gt;&lt;br&gt;&lt;b&gt;Knowledge:&lt;/b&gt; topología (grafo), fichas por servicio, runbooks, postmortems escritos a partir de ChaosForge, catálogo de fallas v1. Chunking por tipo de documento; búsqueda híbrida con filtros por servicio y tipo&lt;br&gt;&lt;b&gt;Tools:&lt;/b&gt;&lt;br&gt;- Barrido fijo: eventos de toda la app + logs de todos los servicios&lt;br&gt;- Investigación adaptativa: logs, eventos, estado, context_search&lt;br&gt;- Adaptadores: GCP hoy; CloudWatch y ECS para el replay de SIBI&lt;br&gt;&lt;b&gt;Modelo común:&lt;/b&gt; Servicio · Instancia · Cambio · Evento · Señal (igual en K8s y ECS)&lt;br&gt;&lt;b&gt;Memoria:&lt;/b&gt;&lt;br&gt;- Corto plazo: estado de la investigación en curso&lt;br&gt;- Largo plazo: postmortems e historial&lt;br&gt;&lt;br&gt;&lt;b&gt;Dimensión autonomía:&lt;/b&gt; restringido. Tider recomienda; una persona decide y ejecuta&lt;br&gt;&lt;b&gt;Dimensión criticidad:&lt;/b&gt; un diagnóstico equivocado puede llevar al operador a &quot;reparar&quot; el servicio que no es y alargar el incidente. Controles: firmas verificables, Juez independiente, catálogo cerrado, sin comandos de escritura&lt;br&gt;&lt;br&gt;&lt;b&gt;Firmas del catálogo v1:&lt;/b&gt;&lt;br&gt;- Servicio sin instancias · Configuración incorrecta · Dependencia lenta · Saturación de CPU (a validar con ChaosForge)&lt;br&gt;- Se cae al arrancar · Sin memoria (declaradas, sin inyector)" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="900" y="40" width="760" height="1130" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="roles" name="Roles y flujo">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="&lt;b&gt;Tider · roles de agentes y flujo de una investigación&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="900" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r0" value="Incidente&lt;br&gt;&lt;i&gt;servicio, ventana, síntoma&lt;/i&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="&lt;b&gt;1. Cartógrafo&lt;/b&gt;&lt;br&gt;código&lt;br&gt;&lt;i&gt;mapa previo desde el Lake&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="230" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="&lt;b&gt;2. Recolector&lt;/b&gt;&lt;br&gt;código&lt;br&gt;&lt;i&gt;barrido: falla / sano / sin datos&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="420" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="&lt;b&gt;3. Investigador&lt;/b&gt;&lt;br&gt;LLM&lt;br&gt;&lt;i&gt;hipótesis: causa vs. víctimas&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="610" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="&lt;b&gt;4. Proponente&lt;/b&gt;&lt;br&gt;catálogo → LLM&lt;br&gt;&lt;i&gt;reparación verificada o no verificada&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="800" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" value="&lt;b&gt;5. Juez&lt;/b&gt;&lt;br&gt;LLM de otra familia + reglas&lt;br&gt;&lt;i&gt;aprueba / rechaza / otra ronda&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="990" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r6" value="&lt;b&gt;6. Reportero&lt;/b&gt;&lt;br&gt;código&lt;br&gt;&lt;i&gt;mapa + informe + JSON&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="r7" value="&lt;b&gt;Operador humano&lt;/b&gt;&lt;br&gt;decide y ejecuta" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1370" y="120" width="150" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f01" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r0" target="r1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f12" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r1" target="r2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f23" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r2" target="r3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f34" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r3" target="r4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f45" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r4" target="r5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f56" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;fontSize=12;" edge="1" parent="1" source="r5" target="r6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f67" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;" edge="1" parent="1" source="r6" target="r7"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="f52" value="pide más evidencia (máx. 1 ronda)" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;strokeWidth=2;dashed=1;fontSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="r5" target="r2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1065" y="270" />
+              <mxPoint x="495" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="leg" value="Naranja = usa LLM · Gris = código determinista · Amarillo = humano" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="700" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="&lt;b&gt;Reglas fijas del Juez (antes del LLM)&lt;/b&gt;&lt;br&gt;• Cada cita existe y dice lo que la hipótesis afirma&lt;br&gt;• La causa propuesta tiene falla &lt;b&gt;confirmada&lt;/b&gt; (&quot;sin datos&quot; no basta)&lt;br&gt;• Una reparación del catálogo solo si su firma está confirmada&lt;br&gt;• Ningún verbo que modifique el sistema (delete, scale, patch, rollout, apply)&lt;br&gt;• Cobertura baja → resultado marcado como incompleto&lt;br&gt;&lt;br&gt;&lt;b&gt;Criterio de diseño:&lt;/b&gt; un rol usa LLM solo si necesita juicio; lo que se puede calcular lo hace código." style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="350" width="900" height="200" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
