@@ -16,6 +16,8 @@ class Signal(BaseModel):
     message: str
     severity: str = "INFO"
     trace_id: str | None = None
+    # Pod que emitió la línea. Solo lo usa el barrido v2 (agrupar trazas multilínea); no se serializa.
+    instance: str | None = Field(default=None, exclude=True)
 
 
 class AnalyzeRequest(BaseModel):

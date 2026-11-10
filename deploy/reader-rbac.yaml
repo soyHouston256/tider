@@ -1,0 +1,43 @@
+# Identidad de SOLO LECTURA para el registrador (tider-recorder) y el barrido del pipeline v2.
+# Solo verbos get/list: Tider no tiene ninguna ruta que modifique el clúster.
+# Aplicar (lo hace la persona operadora, no Tider):  kubectl apply -f deploy/reader-rbac.yaml
+#
+# Permiso de Monitoring (Managed Prometheus, firma de CPU), paso manual fuera de Kubernetes:
+#   gcloud projects add-iam-policy-binding <PROYECTO> \
+#     --member="serviceAccount:<SA_DE_LECTURA>@<PROYECTO>.iam.gserviceaccount.com" --role="roles/monitoring.viewer"
+# Sin ese permiso la firma de CPU queda en SIN_DATOS.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tider-reader
+  namespace: boutique
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tider-reader
+  namespace: boutique
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "events"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tider-reader
+  namespace: boutique
+subjects:
+  - kind: ServiceAccount
+    name: tider-reader
+    namespace: boutique
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tider-reader
