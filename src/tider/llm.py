@@ -85,6 +85,61 @@ class AnthropicLLM:
             raise ModelResponseError("invalid_json") from exc
 
 
+class OpenAILLM:
+    """Juez de otra familia (decisión 23). Misma interfaz `complete_json(agent, system, user, timeout)`.
+
+    Requiere el extra `judge-openai` (`openai>=1`) y `OPENAI_API_KEY`; si falta algo, falla al construirse
+    con un mensaje claro, antes de cualquier llamada. La clave nunca se guarda en la metadata."""
+
+    def __init__(self, model: str | None = None, api_key: str | None = None, temperature: float = 0.0):
+        key = api_key or env("OPENAI_API_KEY", "")
+        self.model = model or env("JUDGE_MODEL", "")
+        if not self.model:
+            raise ValueError("Configura JUDGE_MODEL para el juez de OpenAI.")
+        if not key:
+            raise ValueError("Falta OPENAI_API_KEY para el juez de OpenAI (JUDGE_PROVIDER=openai).")
+        try:
+            import openai
+        except ImportError as exc:
+            raise ValueError(
+                "El juez de OpenAI necesita el paquete `openai`: instala el extra `tider[judge-openai]`."
+            ) from exc
+        self.client = openai.OpenAI(api_key=key, timeout=25.0, max_retries=0)
+        self.temperature = temperature
+        self.last_response_metadata: dict = {}
+
+    def complete_json(self, agent: str, system: str, user: str, *, timeout: float | None = None) -> dict:
+        self.last_response_metadata = {}
+        r = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": system + "\nResponde SOLO con un objeto JSON válido."},
+                {"role": "user", "content": user},
+            ],
+            **({"timeout": timeout} if timeout is not None else {}),
+        )
+        choice = r.choices[0]
+        usage = getattr(r, "usage", None)
+        self.last_response_metadata = {
+            "provider": "openai",
+            "model": getattr(r, "model", self.model),
+            "stop_reason": choice.finish_reason,
+            "input_tokens": getattr(usage, "prompt_tokens", None),
+            "output_tokens": getattr(usage, "completion_tokens", None),
+        }
+        if choice.finish_reason == "length":
+            raise ModelResponseError("truncated_response")
+        try:
+            result = parse_json(choice.message.content or "")
+            if not isinstance(result, dict):
+                raise ValueError("Expected object")
+            return result
+        except ValueError as exc:
+            raise ModelResponseError("invalid_json") from exc
+
+
 class ScriptedLLM:
     """LLM de prueba: por agente devuelve un dict/str fijo, una lista (se consume en orden) o un callable."""
 

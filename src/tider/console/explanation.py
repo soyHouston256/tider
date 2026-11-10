@@ -11,6 +11,11 @@ TITLES = {
     "ejecutor": "Propuesta",
     "verificador": "Verificación",
     "reporter": "Reporte",
+    # Pipeline v2: etapas propias (sin reutilizar `verificador`, que es la del grafo archivado).
+    "sweep": "Barrido",
+    "cartographer": "Cartógrafo",
+    "signatures": "Verificador de firmas",
+    "proposer": "Proponente",
 }
 ROUTES = {"escalate": "Revisión humana", "runbook": "Propuesta de runbook", "pr": "Propuesta de cambio"}
 

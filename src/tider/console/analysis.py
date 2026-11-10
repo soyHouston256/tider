@@ -53,7 +53,15 @@ class LabEngine:
         return AgenticEngine(self.settings, self.context_lake).analyze_live(request, emit=emit)
 
     def analyze(self, request: AnalyzeRequest, evidence: list[Signal]) -> Analysis:
-        """Rules-only diagnosis. Records only the steps that run; nothing is executed."""
+        """Rules-only diagnosis. Records only the steps that run; nothing is executed.
+
+        Con `TIDER_PIPELINE=v2`, el modo sin LLM es el pipeline v2 sin Investigador ni Juez LLM:
+        `signatures` ordena con la regla fija P4 y las reglas fijas del Juez siguen aplicándose.
+        `evidence` (v1) no se usa: el barrido lee su propia evidencia."""
+        if self.settings.pipeline == "v2":
+            from .pipeline_v2 import PipelineV2
+
+            return PipelineV2(self.settings, self.context_lake).run(request)
         service = request.service or "general"
         snapshot = self.context_lake.catalog() if self.context_lake else None
         if (

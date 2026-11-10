@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     lake_v3_path: str = ""
     lake_max_documents: int = Field(default=60, ge=1, le=500)
     lake_max_chunks: int = Field(default=600, ge=1, le=5000)
+    # Fase 3. La topología del Cartógrafo sale del Lake v3 cargado (`LAKE_V3_PATH`, `get_topology()`);
+    # sin Lake, de `providers.catalog`. El Juez usa un cliente propio, de otra familia por defecto
+    # (decisión 23); la clave de OpenAI solo se lee del entorno y nunca va a la traza.
+    judge_provider: Literal["openai", "anthropic"] = "openai"
+    judge_model: str = ""
+    openai_api_key: str = Field(default="", repr=False)
+    # Regla 5 del Juez: fracción mínima de servicios de la tienda con lectura completa (sin `truncado` ni
+    # fuentes fallidas). Por debajo, o con un conector global fallido, el análisis se marca `incompleto`.
+    judge_min_coverage: float = Field(default=0.8, ge=0, le=1)
 
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> "Settings":

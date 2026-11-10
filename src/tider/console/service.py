@@ -61,7 +61,8 @@ class AnalysisService:
                 raise AnalysisUnavailable("No se pudo completar la investigación.") from exc
         else:
             try:
-                evidence = self.provider.load(request)
+                # v2: el barrido del pipeline lee su propia evidencia; no se consulta la fuente v1.
+                evidence = [] if self.settings.pipeline == "v2" else self.provider.load(request)
             except ValueError:
                 raise
             except Exception as exc:

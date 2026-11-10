@@ -7,7 +7,7 @@ from typing import Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field, StrictBool
 
-from tider.llm import AnthropicLLM, ModelResponseError, error_details
+from tider.llm import AnthropicLLM, ModelResponseError, OpenAILLM, error_details
 from tider.state import Decision, Evidence, Hypothesis
 
 from .investigation_tools import InvestigationTools, catalog_summary
@@ -149,14 +149,42 @@ class AgentState(TypedDict, total=False):
     candidate_valid: bool
 
 
+def build_judge(settings):
+    """Cliente propio del Juez v2 (decisión 23): nunca el mismo objeto que el Investigador."""
+    if settings.judge_provider == "openai":
+        return OpenAILLM(model=settings.judge_model or None, api_key=settings.openai_api_key or None)
+    model = settings.judge_model or settings.tider_model
+    if not model:
+        raise ValueError("Configura JUDGE_MODEL (o TIDER_MODEL) para el juez de Anthropic.")
+    return AnthropicLLM(model=model, effort=settings.agent_model_effort)
+
+
 class AgenticEngine:
-    def __init__(self, settings, context_lake, model=None, tools_factory=InvestigationTools):
+    def __init__(self, settings, context_lake, model=None, tools_factory=InvestigationTools, judge=None):
         self.settings, self.context_lake = settings, context_lake
         self.model, self.tools_factory = model, tools_factory
+        self.judge = judge  # solo v2; en v1 el revisor sigue usando el cliente del investigador
 
     def analyze_live(self, request, emit=None):
         if self.model is None and not self.settings.tider_model:
             raise ValueError("Configura TIDER_MODEL para iniciar el investigador.")
+        if self.settings.pipeline == "v2":
+            return self._analyze_v2(request, emit)
+        return self._analyze_v1(request, emit)
+
+    def _analyze_v2(self, request, emit=None):
+        """Investigador y Juez con clientes distintos; la búsqueda global inicial y `initial_events` son solo v1."""
+        from .pipeline_v2 import PipelineV2
+
+        investigator = self.model or AnthropicLLM(model=self.settings.tider_model,
+                                                  effort=self.settings.agent_model_effort)
+        judge = self.judge or build_judge(self.settings)
+        if judge is investigator:
+            raise ValueError("El juez necesita un cliente distinto del investigador.")
+        return PipelineV2(self.settings, self.context_lake, investigator=investigator, judge=judge).run(
+            request, emit=emit)
+
+    def _analyze_v1(self, request, emit=None):
         tools = self.tools_factory(self.settings, request, self.context_lake)
         llm = self.model or AnthropicLLM(model=self.settings.tider_model, effort=self.settings.agent_model_effort)
         expand_activity = self.settings.agent_expand_log_activity
@@ -175,7 +203,7 @@ class AgenticEngine:
         def event(stage, outcome, reason, refs=None, status="completed"):
             events.append(DecisionStep(sequence=len(events)+1, stage=stage, title={
                 "investigator": "Consulta del investigador", "judge": "Comprobación del sustento",
-                "reporter": "Conclusión", "intake": "Objetivo y alcance"}[stage],
+                "reporter": "Conclusión", "intake": "Objetivo y alcance"}.get(stage, stage),
                 outcome=outcome, reason=reason, evidence_ids=refs or [], status=status))
             if emit:
                 emit({"type": "step", "step": events[-1].model_dump()})

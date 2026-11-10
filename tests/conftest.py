@@ -31,6 +31,9 @@ def clean_console_env(monkeypatch):
         "TIDER_PIPELINE",
         "RECORDER_DB_PATH",
         "LAKE_V3_PATH",
+        "JUDGE_PROVIDER",
+        "JUDGE_MODEL",
+        "OPENAI_API_KEY",
     ):
         monkeypatch.delenv(var, raising=False)
 
