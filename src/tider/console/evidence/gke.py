@@ -120,6 +120,8 @@ def from_snapshots(snaps: list[Instantanea], namespace: str):
                     for k in sorted(set(antes.direcciones) | set(carga.direcciones))
                     if antes.direcciones.get(k) != carga.direcciones.get(k)
                 }
+                if antes.recursos != carga.recursos:  # límites de CPU/memoria (corroborante de RB-04)
+                    diff["recursos"] = [antes.recursos, carga.recursos]
                 if tipo == "imagen_cambiada":
                     diff = {
                         k: [antes.imagenes.get(k), carga.imagenes.get(k)]

@@ -36,7 +36,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 tider = [
   "lake/*.sql",
-  "console/resources/*.json", "console/resources/context/*.md",
+  "console/resources/*.json", "console/resources/*.yaml", "console/resources/context/*.md",
   "console/static/*.html", "console/static/css/*.css", "console/static/js/*.js",
 ]
 

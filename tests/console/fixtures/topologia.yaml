@@ -1,0 +1,103 @@
+# Topología de Online Boutique — Context Lake V3 (piloto GKE)
+# tipo_doc: topologia · revision: 1 · fecha: 2026-11-09
+# Decisión 12: la topología NO se fragmenta; se carga como grafo estructurado.
+#
+# Procedencia de cada dato (campo `origen`):
+#   v2        = Context Lake V2 (05-boutique-gke-completa.drawio / 06-alcance-arquitectura-gke.md),
+#               lectura de deployments del namespace boutique el 2026-10-25.
+#   chaosforge = chaosforge/admin/{controller.py,faults.py,observations.py,k8s/*.yaml}, scripts/fetch-boutique.sh.
+#   publico   = [conocimiento público] manifiestos de GoogleCloudPlatform/microservices-demo (v0.10.x).
+#               Los manifiestos NO están en el repo: fetch-boutique.sh los clona en vendor/ (BOUTIQUE_REF=v0)
+#               y faults.py exige la imagen cartservice:v0.10.4. Validar con
+#               `kubectl -n boutique get deploy -o yaml` antes de congelar la revisión del Lake.
+#
+# Una arista indica dependencia CONFIGURADA (variable de entorno de dirección), no tráfico medido,
+# ni salud, ni causa. Dirección: from = quien llama, to = destino.
+
+meta:
+  app: online-boutique
+  plataforma: kubernetes
+  proyecto: tider-ops
+  cluster: chaosforge-lab
+  region: us-central1
+  namespace: boutique
+  version_app: "v0.10.4 (imagen cartservice validada por faults.py; resto de servicios: asumir misma versión, validar)"
+  origen_manifiestos: "https://github.com/GoogleCloudPlatform/microservices-demo (kustomize/, rama/tag BOUTIQUE_REF=v0) + componente google-cloud-operations"
+  revision: 1
+  fecha: 2026-11-09
+
+servicios:
+  - {nombre: frontend,              lenguaje: Go,        protocolo_entrada: http, puerto_contenedor: 8080, puerto_service: 80,    rol: tienda, origen: [v2, chaosforge, publico]}
+  - {nombre: cartservice,           lenguaje: "C#",      protocolo_entrada: grpc, puerto_contenedor: 7070, puerto_service: 7070,  rol: tienda, contenedor: server, imagen: "us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice:v0.10.4", origen: [v2, chaosforge, publico]}
+  - {nombre: redis-cart,            lenguaje: "Redis",   protocolo_entrada: redis-tcp, puerto_contenedor: 6379, puerto_service: 6379, rol: tienda, almacenamiento: "emptyDir (no persistente) [conocimiento público]", origen: [v2, chaosforge, publico]}
+  - {nombre: productcatalogservice, lenguaje: Go,        protocolo_entrada: grpc, puerto_contenedor: 3550, puerto_service: 3550,  rol: tienda, origen: [v2, publico]}
+  - {nombre: currencyservice,       lenguaje: Node.js,   protocolo_entrada: grpc, puerto_contenedor: 7000, puerto_service: 7000,  rol: tienda, origen: [v2, publico]}
+  - {nombre: paymentservice,        lenguaje: Node.js,   protocolo_entrada: grpc, puerto_contenedor: 50051, puerto_service: 50051, rol: tienda, origen: [v2, publico]}
+  - {nombre: shippingservice,       lenguaje: Go,        protocolo_entrada: grpc, puerto_contenedor: 50051, puerto_service: 50051, rol: tienda, origen: [v2, publico]}
+  - {nombre: emailservice,          lenguaje: Python,    protocolo_entrada: grpc, puerto_contenedor: 8080, puerto_service: 5000,  rol: tienda, origen: [v2, publico]}
+  - {nombre: checkoutservice,       lenguaje: Go,        protocolo_entrada: grpc, puerto_contenedor: 5050, puerto_service: 5050,  rol: tienda, origen: [v2, publico]}
+  - {nombre: recommendationservice, lenguaje: Python,    protocolo_entrada: grpc, puerto_contenedor: 8080, puerto_service: 8080,  rol: tienda, origen: [v2, publico]}
+  - {nombre: adservice,             lenguaje: Java,      protocolo_entrada: grpc, puerto_contenedor: 9555, puerto_service: 9555,  rol: tienda, origen: [v2, publico]}
+  - {nombre: loadgenerator,         lenguaje: "Python (Locust)", protocolo_entrada: ninguno, rol: generador_de_trafico, nota: "no es servicio de la tienda; escalarlo a cero es un control, no una falla", origen: [v2, chaosforge, publico]}
+
+# Componentes que pueden existir en el namespace pero NO son servicios de la tienda.
+componentes_auxiliares:
+  - nombre: chaosforge-proxy
+    tipo: toxiproxy (laboratorio)
+    puertos: {redis: 6379, control: 8474}
+    estado: "opcional; solo si se aplicó chaosforge/admin/k8s/proxy.yaml. No lo instala el despliegue base."
+    origen: [chaosforge]
+  - nombre: opentelemetrycollector
+    tipo: colector de telemetría (componente google-cloud-operations)
+    estado: "[conocimiento público] el componente lo añade junto con COLLECTOR_SERVICE_ADDR; V2 no lo lista. Validar si existe."
+    origen: [publico]
+
+aristas:
+  - {from: frontend,              to: productcatalogservice, protocolo: grpc, variable: PRODUCT_CATALOG_SERVICE_ADDR, valor: "productcatalogservice:3550", origen: [v2, publico]}
+  - {from: frontend,              to: currencyservice,       protocolo: grpc, variable: CURRENCY_SERVICE_ADDR,        valor: "currencyservice:7000",       origen: [v2, publico]}
+  - {from: frontend,              to: cartservice,           protocolo: grpc, variable: CART_SERVICE_ADDR,            valor: "cartservice:7070",           origen: [v2, publico]}
+  - {from: frontend,              to: recommendationservice, protocolo: grpc, variable: RECOMMENDATION_SERVICE_ADDR,  valor: "recommendationservice:8080", origen: [v2, publico]}
+  - {from: frontend,              to: shippingservice,       protocolo: grpc, variable: SHIPPING_SERVICE_ADDR,        valor: "shippingservice:50051",      origen: [v2, publico]}
+  - {from: frontend,              to: checkoutservice,       protocolo: grpc, variable: CHECKOUT_SERVICE_ADDR,        valor: "checkoutservice:5050",       origen: [v2, publico]}
+  - {from: frontend,              to: adservice,             protocolo: grpc, variable: AD_SERVICE_ADDR,              valor: "adservice:9555",             origen: [v2, publico]}
+  - {from: cartservice,           to: redis-cart,            protocolo: redis-tcp, variable: REDIS_ADDR,              valor: "redis-cart:6379",            origen: [v2, chaosforge, publico],
+     nota: "Si el laboratorio preparó latencia, REDIS_ADDR=chaosforge-proxy:6379 y el proxy reenvía a redis-cart:6379 (faults.py DIRECT/PROXY)."}
+  - {from: checkoutservice,       to: productcatalogservice, protocolo: grpc, variable: PRODUCT_CATALOG_SERVICE_ADDR, valor: "productcatalogservice:3550", origen: [v2, publico]}
+  - {from: checkoutservice,       to: shippingservice,       protocolo: grpc, variable: SHIPPING_SERVICE_ADDR,        valor: "shippingservice:50051",      origen: [v2, publico]}
+  - {from: checkoutservice,       to: paymentservice,        protocolo: grpc, variable: PAYMENT_SERVICE_ADDR,         valor: "paymentservice:50051",       origen: [v2, publico]}
+  - {from: checkoutservice,       to: emailservice,          protocolo: grpc, variable: EMAIL_SERVICE_ADDR,           valor: "emailservice:5000",          origen: [v2, publico]}
+  - {from: checkoutservice,       to: currencyservice,       protocolo: grpc, variable: CURRENCY_SERVICE_ADDR,        valor: "currencyservice:7000",       origen: [v2, publico]}
+  - {from: checkoutservice,       to: cartservice,           protocolo: grpc, variable: CART_SERVICE_ADDR,            valor: "cartservice:7070",           origen: [v2, publico]}
+  - {from: recommendationservice, to: productcatalogservice, protocolo: grpc, variable: PRODUCT_CATALOG_SERVICE_ADDR, valor: "productcatalogservice:3550", origen: [v2, publico]}
+  - {from: loadgenerator,         to: frontend,              protocolo: http, variable: FRONTEND_ADDR,                valor: "frontend:80",                origen: [v2, publico], tipo: trafico_sintetico}
+
+# Referencias configuradas sin despliegue correspondiente (no son aristas válidas).
+referencias_colgantes:
+  - {from: frontend, to: shoppingassistantservice, variable: SHOPPING_ASSISTANT_SERVICE_ADDR, valor: "shoppingassistantservice:80",
+     nota: "V2: el nombre no aparece entre los deployments. No afirmar que esté activo."}
+
+discrepancias:
+  - id: D1
+    fuente: "Context Lake V1 (01-boutique-contexto.md, 02-boutique-dependencias.drawio)"
+    detalle: "Solo 6 aristas. Faltan 10 de las 16 configuradas: frontend→{productcatalog,currency,recommendation,shipping,ad}, checkoutservice→{productcatalog,email,currency}, recommendationservice→productcatalog, loadgenerator→frontend. El mermaid de 01 ni siquiera incluye checkoutservice→shippingservice, que sí aparece en su texto y en 02."
+    accion: "Retirar V1 del índice o marcarlo como superado; V1 y V2 no son corroboración independiente."
+  - id: D2
+    fuente: "tider/src/tider/console/providers/catalog.py related_services()"
+    detalle: "frontend→redis-cart y checkoutservice→redis-cart no son aristas directas (son transitivas vía cartservice). Faltan checkoutservice→{shippingservice,emailservice,currencyservice,productcatalogservice}, todas las salidas de frontend salvo cart/checkout, recommendationservice→productcatalogservice. Servicios sin entrada (productcatalog, currency, payment, shipping, email, recommendation, ad, redis-cart) solo devuelven a sí mismos, por lo que una consulta sobre ellos no incluye a sus llamadores."
+    accion: "Derivar related_services de este archivo (llamadores y llamados, 1 salto + transitivas marcadas)."
+  - id: D3
+    fuente: "V2 vs. componente google-cloud-operations"
+    detalle: "deploy-boutique.sh agrega components/google-cloud-operations; [conocimiento público] ese componente crea opentelemetrycollector y añade COLLECTOR_SERVICE_ADDR a los servicios. V2 informa 12 componentes y no lo menciona. O no se desplegó, o V2 lo filtró."
+    accion: "Validar con `kubectl -n boutique get deploy`; si existe, agregarlo como auxiliar, no como servicio de la tienda."
+  - id: D4
+    fuente: "V2 vs. laboratorio de latencia"
+    detalle: "V2 registra cartservice→redis-cart con REDIS_ADDR. Si se prepara el mecanismo latency, la ruta real pasa por chaosforge-proxy (REDIS_ADDR=chaosforge-proxy:6379). V2 no conoce ese salto."
+    accion: "Releer REDIS_ADDR en cada corrida; tratar el proxy como componente del laboratorio."
+  - id: D5
+    fuente: "V2 (solo nombres de variable)"
+    detalle: "V2 no registra puertos ni protocolo. Puertos y protocolo de este archivo son [conocimiento público]. emailservice expone Service 5000 → contenedor 8080; paymentservice y shippingservice comparten puerto 50051 (distinto host)."
+    accion: "Validar con `kubectl -n boutique get svc -o wide`."
+  - id: D6
+    fuente: "controller.py SERVICES vs. catalog.py SERVICES"
+    detalle: "Ambos listan los mismos 12 nombres (coinciden). controller.py describe redis-cart con icono 'coins' y checkout con 'cart' (cosmético). Sin discrepancia de inventario."
+    accion: "Ninguna."

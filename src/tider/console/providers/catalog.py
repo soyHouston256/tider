@@ -1,4 +1,9 @@
-"""Servicios y dependencias del laboratorio Online Boutique."""
+"""Servicios y dependencias del laboratorio Online Boutique.
+
+Obsoleto para el pipeline v2: `EDGES` y `related_services()` quedan solo para el modo v1. En v2 las
+relaciones salen del Cartógrafo (`console/topology.py`), con nodos de la plataforma y aristas
+configuradas (Lake) y observadas; `TopologiaLake.desde_catalogo()` usa `EDGES` solo como respaldo sin Lake.
+"""
 
 SERVICES = [
     "frontend",
