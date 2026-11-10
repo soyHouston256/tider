@@ -1,0 +1,774 @@
+[
+{
+"jsonPayload": {
+"error": "failed to get ads: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+"http.req.method": "GET",
+"http.req.path": "/",
+"message": "failed to retrieve ads"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "WARNING",
+"timestamp": "2026-11-09T18:12:52.077005886Z"
+},
+{
+"jsonPayload": {
+"http.req.method": "POST",
+"http.req.path": "/setCurrency",
+"message": "request started"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "DEBUG",
+"timestamp": "2026-11-09T18:13:05.406209725Z"
+},
+{
+"jsonPayload": {
+"http.req.method": "POST",
+"http.req.path": "/setCurrency",
+"message": "setting currency"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "DEBUG",
+"timestamp": "2026-11-09T18:13:05.406326695Z"
+},
+{
+"jsonPayload": {
+"http.req.method": "POST",
+"http.req.path": "/setCurrency",
+"message": "request complete"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "DEBUG",
+"timestamp": "2026-11-09T18:13:05.406335745Z"
+},
+{
+"jsonPayload": {
+"http.req.method": "GET",
+"http.req.path": "/",
+"message": "request started"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "DEBUG",
+"timestamp": "2026-11-09T18:13:05.407823865Z"
+},
+{
+"jsonPayload": {
+"message": "Getting supported currencies..."
+},
+"labels": {
+"k8s-pod/app": "currencyservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "currencyservice-5dc64c8645-p22jq"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:05.408999936Z"
+},
+{
+"labels": {
+"k8s-pod/app": "cartservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "cartservice-696588d894-nrw4s"
+}
+},
+"severity": "INFO",
+"textPayload": "GetCartAsync called with userId=9b3f54e2-64fe-41e2-8adf-06d95414fb88",
+"timestamp": "2026-11-09T18:13:05.412886565Z"
+},
+{
+"jsonPayload": {
+"message": "conversion request successful"
+},
+"labels": {
+"k8s-pod/app": "currencyservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "currencyservice-5dc64c8645-p22jq"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:05.416999936Z"
+},
+{
+"jsonPayload": {
+"message": "conversion request successful"
+},
+"labels": {
+"k8s-pod/app": "currencyservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "currencyservice-5dc64c8645-p22jq"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:05.419000064Z"
+},
+{
+"jsonPayload": {
+"message": "conversion request successful"
+},
+"labels": {
+"k8s-pod/app": "currencyservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "currencyservice-5dc64c8645-p22jq"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:05.420999936Z"
+},
+{
+"jsonPayload": {
+"message": "received ad request (context_words=[])"
+},
+"labels": {
+"k8s-pod/app": "adservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "adservice-6bb78765cd-47xjr"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:05.440246743Z"
+},
+{
+"labels": {
+"k8s-pod/app": "cartservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "cartservice-696588d894-nrw4s"
+}
+},
+"severity": "INFO",
+"textPayload": "Checking CartService Health",
+"timestamp": "2026-11-09T18:13:05.451484512Z"
+},
+{
+"labels": {
+"k8s-pod/app": "loadgenerator"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "loadgenerator-8555d7f7d-bdb9n"
+}
+},
+"severity": "INFO",
+"textPayload": "Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s",
+"timestamp": "2026-11-09T18:13:05.908186411Z"
+},
+{
+"labels": {
+"k8s-pod/app": "loadgenerator"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "loadgenerator-8555d7f7d-bdb9n"
+}
+},
+"severity": "INFO",
+"textPayload": "--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------",
+"timestamp": "2026-11-09T18:13:05.908273751Z"
+},
+{
+"labels": {
+"k8s-pod/app": "loadgenerator"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "loadgenerator-8555d7f7d-bdb9n"
+}
+},
+"severity": "INFO",
+"textPayload": "GET      /                                                                              74938   144(0.19%) |     80       2   31234     34 |    0.00        0.00",
+"timestamp": "2026-11-09T18:13:05.908282071Z"
+},
+{
+"labels": {
+"k8s-pod/app": "loadgenerator"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "loadgenerator-8555d7f7d-bdb9n"
+}
+},
+"severity": "INFO",
+"textPayload": "GET      /cart                                                                         222802   400(0.18%) |     60       1   23891     31 |    0.10        0.00",
+"timestamp": "2026-11-09T18:13:05.908286791Z"
+},
+{
+"labels": {
+"k8s-pod/app": "cartservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "cartservice-696588d894-nrw4s"
+}
+},
+"severity": "INFO",
+"textPayload": "GetCartAsync called with userId=525be51d-944b-4988-81d2-7cdadc694093",
+"timestamp": "2026-11-09T18:13:06.459868174Z"
+},
+{
+"jsonPayload": {
+"message": "received ad request (context_words=[])"
+},
+"labels": {
+"k8s-pod/app": "adservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "adservice-6bb78765cd-47xjr"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.488022272Z"
+},
+{
+"labels": {
+"k8s-pod/app": "cartservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "cartservice-696588d894-nrw4s"
+}
+},
+"severity": "INFO",
+"textPayload": "GetCartAsync called with userId=59bdca18-f942-4fc6-bf2b-c755897e9d20",
+"timestamp": "2026-11-09T18:13:06.505662890Z"
+},
+{
+"jsonPayload": {
+"message": "[Recv ListRecommendations] product_ids=['LS4PSXUNUM', '9SIQT8TOJO', '6E92ZMYYFZ', 'L9ECAV7KIM', '66VCHSJNUP']"
+},
+"labels": {
+"k8s-pod/app": "recommendationservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "recommendationservice-6ff9bf8d66-zw2mf"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.515640250Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[GetQuote] received request"
+},
+"labels": {
+"k8s-pod/app": "shippingservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "shippingservice-7567cf88bc-xxsr6"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.573054886Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[GetQuote] completed request"
+},
+"labels": {
+"k8s-pod/app": "shippingservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "shippingservice-7567cf88bc-xxsr6"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.573109826Z"
+},
+{
+"jsonPayload": {
+"message": "[Recv ListRecommendations] product_ids=['9SIQT8TOJO', '0PUK6V6EV0', 'LS4PSXUNUM', '2ZYFJ3GM2N', '66VCHSJNUP']"
+},
+"labels": {
+"k8s-pod/app": "recommendationservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "recommendationservice-6ff9bf8d66-zw2mf"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.588666285Z"
+},
+{
+"jsonPayload": {
+"message": "received ad request (context_words=[accessories])"
+},
+"labels": {
+"k8s-pod/app": "adservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "adservice-6bb78765cd-47xjr"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.665363090Z"
+},
+{
+"jsonPayload": {
+"message": "received ad request (context_words=[])"
+},
+"labels": {
+"k8s-pod/app": "adservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "adservice-6bb78765cd-47xjr"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.828936259Z"
+},
+{
+"labels": {
+"k8s-pod/app": "recommendationservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "recommendationservice-6ff9bf8d66-zw2mf"
+}
+},
+"severity": "DEFAULT",
+"textPayload": "grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:",
+"timestamp": "2026-11-09T18:13:06.915342253Z"
+},
+{
+"labels": {
+"k8s-pod/app": "recommendationservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "recommendationservice-6ff9bf8d66-zw2mf"
+}
+},
+"severity": "DEFAULT",
+"textPayload": "  File \"/usr/local/lib/python3.12/site-packages/opentelemetry/instrumentation/grpc/grpcext/_interceptor.py\", line 59, in invoker\n    return self._base_callable(",
+"timestamp": "2026-11-09T18:13:06.915342253Z"
+},
+{
+"jsonPayload": {
+"error": "rpc error: code = Unknown desc = Exception calling application: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed to connect to all addresses; last error: UNKNOWN: ipv4:10.49.2.83:3550: Failed to connect to remote host: Connection refused\"\n\tdebug_error_string = \"UNKNOWN:failed to connect to all addresses; last error: UNKNOWN: ipv4:10.49.2.83:3550: Failed to connect to remote host: Connection refused {grpc_status:14, created_time:\"2026-11-09T18:13:06.884169826+00:00\"}\"\n>",
+"http.req.method": "GET",
+"http.req.path": "/cart",
+"message": "failed to get product recommendations"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "WARNING",
+"timestamp": "2026-11-09T18:13:06.922905893Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[GetQuote] received request"
+},
+"labels": {
+"k8s-pod/app": "shippingservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "shippingservice-7567cf88bc-xxsr6"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.923531873Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[GetQuote] completed request"
+},
+"labels": {
+"k8s-pod/app": "shippingservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "shippingservice-7567cf88bc-xxsr6"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:06.923609883Z"
+},
+{
+"jsonPayload": {
+"error": "rpc error: code = Unknown desc = Exception calling application: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed to connect to all addresses; last error: UNKNOWN: ipv4:10.49.2.83:3550: Failed to connect to remote host: Connection refused\"\n\tdebug_error_string = \"UNKNOWN:failed to connect to all addresses; last error: UNKNOWN: ipv4:10.49.2.83:3550: Failed to connect to remote host: Connection refused {created_time:\"2026-11-09T18:13:06.884160775+00:00\", grpc_status:14}\"\n>",
+"http.req.method": "GET",
+"http.req.path": "/cart",
+"message": "failed to get product recommendations"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "WARNING",
+"timestamp": "2026-11-09T18:13:07.065592663Z"
+},
+{
+"jsonPayload": {
+"error": "could not retrieve product #OLJCESPC7Z: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while dialing: dial tcp 10.49.2.83:3550: connect: connection refused\"",
+"http.req.method": "GET",
+"http.req.path": "/cart",
+"message": "request error"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "ERROR",
+"timestamp": "2026-11-09T18:13:07.074885133Z"
+},
+{
+"jsonPayload": {
+"error": "could not retrieve product: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while dialing: dial tcp 10.49.2.83:3550: connect: connection refused\"",
+"http.req.method": "GET",
+"http.req.path": "/product/1YMWWN1N4O",
+"message": "request error"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "ERROR",
+"timestamp": "2026-11-09T18:13:07.400098671Z"
+},
+{
+"jsonPayload": {
+"error": "could not retrieve product: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while dialing: dial tcp 10.49.2.83:3550: connect: connection refused\"",
+"http.req.method": "POST",
+"http.req.path": "/cart",
+"message": "request error"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "ERROR",
+"timestamp": "2026-11-09T18:13:07.408436090Z"
+},
+{
+"jsonPayload": {
+"error": "could not retrieve products: rpc error: code = Unavailable desc = connection error: desc = \"transport: Error while dialing: dial tcp 10.49.2.83:3550: connect: connection refused\"",
+"http.req.method": "GET",
+"http.req.path": "/",
+"message": "request error"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "ERROR",
+"timestamp": "2026-11-09T18:13:08.320132589Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[PlaceOrder] user_id=\"4748fee1-fa5e-4aa1-abd3-921b7b0af4d9\" user_currency=\"CAD\""
+},
+"labels": {
+"k8s-pod/app": "checkoutservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "checkoutservice-6897c79469-zdvq5"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:11.209393323Z"
+},
+{
+"jsonPayload": {
+"error": "failed to complete the order: rpc error: code = Internal desc = failed to prepare order: failed to get product #\"1YMWWN1N4O\"",
+"http.req.method": "POST",
+"http.req.path": "/cart/checkout",
+"message": "request error"
+},
+"labels": {
+"k8s-pod/app": "frontend"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "frontend-84fc9dbb74-rqz7c"
+}
+},
+"severity": "ERROR",
+"timestamp": "2026-11-09T18:13:11.231969712Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[PlaceOrder] user_id=\"2563a63f-4328-4ca2-98ed-def8d2a061a3\" user_currency=\"CAD\""
+},
+"labels": {
+"k8s-pod/app": "checkoutservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "checkoutservice-6897c79469-zdvq5"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:13.764444401Z"
+},
+{
+"jsonPayload": {
+"textPayload": "payment went through (transaction_id: 5deba256-86f0-4985-9a0c-24c905bd3eea)"
+},
+"labels": {
+"k8s-pod/app": "checkoutservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "checkoutservice-6897c79469-zdvq5"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:13.905875491Z"
+},
+{
+"jsonPayload": {
+"textPayload": "[PlaceOrder] user_id=\"d55ebc42-9444-4d8f-9b32-0fcbc1241221\" user_currency=\"GBP\""
+},
+"labels": {
+"k8s-pod/app": "checkoutservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "checkoutservice-6897c79469-zdvq5"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:13:32.097998458Z"
+},
+{
+"labels": {
+"k8s-pod/app": "redis-cart"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "redis-cart-547cf56b4f-bsfbx"
+}
+},
+"severity": "INFO",
+"textPayload": "1:M 09 Nov 2026 18:14:48.010 * 100 changes in 300 seconds. Saving...",
+"timestamp": "2026-11-09T18:14:48.010815004Z"
+},
+{
+"labels": {
+"k8s-pod/app": "redis-cart"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "redis-cart-547cf56b4f-bsfbx"
+}
+},
+"severity": "INFO",
+"textPayload": "1:M 09 Nov 2026 18:14:48.011 * Background saving started by pid 2638",
+"timestamp": "2026-11-09T18:14:48.011652684Z"
+},
+{
+"labels": {
+"k8s-pod/app": "redis-cart"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "redis-cart-547cf56b4f-bsfbx"
+}
+},
+"severity": "INFO",
+"textPayload": "2638:C 09 Nov 2026 18:14:48.013 * BGSAVE done, 61 keys saved, 0 keys skipped, 5741 bytes written.",
+"timestamp": "2026-11-09T18:14:48.014187814Z"
+},
+{
+"labels": {
+"k8s-pod/app": "redis-cart"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "redis-cart-547cf56b4f-bsfbx"
+}
+},
+"severity": "INFO",
+"textPayload": "2638:C 09 Nov 2026 18:14:48.044 * DB saved on disk",
+"timestamp": "2026-11-09T18:14:48.044508153Z"
+},
+{
+"jsonPayload": {
+"textPayload": "Tracing disabled."
+},
+"labels": {
+"k8s-pod/app": "productcatalogservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "productcatalogservice-58f6b4d8ff-gs2hw"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:15:11.489888960Z"
+},
+{
+"jsonPayload": {
+"textPayload": "Profiling disabled."
+},
+"labels": {
+"k8s-pod/app": "productcatalogservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "productcatalogservice-58f6b4d8ff-gs2hw"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:15:11.490033580Z"
+},
+{
+"jsonPayload": {
+"textPayload": "starting grpc server at :3550"
+},
+"labels": {
+"k8s-pod/app": "productcatalogservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "productcatalogservice-58f6b4d8ff-gs2hw"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:15:11.491534059Z"
+},
+{
+"jsonPayload": {
+"textPayload": "loading catalog from local products.json file..."
+},
+"labels": {
+"k8s-pod/app": "productcatalogservice"
+},
+"resource": {
+"labels": {
+"namespace_name": "boutique",
+"pod_name": "productcatalogservice-58f6b4d8ff-gs2hw"
+}
+},
+"severity": "INFO",
+"timestamp": "2026-11-09T18:15:11.492995989Z"
+}
+]

@@ -96,3 +96,83 @@ class Analysis(BaseModel):
     workflow: WorkflowResult = Field(default_factory=WorkflowResult)
     investigation: dict = Field(default_factory=dict)
     decision_steps: list[DecisionStep] = Field(default_factory=list)
+
+
+# --- Pipeline v2 (Fase 2): entidad, nodo y arista del contrato (§5). Cita, Hipotesis y Recomendacion
+# llegan en la Fase 3 junto con `Analysis` v2.
+
+EstadoEntidad = Literal["falla", "sano", "sin_datos"]
+
+
+class Entidad(BaseModel):
+    """Entidad de una hipótesis o de un veredicto: un servicio del inventario o un enlace del grafo."""
+
+    model_config = {"frozen": True}
+
+    tipo: Literal["servicio", "enlace"]
+    servicio: str | None = None
+    origen: str | None = None
+    destino: str | None = None
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.tipo == "servicio" and (not self.servicio or self.origen or self.destino):
+            raise ValueError("Una entidad servicio lleva solo `servicio`.")
+        if self.tipo == "enlace" and (self.servicio or not self.origen or not self.destino):
+            raise ValueError("Una entidad enlace lleva `origen` y `destino`.")
+        return self
+
+    @classmethod
+    def de_servicio(cls, nombre: str) -> "Entidad":
+        return cls(tipo="servicio", servicio=nombre)
+
+    @classmethod
+    def de_enlace(cls, origen: str, destino: str) -> "Entidad":
+        return cls(tipo="enlace", origen=origen, destino=destino)
+
+    @property
+    def clave(self) -> str:
+        return self.servicio if self.tipo == "servicio" else f"{self.origen}->{self.destino}"
+
+    @property
+    def componente(self) -> str:
+        """Alias `component` de v1: el servicio, o el origen si es un enlace."""
+        return self.servicio if self.tipo == "servicio" else self.origen
+
+
+class Nodo(BaseModel):
+    """Estado de un servicio en la ventana y su rol en la hipótesis principal.
+
+    * `estado`: `falla` (firma CONFIRMADA o anomalía propia), `sano` (predicado P3) o `sin_datos`.
+    * `rol_en_principal`: `causa`, `victima` o `ninguno`. Lo asigna código (`estado.asignar_roles`, P8),
+      no el LLM; por defecto `ninguno` hasta que haya hipótesis principal.
+    """
+
+    servicio: str
+    tipo: Literal["tienda", "auxiliar"] = "tienda"
+    estado: EstadoEntidad = "sin_datos"
+    motivo: str = ""
+    rol_en_principal: Literal["causa", "victima", "ninguno"] = "ninguno"
+    motivo_rol: str = ""
+    ids_rol: list[str] = Field(default_factory=list)  # citas que sostienen el rol (S0001…)
+    cobertura: dict = Field(default_factory=dict)  # `CoberturaServicio` serializada
+    truncado: bool = False
+    ids: list[str] = Field(default_factory=list)  # citas que sostienen el estado
+
+
+class Arista(BaseModel):
+    """Enlace `origen→destino` del grafo.
+
+    * `origen_dato`: `configurada` (Lake), `observada` (`*_ADDR` del spec o errores atribuidos) o `ambas`.
+    * `estado` (A06): `falla` si hay una firma CONFIRMADA sobre el enlace o errores del origen atribuidos
+      al destino en el incidente; `sano` si ambos extremos están sanos; `sin_datos` en otro caso. La regla 2
+      del juez sobre un enlace exige `estado == "falla"`.
+    """
+
+    origen: str
+    destino: str
+    origen_dato: Literal["configurada", "observada", "ambas"]
+    estado: EstadoEntidad = "sin_datos"
+    variable: str | None = None  # variable *_ADDR que la define, si se conoce
+    valor: str | None = None  # valor observado en el spec (o el del Lake si solo es configurada)
+    ids: list[str] = Field(default_factory=list)  # observaciones que la muestran o la ponen en falla

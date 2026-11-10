@@ -33,7 +33,15 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 
 from .evidence.destinos import TablaServicios, extraer_destinos
-from .evidence.model import Cambio, Evento, Evidencia, Senal, Ventana, at_least_warning
+from .evidence.model import (
+    Cambio,
+    CoberturaServicio,
+    Evento,
+    Evidencia,
+    Senal,
+    Ventana,
+    at_least_warning,
+)
 from .providers.error_filter import is_error
 
 _CONTINUACION = re.compile(r"^(\s|\^|>|File \"|During handling|The above exception)")
@@ -180,6 +188,8 @@ def anomalia(
 class Atribucion:
     por_servicio: dict[str, list[str]] = field(default_factory=dict)  # destino -> ids de la primera línea
     sin_atribuir: list[str] = field(default_factory=list)  # ids con destino no resuelto
+    # (llamador, destino) -> ids: lo usan el Cartógrafo (aristas observadas) y los roles (Fase 2).
+    por_arista: dict[tuple[str, str], list[str]] = field(default_factory=dict)
 
 
 def atribuir_errores(evidencia: Evidencia) -> Atribucion:
@@ -208,6 +218,7 @@ def atribuir_errores(evidencia: Evidencia) -> Atribucion:
                     resultado.sin_atribuir.append(sid)
                 elif servicio != grupo.servicio:
                     resultado.por_servicio.setdefault(servicio, []).append(sid)
+                    resultado.por_arista.setdefault((grupo.servicio, servicio), []).append(sid)
     return resultado
 
 
@@ -290,11 +301,26 @@ def sano_confirmado(
     ningún error atribuido (IP y puerto) al servicio, y tráfico >= K. `False` no significa falla: el
     estado final (falla / sano / sin datos) lo decide `estado.estado_servicio` en la Fase 2."""
     atribucion = atribucion or atribuir_errores(evidencia)
-    plataforma = clausula_plataforma(servicio, evidencia)
-    anom = anomalia(servicio, evidencia, **anomalia_kwargs)
-    atribuidos = atribucion.por_servicio.get(servicio, [])
-    n_trafico = len(trafico(servicio, evidencia))
-    cobertura = evidencia.cobertura.get(servicio)
+    return decidir_sano(
+        cobertura=evidencia.cobertura.get(servicio),
+        plataforma=clausula_plataforma(servicio, evidencia),
+        anom=anomalia(servicio, evidencia, **anomalia_kwargs),
+        atribuidos=atribucion.por_servicio.get(servicio, []),
+        n_trafico=len(trafico(servicio, evidencia)),
+        k=k,
+    )
+
+
+def decidir_sano(
+    *,
+    cobertura: CoberturaServicio | None,
+    plataforma: Clausula,
+    anom: Anomalia,
+    atribuidos: list[str],
+    n_trafico: int,
+    k: int,
+) -> SanoConfirmado:
+    """Decisión del predicado a partir de sus insumos ya calculados (la fila del barrido los trae)."""
 
     def resultado(sano: bool, motivo: str) -> SanoConfirmado:
         return SanoConfirmado(

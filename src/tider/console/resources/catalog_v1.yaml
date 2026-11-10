@@ -1,0 +1,126 @@
+# Catálogo de firmas v1 (pipeline v2, Fase 2). Datos, no código: `signatures.py` lo evalúa.
+#
+# Esquema (A05):
+#   version: int
+#   firmas: lista de
+#     id            razón del vocabulario cerrado (= modo_falla del runbook)
+#     runbook_id    RB-0N del Context Lake V3
+#     entidad       servicio | enlace
+#     validado      false hasta superar la validación con ChaosForge (Fase 6, A19): CONFIRMADA en toda
+#                   corrida de su mecanismo y DESCARTADA o SIN_DATOS en la corrida sin falla
+#     resumen       una línea: qué la confirma y qué la descarta
+#     obligatorios, descartes, corroborantes: listas de predicados
+#   declaradas_no_validadas: razones del vocabulario sin predicado ni inyector (RB-05, RB-06)
+#
+# Predicado: una hoja o un grupo.
+#   hoja:  {id, campo, operador, umbral?, persistencia_s?, modo?}
+#   grupo: {id, cualquiera: [predicados]}  (OR)   |   {id, todos: [predicados]}  (AND)
+#   campo        nombre de una medida del modelo común (ver `signatures.CAMPOS`)
+#   operador     == != > >= < <= existe no_existe
+#   umbral       número o booleano, o {linea_base: {factor: F, margen: M}} = max(base·F, base+M),
+#                con base = media de la medida en la línea base [t0-D, t0)
+#   persistencia_s  segundos que la condición debe sostenerse sin interrupción (0 = un punto basta).
+#                Una medida de estado (registrador) rige hasta su próximo cambio o el fin del incidente;
+#                una medida muestreada (métrica), hasta la muestra siguiente.
+#   modo         alguna_vez (por defecto) | siempre (en todo el incidente)
+#   Sin la medida (fuente fallida o ausente), la hoja es "sin datos". Un grupo OR es verdadero si
+#   alguna rama lo es; sin datos solo si ninguna es verdadera y alguna es sin datos. AND, al revés.
+#
+# Tabla de verdad (A05), en este orden:
+#   1. algún obligatorio sin datos                         -> SIN_DATOS
+#   2. algún descarte verdadero                            -> DESCARTADA (+ conflicto si los obligatorios
+#                                                             también se cumplen)
+#   3. todos los obligatorios y al menos un corroborante   -> CONFIRMADA
+#   4. en otro caso                                        -> DESCARTADA
+# Umbrales iniciales de los runbooks y de ChaosForge: [INF], sin calibrar contra la línea base.
+
+version: 1
+
+firmas:
+  - id: servicio-sin-instancias
+    runbook_id: RB-01
+    entidad: servicio
+    validado: false
+    resumen: "Confirma: 0 réplicas deseadas (o sin programar) y EndpointSlice sin direcciones listas, con escalado o errores atribuidos en llamadores. Descarta: réplicas y endpoints listos en todo el incidente."
+    obligatorios:
+      - id: sin_instancias
+        cualquiera:
+          - {campo: servicio.instancias_deseadas, operador: "==", umbral: 0, persistencia_s: 20}   # [INF] 2 lecturas de 10 s
+          - {campo: servicio.sin_programar, operador: "==", umbral: true, persistencia_s: 20}      # [INF] FailedScheduling
+      - {id: sin_endpoints, campo: servicio.endpoints_listos, operador: "==", umbral: 0, persistencia_s: 20}
+    descartes:
+      - id: siempre_listo
+        todos:
+          - {campo: servicio.instancias_listas, operador: ">=", umbral: 1, modo: siempre}
+          - {campo: servicio.endpoints_listos, operador: ">=", umbral: 1, modo: siempre}
+    corroborantes:
+      - {id: escalado_a_cero, campo: cambio.escalado_a_cero, operador: existe}
+      - {id: errores_atribuidos, campo: llamadores.errores_atribuidos, operador: existe}
+
+  - id: configuracion-incorrecta
+    runbook_id: RB-02
+    entidad: servicio
+    validado: false
+    resumen: "Confirma: cambio de configuración o imagen antes del primer síntoma y errores propios hacia el valor nuevo. Descarta: valores iguales al Lake en todo el incidente, o el valor nuevo apunta a un destino alcanzable que sigue respondiendo (redirección a un intermediario, A20)."
+    obligatorios:
+      - {id: cambio_previo, campo: cambio.config_antes_del_sintoma, operador: existe}
+      - {id: errores_hacia_valor_nuevo, campo: errores.hacia_destino_cambiado, operador: existe}
+    descartes:
+      - {id: igual_al_lake, campo: config.coincide_con_lake, operador: "==", umbral: true, modo: siempre}
+      - {id: destino_nuevo_responde, campo: destino_cambiado.responde, operador: "==", umbral: true}
+    corroborantes:
+      - {id: destino_original_sano, campo: destino_original.sano, operador: "==", umbral: true}
+      - {id: sigue_vivo, campo: servicio.instancias_listas, operador: ">=", umbral: 1, modo: siempre}
+
+  - id: dependencia-lenta
+    runbook_id: RB-03
+    entidad: enlace
+    validado: false
+    # Solo laboratorio (A25): la única fuente es el observador de ChaosForge para cartservice→redis-cart.
+    resumen: "Confirma: latencia del llamador hacia D persistente sobre su línea base, sin errores de conexión persistentes hacia D. Descarta: CPU propia del llamador saturada (RB-04)."
+    obligatorios:
+      - id: latencia_alta
+        campo: enlace.latencia_dependencia_p95
+        operador: ">"
+        umbral: {linea_base: {factor: 1.5, margen: 25}}   # [INF] experiments.py de ChaosForge (ms)
+        persistencia_s: 60                                 # [INF]
+      - {id: sin_errores_conexion, campo: enlace.errores_conexion, operador: "<", umbral: 3}   # [INF]
+    descartes:
+      - {id: cpu_propia_saturada, campo: origen.cpu_throttling, operador: ">=", umbral: 0.10, persistencia_s: 60}
+    corroborantes:
+      - {id: destino_sin_cpu_saturada, campo: destino.cpu_throttling, operador: "<", umbral: 0.10, modo: siempre}
+      - {id: llamador_sin_cpu_saturada, campo: origen.cpu_throttling, operador: "<", umbral: 0.10, modo: siempre}
+      - id: llamador_lento
+        campo: origen.latencia_p95
+        operador: ">"
+        umbral: {linea_base: {factor: 1.5, margen: 25}}
+        persistencia_s: 60
+
+  - id: saturacion-cpu
+    runbook_id: RB-04
+    entidad: servicio
+    validado: false
+    # El "uso >= 90 % del límite" de RB-04 se quitó: el modelo común no tiene campo de uso de CPU (A05).
+    resumen: "Confirma: cpu_throttling >= 0,10 persistente y latencia propia sobre la línea base. Descarta: throttling < 0,10 en todo el incidente, o una dependencia saliente lenta lo explica."
+    obligatorios:
+      - {id: throttling_alto, campo: servicio.cpu_throttling, operador: ">=", umbral: 0.10, persistencia_s: 60}   # [INF]
+      - id: latencia_propia_alta
+        campo: servicio.latencia_p95
+        operador: ">"
+        umbral: {linea_base: {factor: 1.5, margen: 25}}
+        persistencia_s: 60
+    descartes:
+      - {id: throttling_bajo, campo: servicio.cpu_throttling, operador: "<", umbral: 0.10, modo: siempre}
+      - id: dependencia_saliente_lenta
+        campo: salientes.latencia_dependencia_p95
+        operador: ">"
+        umbral: {linea_base: {factor: 1.5, margen: 25}}
+        persistencia_s: 60
+    corroborantes:
+      # El otro corroborante de RB-04 (carga de referencia) no tiene fuente: sin cambio de límites, la
+      # saturación por carga queda DESCARTADA (con obligatorios cumplidos) y lo dice `motivo`.
+      - {id: limites_cambiados, campo: cambio.limites_antes_del_sintoma, operador: existe}
+
+declaradas_no_validadas:
+  - {id: se-cae-al-arrancar, runbook_id: RB-05, estado_validacion: "declarada, no validada"}
+  - {id: sin-memoria, runbook_id: RB-06, estado_validacion: "declarada, no validada"}

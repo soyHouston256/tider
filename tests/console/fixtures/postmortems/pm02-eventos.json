@@ -1,0 +1,194 @@
+[
+{
+"timestamp": "2026-11-09T18:13:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Deployment",
+"name": "productcatalogservice",
+"namespace": "boutique"
+},
+"reason": "ScalingReplicaSet",
+"message": "Scaled down replica set productcatalogservice-58f6b4d8ff from 1 to 0",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:13:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:13:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "ReplicaSet",
+"name": "productcatalogservice-58f6b4d8ff",
+"namespace": "boutique"
+},
+"reason": "SuccessfulDelete",
+"message": "Deleted pod: productcatalogservice-58f6b4d8ff-jns79",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:13:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:13:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-jns79",
+"namespace": "boutique"
+},
+"reason": "Killing",
+"message": "Stopping container server",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:13:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:13:08Z",
+"severity": "WARNING",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-jns79",
+"namespace": "boutique"
+},
+"reason": "Unhealthy",
+"message": "Readiness probe failed: timeout: failed to connect service \"10.48.1.141:3550\" within 1s: context deadline exceeded",
+"type": "Warning",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:13:08Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Deployment",
+"name": "productcatalogservice",
+"namespace": "boutique"
+},
+"reason": "ScalingReplicaSet",
+"message": "Scaled up replica set productcatalogservice-58f6b4d8ff from 0 to 1",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "ReplicaSet",
+"name": "productcatalogservice-58f6b4d8ff",
+"namespace": "boutique"
+},
+"reason": "SuccessfulCreate",
+"message": "Created pod: productcatalogservice-58f6b4d8ff-gs2hw",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Scheduled",
+"message": "Successfully assigned boutique/productcatalogservice-58f6b4d8ff-gs2hw to gk3-chaosforge-lab-nap-9wa8vr0j-68bc90b0-vp9l",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:09Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Pulled",
+"message": "Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice:v0.10.4\" already present on machine and can be accessed by the pod",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:09Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:09Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Created",
+"message": "Container created",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:09Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:09Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Started",
+"message": "Container started",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:09Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:10Z",
+"severity": "WARNING",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Unhealthy",
+"message": "Readiness probe failed: timeout: failed to connect service \"10.48.1.169:3550\" within 1s: context deadline exceeded",
+"type": "Warning",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:10Z"
+}
+},
+{
+"timestamp": "2026-11-09T18:15:11Z",
+"severity": "WARNING",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "productcatalogservice-58f6b4d8ff-gs2hw",
+"namespace": "boutique"
+},
+"reason": "Unhealthy",
+"message": "Readiness probe failed: timeout: failed to connect service \"10.48.1.169:3550\" within 1s: context deadline exceeded",
+"type": "Warning",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T18:15:11Z"
+}
+}
+]

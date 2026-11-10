@@ -1,0 +1,178 @@
+[
+{
+"timestamp": "2026-11-09T22:41:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Deployment",
+"name": "cartservice",
+"namespace": "boutique"
+},
+"reason": "ScalingReplicaSet",
+"message": "Scaled down replica set cartservice-696588d894 from 1 to 0",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:41:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:41:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "ReplicaSet",
+"name": "cartservice-696588d894",
+"namespace": "boutique"
+},
+"reason": "SuccessfulDelete",
+"message": "Deleted pod: cartservice-696588d894-nrw4s",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:41:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:41:06Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-nrw4s",
+"namespace": "boutique"
+},
+"reason": "Killing",
+"message": "Stopping container server",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:41:06Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:41:08Z",
+"severity": "WARNING",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-nrw4s",
+"namespace": "boutique"
+},
+"reason": "Unhealthy",
+"message": "Readiness probe failed: timeout: failed to connect service \"10.48.1.168:7070\" within 1s: context deadline exceeded",
+"type": "Warning",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:41:08Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Deployment",
+"name": "cartservice",
+"namespace": "boutique"
+},
+"reason": "ScalingReplicaSet",
+"message": "Scaled up replica set cartservice-696588d894 from 0 to 1",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "ReplicaSet",
+"name": "cartservice-696588d894",
+"namespace": "boutique"
+},
+"reason": "SuccessfulCreate",
+"message": "Created pod: cartservice-696588d894-shbh2",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:07Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-shbh2",
+"namespace": "boutique"
+},
+"reason": "Scheduled",
+"message": "Successfully assigned boutique/cartservice-696588d894-shbh2 to gk3-chaosforge-lab-nap-9wa8vr0j-68bc90b0-vp9l",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:07Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:08Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-shbh2",
+"namespace": "boutique"
+},
+"reason": "Pulled",
+"message": "Container image \"us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice:v0.10.4\" already present on machine and can be accessed by the pod",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:08Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:08Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-shbh2",
+"namespace": "boutique"
+},
+"reason": "Created",
+"message": "Container created",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:08Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:09Z",
+"severity": "INFO",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-shbh2",
+"namespace": "boutique"
+},
+"reason": "Started",
+"message": "Container started",
+"type": "Normal",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:09Z"
+}
+},
+{
+"timestamp": "2026-11-09T22:43:28Z",
+"severity": "WARNING",
+"jsonPayload": {
+"involvedObject": {
+"kind": "Pod",
+"name": "cartservice-696588d894-shbh2",
+"namespace": "boutique"
+},
+"reason": "Unhealthy",
+"message": "Liveness probe failed: timeout: health rpc did not complete within 1s",
+"type": "Warning",
+"firstTimestamp": null,
+"lastTimestamp": "2026-11-09T22:43:28Z"
+}
+}
+]

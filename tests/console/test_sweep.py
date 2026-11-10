@@ -5,7 +5,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from tider.console.estado import estado_servicio
 from tider.console.evidence.model import CoberturaServicio, Evidencia, Senal, Ventana, asignar_ids
 from tider.console.models import AnalyzeRequest
 from tider.console.predicados import agrupar_eventos, anomalia, atribuir_errores, sano_confirmado
@@ -292,11 +291,6 @@ def test_plantilla_keeps_address_and_masks_ids():
         plantilla('failed to convert price of "OLJCESPC7Z" to TRY 12')
         == 'failed to convert price of "<cod>" to TRY <n>'
     )
-
-
-def test_estado_servicio_is_phase2_interface():
-    with pytest.raises(NotImplementedError, match="Fase 2"):
-        estado_servicio(None, None, [], 3)
 
 
 def test_window_without_t0_uses_request_start():

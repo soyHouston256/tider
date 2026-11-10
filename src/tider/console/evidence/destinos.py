@@ -25,6 +25,9 @@ DESTINO_PATTERNS = (
     re.compile(rf"\bipv4:(?P<host>{_IPV4}):(?P<puerto>\d{{1,5}})\b"),
     # StackExchange.Redis (cartservice): `UnableToConnect on redis-cart:6379/Interactive`
     re.compile(rf"\bUnableToConnect on (?P<host>{_IPV4}|{_HOST}):(?P<puerto>\d{{1,5}})\b"),
+    # StackExchange.Redis, timeout (`Timeout performing GET (5000ms), …, serverEndpoint: redis-cart:6379, …`).
+    # [INF] Formato público de la librería; no se observó en el historial (sin corridas de latencia).
+    re.compile(rf"\bserverEndpoint: (?P<host>{_IPV4}|{_HOST}):(?P<puerto>\d{{1,5}})\b"),
 )
 
 
