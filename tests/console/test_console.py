@@ -44,7 +44,7 @@ def payload(**kwargs):
         ("missing_telemetry", "cartservice", "cartservice", "insufficient_evidence", 0),
     ],
 )
-def test_scenarios_run_the_real_graph(scenario, service, component, status, n, app):
+def test_scenarios_run_the_rules_baseline(scenario, service, component, status, n, app):
     with TestClient(app) as c:
         r = c.post("/v1/incidents/analyze", json=payload(scenario=scenario, service=service))
         assert r.status_code == 200, r.text
@@ -53,16 +53,13 @@ def test_scenarios_run_the_real_graph(scenario, service, component, status, n, a
         assert result["workflow"]["execution"]["executed"] is False
         assert result["workflow"]["execution"]["mode"] == "observation"
         assert result["workflow"]["resolved"] is False
-        assert {x["agent"] for x in result["workflow"]["audit"]} == {
-            "intake",
-            "context",
+        # Sin LLM solo se registran los pasos que corren: no hay ejecutor ni verificador (grafo archivado).
+        assert [x["agent"] for x in result["workflow"]["audit"]] == [
             "investigator",
             "judge",
             "decisor",
-            "ejecutor",
-            "verificador",
             "reporter",
-        }
+        ]
         assert c.get("/v1/incidents").json()[0]["run_id"] == result["run_id"]
 
 

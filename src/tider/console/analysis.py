@@ -1,14 +1,6 @@
-"""Compose the shared graph with lab evidence and a selected reasoning provider."""
+"""Compose lab evidence with the rules baseline (no LLM) or the adaptive engine (LLM)."""
 
-from importlib.resources import files
-from pathlib import Path
-
-from tider.agents.deps import Deps
-from tider.decision.policy import load_policy
-from tider.graph import build_graph
-from tider.lake.ingest import ingest_dir
-from tider.lake.store import InMemoryStore
-from tider.llm import LLM, AnthropicLLM, ScriptedLLM
+from tider.state import Decision, Evidence, Hypothesis, Verdict
 from tider.tools.base import Tool, ToolRegistry
 
 from .baseline import diagnose
@@ -18,6 +10,8 @@ from .models import Analysis, AnalyzeRequest, Signal, WorkflowResult
 from .settings import Settings
 
 SIGNAL_KINDS = ("log", "metric", "trace")
+RULES_NOTE = "Baseline por reglas; puntuación heurística, sin calibración estadística."
+NOT_EVIDENCE = {"error", "empty"}
 
 
 def reader(records: list[dict]):
@@ -29,32 +23,22 @@ def reader(records: list[dict]):
     return read
 
 
-def baseline_model(baseline: Analysis, service: str) -> ScriptedLLM:
+def verdict_for(baseline: Analysis, evidence: list[Evidence]) -> Verdict:
+    """Deterministic checks kept from the archived judge: no telemetry, no support; one kind, capped."""
     supported = baseline.status == "hypothesis"
-    return ScriptedLLM(
-        {
-            "investigator": [
-                *({"action": "tool", "tool": "lab_" + kind, "args": {}} for kind in SIGNAL_KINDS),
-                {
-                    "action": "final",
-                    "hypothesis": {
-                        "component": baseline.component,
-                        "reason": baseline.hypothesis,
-                        "propagation": list(dict.fromkeys([baseline.component, service])),
-                        "proposed_action": "escalate",
-                        "action_params": {},
-                        "cited_docs": [],
-                    },
-                },
-            ],
-            "judge": {
-                "supported": supported,
-                "confidence": baseline.confidence,
-                "missing": [] if supported else ["Señales que respalden una causa concreta"],
-                "notes": "Baseline por reglas; puntuación heurística, sin calibración estadística.",
-            },
-            "reporter": baseline.hypothesis + "\n" + baseline.recommendation,
-        }
+    confidence, notes = float(baseline.confidence or 0), [RULES_NOTE]
+    kinds = {item.kind for item in evidence if item.kind not in NOT_EVIDENCE}
+    if not kinds:
+        supported, confidence = False, 0.0
+        notes.append("sin evidencia de telemetría")
+    elif len(kinds) < 2:
+        confidence = min(confidence, 0.7)
+        notes.append("evidencia de un solo tipo")
+    return Verdict(
+        supported=supported,
+        confidence=round(confidence, 2),
+        missing=[] if supported else ["Señales que respalden una causa concreta"],
+        notes="; ".join(notes),
     )
 
 
@@ -68,18 +52,18 @@ class LabEngine:
 
         return AgenticEngine(self.settings, self.context_lake).analyze_live(request, emit=emit)
 
-    def _model(self, baseline: Analysis, service: str) -> LLM:
-        if self.settings.llm_provider == "none":
-            return baseline_model(baseline, service)
-        if not self.settings.tider_model:
-            raise ValueError("Configura TIDER_MODEL antes de activar el modelo.")
-        return AnthropicLLM(model=self.settings.tider_model)
-
     def analyze(self, request: AnalyzeRequest, evidence: list[Signal]) -> Analysis:
+        """Rules-only diagnosis. Records only the steps that run; nothing is executed."""
         service = request.service or "general"
         snapshot = self.context_lake.catalog() if self.context_lake else None
-        if snapshot is not None and snapshot["status"] != "empty" and (request.mode or self.settings.evidence_mode) != "mock":
-            baseline = diagnose_catalog(request.incident_id, service, evidence, snapshot.get("confirmed") or {})
+        if (
+            snapshot is not None
+            and snapshot["status"] != "empty"
+            and (request.mode or self.settings.evidence_mode) != "mock"
+        ):
+            baseline = diagnose_catalog(
+                request.incident_id, service, evidence, snapshot.get("confirmed") or {}
+            )
         else:
             baseline = diagnose(request.incident_id, service, evidence)
         registry = ToolRegistry()
@@ -90,40 +74,57 @@ class LabEngine:
                     "lab_" + kind, f"Evidencia de {kind} en la ventana del incidente.", kind, reader(records)
                 )
             )
-        # Mutable dependencies are isolated per run (including scripted model cursors).
-        store = InMemoryStore()
-        ingest_dir(store, Path(str(files("tider.console").joinpath("resources/context"))))
-        policy = load_policy()
-        policy["namespaces"] = [self.settings.gcp_namespace]
-        model = self._model(baseline, service)
-        graph = build_graph(Deps(model, store, registry, policy), observation_only=True)
-        # HTTP owns failures; run_alert's external escalation is intentionally not used.
-        state = graph.invoke(
-            {
-                "alert": {
-                    "name": request.incident_id,
-                    "service": service,
-                    "namespace": self.settings.gcp_namespace,
-                    "starts_at": request.start.isoformat(),
-                    "annotations": {"summary": "Análisis de evidencia en Online Boutique"},
-                },
-                "audit": [],
-            }
+        tools = ["lab_" + kind for kind in SIGNAL_KINDS]
+        observed = [Evidence(source=name, **registry.call(name)) for name in tools]
+        verdict = verdict_for(baseline, observed)
+        hypothesis = Hypothesis(
+            component=baseline.component,
+            reason=baseline.hypothesis,
+            propagation=list(dict.fromkeys([baseline.component, service])),
+            evidence=observed,
         )
-        hypothesis, verdict = state["hypothesis"], state["verdict"]
-        workflow = WorkflowResult(**{key: state[key] for key in WorkflowResult.model_fields if key in state})
+        decision = Decision(
+            route="escalate", action="escalate", reason="Revisión humana; no se ejecutan reparaciones."
+        )
+        report = baseline.hypothesis + "\n" + baseline.recommendation
+        audit = [
+            {
+                "agent": "investigator",
+                "tools": tools,
+                "component": hypothesis.component,
+                "action": decision.action,
+                "reason": hypothesis.reason,
+            },
+            {"agent": "judge", **verdict.model_dump()},
+            {
+                "agent": "decisor",
+                "route": decision.route,
+                "action": decision.action,
+                "reason": decision.reason,
+            },
+            {"agent": "reporter", "stored": None},
+        ]
+        workflow = WorkflowResult(
+            handler="rules_baseline",
+            hypothesis=hypothesis,
+            verdict=verdict,
+            decision=decision,
+            execution={"mode": "observation", "executed": False, "requires_operator": True},
+            resolved=False,
+            report=report,
+            audit=audit,
+        )
         return Analysis(
             incident_id=request.incident_id,
-            hypothesis=hypothesis["reason"],
-            component=hypothesis["component"],
-            confidence=verdict["confidence"],
+            hypothesis=hypothesis.reason,
+            component=hypothesis.component,
+            confidence=verdict.confidence,
             evidence=evidence,
-            recommendation=baseline.recommendation
-            if self.settings.llm_provider == "none"
-            else state["decision"]["reason"],
-            status="hypothesis" if verdict["supported"] else "insufficient_evidence",
-            reasoning_mode="rules" if self.settings.llm_provider == "none" else "anthropic",
+            recommendation=baseline.recommendation,
+            status="hypothesis" if verdict.supported else "insufficient_evidence",
+            engine="rules",
+            reasoning_mode="rules",
             namespace=self.settings.gcp_namespace,
             workflow=workflow,
-            decision_steps=explain(state["audit"], evidence),
+            decision_steps=explain(audit, evidence),
         )

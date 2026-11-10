@@ -15,10 +15,8 @@ prueba se escriben en directorios temporales de pytest.
 
 | Grupo | Qué comprueba |
 |---|---|
-| `tests/test_units.py` | Política, límites, herramientas, validación y almacenamiento |
-| `tests/test_e2e.py` | Grafo, rondas de revisión, acciones propuestas, aprendizaje y escalamiento |
-| `tests/test_api.py` | Autenticación y comportamiento de la API Alertmanager |
-| `tests/test_observation.py` | Aislamiento de acciones para runbook, PR y escalamiento |
+| `tests/test_shared_modules.py` | Ingesta Markdown/Mermaid y registro de herramientas compartidos |
+| `tests/_archivo/` | Tests del grafo antiguo archivado; excluidos de la suite (`addopts` en `pyproject.toml`) |
 | `tests/console/test_console.py` | Cuatro escenarios, HTTP, archivos estáticos, filtro GCP, errores y enmascarado |
 | `tests/console/test_rca.py` | Diagnóstico, servicio sin señales y ventana temporal |
 | `tests/console/test_service.py` | Historial aislado, concurrencia y referencias de decisiones |
@@ -55,13 +53,9 @@ fechas del experimento y habilitar la fuente en el servidor.
 
 ## Evaluación del motor
 
-```bash
-.venv/bin/python eval/mock_local.py --out /tmp/tider-mock-evaluation
-```
-
-Ejecuta 30 combinaciones de seis escenarios y cinco condiciones de control.
-El arnés con modelo externo está en `eval/harness.py`; su ejecución es independiente
-de la suite local. Ver [engine.md](engine.md) y [roadmap.md](roadmap.md).
+La evaluación del grafo antiguo (`eval/mock_local.py`, `eval/harness.py`) está
+archivada en `archive/legacy_engine/eval/`. Ver
+[docs/archive/remediacion/README.md](archive/remediacion/README.md) y [roadmap.md](roadmap.md).
 
 ## Distribución
 
@@ -71,6 +65,9 @@ valida la configuración; para verificar la imagen y su arranque se necesita eje
 el build y comprobar `/health` en el contenedor.
 
 ## Verificación de la reorganización · 17/10/2026
+
+Registro histórico, anterior al archivado del grafo (09/11/2026). Hoy el modo por
+reglas registra 4 pasos (investigador, juez, decisor, reporte).
 
 - 63 pruebas de pytest aprobadas; lint y formato de 57 archivos Python correctos.
 - 30/30 controles del arnés local aprobados; 0 acciones reales y 0 intentos externos.

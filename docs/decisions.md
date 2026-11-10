@@ -102,6 +102,34 @@ confirme, se actualizarán conjuntamente implementación, configuración, prueba
 documentación y diagramas. El seguimiento está en
 [Pendiente: elección del proveedor LLM](roadmap.md#pendiente-elección-del-proveedor-llm).
 
+## D07 · Retiro del grafo del núcleo · 09/11/2026
+
+**Estado:** aplicado en la rama `archivo-grafo-antiguo`. Sustituye a D02 y D05 en lo
+que describen el grafo `graph.py` como motor de la consola; las entradas anteriores
+se conservan como registro histórico.
+
+**Problema:** convivían dos motores. El grafo del núcleo (`graph.py`, agentes,
+política, ejecutor, webhook Alertmanager) estaba escrito para el dominio
+OpenTelemetry Demo (`otel-demo`, flagd), mientras el laboratorio vigente es Online
+Boutique en ChaosForge. Su ejecutor con RBAC contradice el modo asesor del producto,
+y la consola ya investiga con su propio motor agéntico; el grafo solo seguía en uso
+para envolver el modo por reglas en un modelo guionado.
+
+**Decisión:** el producto vigente es un único motor agéntico
+(`src/tider/console/agentic.py`), solo asesor, más el modo por reglas
+(`console/baseline.py`, `catalog_diagnosis.py`) como línea base sin LLM, que registra
+investigador → juez → decisor → reporte sin ejecutar nada. El grafo, el ejecutor, el
+webhook, sus herramientas OTel, su arnés de evaluación, sus pruebas y el atlas de 13
+vistas se archivan dentro del repositorio (`archive/legacy_engine/`,
+`tests/_archivo/`, `docs/archive/remediacion/`), fuera del paquete y de la imagen.
+Fuente: decisiones 6, 19 y 26 de `recomend/_auditoria_consolidada.md`.
+
+**Consecuencias:** `tider.tools.default_registry()` y `FixtureRegistry` sin `spec`
+lanzan un error explícito ("archivado"). `docs/runbooks/` se conserva porque es el
+corpus congelado de `eval/quality`. El diagrama vigente es
+`docs/designs/tider-blueprint.drawio`. Retomar la remediación es una decisión nueva:
+ver [el archivo](archive/remediacion/README.md).
+
 ## Mapa de migración
 
 | Antes | Ahora |

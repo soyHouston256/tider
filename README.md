@@ -1,8 +1,12 @@
 # TiderOps · Agentes de diagnóstico
 
-Investiga incidentes de Online Boutique, presenta la evidencia y explica la decisión
-que produjo el grafo LangGraph. **Todo el código del agente y su consola está en
-este proyecto.** ChaosForge administra el laboratorio donde se inyectan los fallos.
+Asesor de incidentes para Online Boutique: investiga, presenta la evidencia y propone
+una acción para revisión humana; **no ejecuta cambios en el clúster**. El producto
+vigente es un único motor agéntico (`src/tider/console/agentic.py`) y, como línea
+base sin LLM, un modo por reglas (investigador → juez → decisor → reporte). El grafo
+anterior con ejecutor (dominio OpenTelemetry Demo) está
+[archivado](docs/archive/remediacion/README.md). **Todo el código del agente y su
+consola está en este proyecto.** ChaosForge administra el laboratorio donde se inyectan los fallos.
 
 ## E5 y taller del 31 de octubre
 
@@ -50,19 +54,14 @@ rondas de investigación, JSON descargable e historial de 50 análisis en memori
 ```text
 project/code/tider/
 ├── src/tider/
-│   ├── graph.py              # Sólo construcción del grafo y punto de entrada
 │   ├── state.py              # Contratos del estado, hipótesis, veredicto y decisión
-│   ├── agents/               # Recepción, contexto, investigador, juez, reportero
-│   │   └── prompts.py        # Instrucciones de los agentes
-│   ├── workflow/nodes.py     # Decisión, propuesta/ejecución y verificación
-│   ├── decision/             # Política determinista y acciones permitidas
-│   ├── tools/                # Herramientas de lectura del motor
-│   ├── executor/             # Adaptadores operativos del motor
+│   ├── llm.py, config.py     # Adaptador del modelo y variables de entorno
+│   ├── tools/base.py         # Contrato Tool/ToolRegistry de las herramientas
 │   ├── lake/                 # Contexto, ingesta, búsqueda y almacenamiento
 │   └── console/
 │       ├── api.py            # Fábrica FastAPI y rutas HTTP
 │       ├── service.py        # Caso de uso de análisis e historial aislado
-│       ├── analysis.py       # Conexión del laboratorio con el grafo compartido
+│       ├── analysis.py       # Modo por reglas (sin LLM) y acceso al motor agéntico
 │       ├── baseline.py       # Diagnóstico por reglas sobre las señales
 │       ├── explanation.py    # Traducción de eventos a decisiones legibles
 │       ├── models.py         # Solicitud, resultado y pasos validados
@@ -75,7 +74,7 @@ project/code/tider/
 ├── examples/                 # Solicitud de ejemplo para la API
 ├── docs/                     # Arquitectura, decisiones y guías
 ├── scripts/                  # Instalación y utilidades del laboratorio
-├── deploy/                   # RBAC del motor operativo
+├── archive/legacy_engine/    # Grafo antiguo archivado (no vigente, no se empaqueta)
 ├── pyproject.toml            # Dependencias, comandos y calidad
 ├── uv.lock                   # Versiones resueltas
 ├── Makefile                  # setup / run / test / lint / format / docker
@@ -86,11 +85,12 @@ project/code/tider/
 
 | Documento | Contenido |
 |---|---|
-| [Atlas editable en draw.io](docs/diagrams/TiderOps_Arquitectura.drawio) · [Guía](docs/diagrams/README.md) | 13 páginas: C4, secuencia, agentes, política, datos, despliegue y decisiones de implementación |
-| [Arquitectura](docs/architecture.md) | Recorrido de una solicitud, responsabilidades y puntos de extensión |
+| [Blueprint vigente en draw.io](docs/designs/tider-blueprint.drawio) | Blueprint de 5 capas (Communication, Context, Environment, Autonomy, Criticality) y roles del asesor |
+| [Atlas anterior (archivado)](docs/archive/remediacion/atlas/README.md) | No vigente: 13 vistas del grafo antiguo de 8 etapas |
+| [Arquitectura (archivada)](docs/archive/remediacion/architecture.md) | No vigente: recorrido con el grafo antiguo |
 | [Decisiones de diseño](docs/decisions.md) | Qué se eligió, por qué, alternativas y referencias del curso |
 | [Pruebas](docs/testing.md) | Casos, comandos y comprobación manual de la consola |
-| [Motor operativo](docs/engine.md) | Webhook Alertmanager, política, ejecutores, contexto y evaluación |
+| [Motor operativo (archivado)](docs/archive/remediacion/README.md) | No vigente: webhook Alertmanager, política y ejecutores del grafo antiguo |
 | [Siguiente integración](docs/roadmap.md) | Conectores y evaluación del laboratorio real |
 
 ## Context Lake en memoria
