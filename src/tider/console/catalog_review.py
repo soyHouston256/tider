@@ -55,7 +55,7 @@ def extract_candidates(name, doc_id, content, pages):
     else:
         front = re.match(r"\A\ufeff?---\s*\n(.*?)\n---(?:\n|$)", content, re.S)
         if front:
-            for match in re.finditer(r"^service:\s*[\"\']?(" + NAME + r")[\"\']?\s*$", front[1], re.M):
+            for match in re.finditer(r"^(?:service|servicio):\s*[\"\']?(" + NAME + r")[\"\']?\s*$", front[1], re.M):
                 add_node(match[1], "Metadatos: service", match[0])
         for index, block in enumerate(re.findall(r"```mermaid\s*\n(.*?)```", content, re.S), 1):
             for edge in parse_mermaid(block):

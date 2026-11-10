@@ -87,7 +87,7 @@ def test_api_catalog_guards_and_provider_scope(monkeypatch):
     import tider.console.api as api
     import tider.console.providers as providers
 
-    monkeypatch.setattr(api, "ContextLake", lambda: ContextLake(TinyEmbedding()))
+    monkeypatch.setattr(api, "ContextLake", lambda **kw: ContextLake(TinyEmbedding(), **kw))
     app = create_app(Settings(evidence_mode="gcp", llm_provider="none"))
     with TestClient(app) as client:
         client.post(
