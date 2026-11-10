@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import html
+import json
 import math
 import re
 import unicodedata
@@ -13,6 +14,7 @@ from threading import RLock
 from urllib.parse import unquote
 from uuid import uuid4
 
+import yaml
 from defusedxml import ElementTree
 
 from tider.lake.ingest import split_markdown
@@ -83,17 +85,51 @@ def plain(value: str) -> str:
     return html.unescape(re.sub(r"<[^>]+>", " ", value)).strip()
 
 
+FRONT_MATTER = re.compile(r"\A\ufeff?---[ \t]*\r?\n(.*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)", re.S)
+
+# Lake v3 (decisión 12): tipos que se leen del front matter. Ficha, runbook y postmortem van en un
+# solo fragmento (P6/A33: el corte por sección `##` de los postmortems queda diferido).
+V3_TYPES = ("ficha", "runbook", "postmortem")
+# Vía por clave: qué campos del front matter identifican un documento. Los postmortems solo se
+# recuperan por búsqueda.
+V3_KEYS = {"ficha": ("servicio",), "runbook": ("id", "modo_falla")}
+
+
+def front_matter(content: str) -> tuple[dict, str]:
+    """Return (metadata, body). Metadata is data; an unreadable block counts as no metadata."""
+    match = FRONT_MATTER.match(content)
+    if not match:
+        return {}, content
+    try:
+        meta = yaml.safe_load(match[1])
+    except yaml.YAMLError:
+        meta = None
+    return (meta if isinstance(meta, dict) else {}), content[match.end():]
+
+
+def chroma_metadata(meta: dict) -> dict:
+    """Chroma admite str, int, float y bool: las fechas pasan a ISO y las listas a JSON; None se omite."""
+    out = {}
+    for key, value in meta.items():
+        if value is None:
+            continue
+        if isinstance(value, (bool, int, float, str)):
+            out[str(key)] = value
+        elif hasattr(value, "isoformat"):
+            out[str(key)] = value.isoformat()
+        else:
+            out[str(key)] = json.dumps(value, ensure_ascii=False, default=str)
+    return out
+
+
+def sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
 def extract(name: str, content: str) -> list[tuple[str, str]]:
     if name.lower().endswith(".md"):
         # YAML front matter describes a document; it is not an independent passage.
-        body = re.sub(
-            r"\A\ufeff?---[ \t]*\r?\n.*?\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)",
-            "",
-            content,
-            count=1,
-            flags=re.S,
-        )
-        return [("Documento", body)]
+        return [("Documento", front_matter(content)[1])]
     if not name.lower().endswith(".drawio"):
         raise ValueError("Admite Markdown (.md) y diagramas .drawio.")
     try:
@@ -129,15 +165,29 @@ def extract(name: str, content: str) -> list[tuple[str, str]]:
 
 
 class ContextLake:
-    """One isolated Chroma collection per application; lazy local embeddings."""
+    """One isolated Chroma collection per application; lazy local embeddings.
 
-    def __init__(self, embedding_function=None):
+    The collection lives in process memory (EphemeralClient). The Lake v3 is therefore loaded by the
+    same process that serves the console (`lake_loader.load_v3`, called from `create_app`), never by
+    a separate command.
+    """
+
+    def __init__(self, embedding_function=None, max_documents: int = MAX_DOCUMENTS,
+                 max_chunks: int = MAX_CHUNKS):
         import chromadb
         from chromadb.config import Settings
         from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 
         self.lock = RLock()
+        self.max_documents, self.max_chunks = max_documents, max_chunks
+        self.embedding_model = "all-MiniLM-L6-v2" if embedding_function is None else _model_name(
+            embedding_function)
         self.documents = {}
+        # Lake v3: documento completo por doc_id, índice (tipo_doc, clave) -> doc_id y topología.
+        self.records = {}
+        self.keys = {}
+        self.topology = None
+        self.source = None
         self.catalog_sources = {}
         self.catalog_revision = 0
         self.confirmed_catalog = None
@@ -154,8 +204,10 @@ class ContextLake:
                 "documents": list(self.documents.values()),
                 "chunks": self.collection.count(),
                 "storage": "memory",
-                "embedding": "all-MiniLM-L6-v2 (local)",
-                "limits": {"bytes_per_file": MAX_BYTES, "documents": MAX_DOCUMENTS},
+                "embedding": f"{self.embedding_model} (local)",
+                "limits": {"bytes_per_file": MAX_BYTES, "documents": self.max_documents,
+                           "chunks": self.max_chunks},
+                "source": deepcopy(self.source),
             }
 
     def add(self, name: str, content: str):
@@ -164,28 +216,47 @@ class ContextLake:
             raise ValueError("Nombre inválido o archivo mayor de 1 MB.")
         doc_id = hashlib.sha256((name + "\0" + content).encode()).hexdigest()
         pages = extract(name, content)
-        chunks = [(page, chunk) for page, body in pages for chunk in split_markdown(body, 900)]
+        meta = front_matter(content)[0] if name.lower().endswith(".md") else {}
+        tipo = meta.get("tipo_doc") if meta.get("tipo_doc") in V3_TYPES else None
+        if tipo:
+            body = pages[0][1].strip()
+            chunks = [("Documento", body)] if body else []
+        else:
+            chunks = [(page, chunk) for page, body in pages for chunk in split_markdown(body, 900)]
         if not chunks:
             raise ValueError(
                 "El archivo solo contiene metadatos o no contiene texto extraíble. No se indexó."
             )
+        record = self._record(doc_id, name, content, tipo, meta, chunks[0][1]) if tipo else None
         with self.lock:
             if doc_id in self.documents:
                 return self.documents[doc_id]
-            if len(self.documents) >= MAX_DOCUMENTS or self.collection.count() + len(chunks) > MAX_CHUNKS:
+            if (len(self.documents) >= self.max_documents
+                    or self.collection.count() + len(chunks) > self.max_chunks):
                 raise ValueError(
-                    "Límite de sesión: 20 documentos o 300 fragmentos. Retira documentos antes de añadir más."
+                    f"Límite de sesión: {self.max_documents} documentos o {self.max_chunks} fragmentos. "
+                    "Retira documentos antes de añadir más."
                 )
-            kind = "architecture" if name.lower().endswith(".drawio") else "runbook"
+            if record:
+                for key in record["claves"]:
+                    if key in self.keys:
+                        raise ValueError(f"Ya hay un documento {key[0]} con clave {key[1]}. Retíralo antes.")
+            kind = tipo or ("architecture" if name.lower().endswith(".drawio") else "runbook")
+            extra = chroma_metadata(record["metadata"]) if record else {}
             self.collection.add(
                 ids=[f"{doc_id}:{i}" for i in range(len(chunks))],
                 documents=[text for _, text in chunks],
                 metadatas=[
-                    {"doc_id": doc_id, "title": name, "page": page, "chunk": i + 1, "doc_type": kind}
+                    {**extra, "doc_id": doc_id, "title": name, "page": page, "chunk": i + 1, "doc_type": kind}
                     for i, (page, _) in enumerate(chunks)
                 ],
             )
             doc = {"id": doc_id, "name": name, "chunks": len(chunks), "pages": len(pages)}
+            if record:
+                doc["tipo_doc"] = tipo
+                self.records[doc_id] = record
+                for key in record["claves"]:
+                    self.keys[key] = doc_id
             self.documents[doc_id] = doc
             self.catalog_sources[doc_id] = extract_candidates(name, doc_id, content, pages)
             self.catalog_revision += 1
@@ -198,17 +269,75 @@ class ContextLake:
                 raise KeyError(doc_id)
             self.collection.delete(where={"doc_id": doc_id})
             del self.documents[doc_id]
+            record = self.records.pop(doc_id, None)
+            for key in record["claves"] if record else ():
+                self.keys.pop(key, None)
             del self.catalog_sources[doc_id]
             self.catalog_revision += 1
             self.confirmed_catalog = None
 
-    def search(self, query: str, k: int = 4):
+    @staticmethod
+    def _record(doc_id, name, content, tipo, meta, text):
+        metadata = {k: v for k, v in meta.items() if k != "tipo_doc"}
+        metadata["tipo_doc"] = tipo
+        if tipo == "ficha":
+            metadata.setdefault("mecanismo", None)  # README del Lake v3: las fichas no declaran mecanismo.
+        # Un postmortem es un antecedente del historial: indica dónde buscar, nunca es evidencia.
+        metadata["uso"] = "antecedente" if tipo == "postmortem" else "referencia"
+        metadata["evidencia"] = False
+        claves = [(tipo, str(meta[field])) for field in V3_KEYS.get(tipo, ()) if meta.get(field)]
+        return {"doc_id": doc_id, "name": name, "tipo_doc": tipo, "metadata": metadata, "text": text,
+                "sha256": sha256_text(content), "claves": claves}
+
+    def get(self, tipo_doc: str, clave: str):
+        """Vía por clave: ficha por servicio, runbook por id o modo de falla. Sin ranking ni embeddings."""
+        with self.lock:
+            doc_id = self.keys.get((tipo_doc, clave))
+            if doc_id is None:
+                return None
+            record = self.records[doc_id]
+            return deepcopy({k: record[k] for k in ("doc_id", "name", "tipo_doc", "metadata", "text", "sha256")})
+
+    def set_topology(self, topology: dict, sha256: str, source: dict | None = None):
+        """Topología v3 como grafo estructurado (no entra al índice vectorial)."""
+        with self.lock:
+            self.topology = {"data": deepcopy(topology), "sha256": sha256}
+            self.source = deepcopy(source)
+
+    def get_topology(self):
+        with self.lock:
+            return deepcopy(self.topology["data"]) if self.topology else None
+
+    def manifest(self):
+        """Versión congelada: hash de cada documento, modelo de embeddings, revisión y hash global."""
+        with self.lock:
+            documents = {}
+            for doc_id, doc in self.documents.items():
+                record = self.records.get(doc_id)
+                documents[doc_id] = {
+                    "nombre": doc["name"],
+                    "tipo_doc": record["tipo_doc"] if record else None,
+                    "revision": record["metadata"].get("revision") if record else None,
+                    "sha256": record["sha256"] if record else doc_id,
+                }
+            body = {
+                "modelo": self.embedding_model,
+                "revision": (self.source or {}).get("revision"),
+                "topologia": self.topology["sha256"] if self.topology else None,
+                "documentos": documents,
+            }
+            canonical = json.dumps(body, sort_keys=True, ensure_ascii=False, default=str)
+            return {**deepcopy(body), "hash": sha256_text(canonical)}
+
+    def search(self, query: str, k: int = 4, where: dict | None = None):
+        """Vía de búsqueda. `where` es un filtro de metadatos de Chroma (p. ej. {"tipo_doc": "postmortem"})."""
         with self.lock:
             count = self.collection.count()
             if not count:
                 return []
             result = self.collection.query(
-                query_texts=[query], n_results=count, include=["documents", "metadatas", "distances"]
+                query_texts=[query], n_results=count, include=["documents", "metadatas", "distances"],
+                where=where,
             )
             rows = [{**meta, "text": text, "distance": distance}
                     for meta, text, distance in zip(result["metadatas"][0], result["documents"][0],
@@ -259,3 +388,10 @@ class ContextLake:
                 if target == service:
                     related.add(source)
             return sorted(related)
+
+
+def _model_name(embedding_function) -> str:
+    try:
+        return str(embedding_function.name())
+    except Exception:
+        return type(embedding_function).__name__

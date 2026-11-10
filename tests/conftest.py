@@ -30,6 +30,7 @@ def clean_console_env(monkeypatch):
         "TIDER_MODEL",
         "TIDER_PIPELINE",
         "RECORDER_DB_PATH",
+        "LAKE_V3_PATH",
     ):
         monkeypatch.delenv(var, raising=False)
 
