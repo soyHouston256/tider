@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     recorder_db_path: str = ""
     recorder_interval_seconds: int = Field(default=10, ge=2, le=60)
     recorder_retention_hours: int = Field(default=48, ge=1, le=168)
+    # Context Lake v3 (Fase 4, A11): carpeta que la consola carga en su propio proceso al iniciar.
+    # Vacío = sin carga (comportamiento v1). Los límites valen para la carga y para las subidas.
+    lake_v3_path: str = ""
+    lake_max_documents: int = Field(default=60, ge=1, le=500)
+    lake_max_chunks: int = Field(default=600, ge=1, le=5000)
 
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> "Settings":

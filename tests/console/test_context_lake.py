@@ -64,7 +64,7 @@ def test_session_isolation_retrieval_dedup_and_delete():
 def test_upload_api_and_origin_guard(monkeypatch):
     import tider.console.api as api
 
-    monkeypatch.setattr(api, "ContextLake", lambda: ContextLake(TinyEmbedding()))
+    monkeypatch.setattr(api, "ContextLake", lambda **kw: ContextLake(TinyEmbedding(), **kw))
     with TestClient(create_app(Settings(evidence_mode="mock", llm_provider="none"))) as client:
         assert (
             client.post(

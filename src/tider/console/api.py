@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from .analysis import LabEngine
 from .catalog_review import CatalogReview
 from .context_lake import ContextLake
+from .lake_loader import load_v3
 from .models import Analysis, AnalyzeRequest
 from .providers import EvidenceProvider
 from .providers.catalog import SERVICES
@@ -33,11 +34,14 @@ class ContextQuery(BaseModel):
 
 def create_app(settings: Settings | None = None, service: AnalysisService | None = None) -> FastAPI:
     settings = settings or (service.settings if service is not None else Settings.from_env())
-    lake = ContextLake()
+    lake = ContextLake(max_documents=settings.lake_max_documents, max_chunks=settings.lake_max_chunks)
+    # A11: el índice vive en memoria de este proceso, así que el Lake v3 se carga aquí, antes de servir.
+    manifest = load_v3(settings.lake_v3_path, lake) if settings.lake_v3_path else None
     service = service or AnalysisService(settings, EvidenceProvider(settings, lake), LabEngine(settings, lake))
     app = FastAPI(title="TiderOps · Consola de agentes", version="0.5.0")
     app.state.analysis_service = service
     app.state.context_lake = lake
+    app.state.lake_manifest = manifest
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"])
     static = files("tider.console").joinpath("static")
     app.mount("/static", StaticFiles(directory=str(static)), name="static")
@@ -172,6 +176,10 @@ def create_app(settings: Settings | None = None, service: AnalysisService | None
     @app.get("/v1/context")
     def context_inventory():
         return lake.inventory()
+
+    @app.get("/v1/context/manifest")
+    def context_manifest():
+        return lake.manifest()
 
     @app.post("/v1/context/documents")
     def context_upload(body: ContextUpload):
