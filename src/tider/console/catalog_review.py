@@ -69,6 +69,35 @@ def extract_candidates(name, doc_id, content, pages):
     return {"services": list(nodes.values()), "relations": edges}
 
 
+def topology_candidates(topology, doc_id, name="topologia.yaml"):
+    """Lake v3: servicios y aristas configuradas de topologia.yaml como candidatos con su fuente."""
+    nodes, edges = {}, []
+
+    def add_node(label, location, excerpt):
+        if not valid_name(label):
+            return None
+        origin = {"doc_id": doc_id, "file": name, "location": location, "excerpt": excerpt[:300]}
+        item = nodes.setdefault(label, {"id": candidate_id(label), "name": label, "sources": []})
+        if origin not in item["sources"]:
+            item["sources"].append(origin)
+        return item["id"]
+
+    for service in topology.get("servicios") or []:
+        if isinstance(service, dict):
+            add_node(str(service.get("nombre", "")), "servicios", f"nombre: {service.get('nombre')}")
+    for edge in topology.get("aristas") or []:
+        if not isinstance(edge, dict):
+            continue
+        source, target = str(edge.get("from", "")), str(edge.get("to", ""))
+        excerpt = f"{source} → {target} ({edge.get('variable', '')}={edge.get('valor', '')})"
+        src, dst = add_node(source, "aristas", excerpt), add_node(target, "aristas", excerpt)
+        if src and dst:
+            label = str(edge.get("variable") or edge.get("protocolo") or "dependencia configurada")
+            edges.append({"source": src, "target": dst, "label": label[:120],
+                          "sources": [{"doc_id": doc_id, "file": name, "location": "aristas", "excerpt": excerpt[:300]}]})
+    return {"services": list(nodes.values()), "relations": edges}
+
+
 def propose(sources):
     services, relations = {}, {}
     for source in sources.values():

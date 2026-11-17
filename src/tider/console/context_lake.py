@@ -19,7 +19,7 @@ from defusedxml import ElementTree
 
 from tider.lake.ingest import split_markdown
 
-from .catalog_review import CatalogReview, confirmed_snapshot, extract_candidates, propose
+from .catalog_review import CatalogReview, confirmed_snapshot, extract_candidates, propose, topology_candidates
 
 MAX_BYTES = 1_000_000
 MAX_DOCUMENTS = 20
@@ -303,6 +303,10 @@ class ContextLake:
         with self.lock:
             self.topology = {"data": deepcopy(topology), "sha256": sha256}
             self.source = deepcopy(source)
+            # Las aristas configuradas del Lake v3 viven en topologia.yaml, no en draw.io ni Mermaid.
+            self.catalog_sources["topologia.yaml"] = topology_candidates(topology, sha256)
+            self.catalog_revision += 1
+            self.confirmed_catalog = None
 
     def get_topology(self):
         with self.lock:

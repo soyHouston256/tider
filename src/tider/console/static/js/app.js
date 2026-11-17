@@ -37,11 +37,11 @@ function setDates() {
   updateTimeChoice();
 }
 function updateTimeChoice() {
-  const custom = document.querySelector('input[name="time-mode"]:checked').value === 'custom';
+  const custom = $('time-mode').value === 'custom';
   $('custom-hours').hidden = !custom;
   $('start').required = custom && $('mode').value === 'gcp';
   $('end').required = custom && $('mode').value === 'gcp';
-  $('time-today').textContent = 'Hoy · ' + new Date().toLocaleDateString('es', {day:'numeric',month:'long',year:'numeric'});
+  $('time-today').textContent = 'Hoy, ' + new Date().toLocaleDateString('es', {day:'numeric',month:'long',year:'numeric'});
 }
 
 function scenarioChanged() {
@@ -54,6 +54,9 @@ function scenarioChanged() {
 
 function updateServices() {
   if (!configuration) return;
+  const total = configuration.services?.length || 0;
+  $('nav-count-catalog').textContent = configuration.catalog_status === 'confirmed' && total ? String(total) : '';
+  $('project-summary').textContent = total ? `Tienda · ${total} servicios` : 'Tienda · microservicios';
   const mock = $('mode').value !== 'gcp';
   const names = mock ? configuration.mock_services : configuration.services;
   const previous = $('service').value;
@@ -79,12 +82,13 @@ function modeChanged() {
   renderSourcePicker();
   const gcp = $('mode').value === 'gcp';
   $('evidence-source-card').dataset.source = gcp ? 'gcp' : 'mock';
-  $('source-kind').textContent = gcp ? 'LOGS REALES · GOOGLE CLOUD' : 'DATOS SIMULADOS · LABORATORIO';
+  $('source-kind').textContent = gcp ? 'Logs reales' : 'Simulación';
+  $('source-kind').className = 'to-badge' + (gcp ? ' to-badge--info' : '');
   $('scenario-fields').hidden = gcp;
   $('time-fields').hidden = !gcp;
   $('mode-note').textContent = gcp
-    ? (configuration.gcp_sources?.includes('event') ? 'Consulta logs y eventos históricos de Kubernetes en Cloud Logging, dentro del entorno configurado.' : 'Consulta real de Cloud Logging, limitada al entorno configurado. Las métricas y trazas aún no están conectadas.')
-    : 'Señales sintéticas. No necesita conexión a GCP.';
+    ? (configuration.gcp_sources?.includes('event') ? 'Cloud Logging y eventos de Kubernetes del entorno configurado.' : 'Cloud Logging del entorno configurado. Métricas y trazas aún no conectadas.')
+    : 'Señales sintéticas; no consulta GCP.';
   if (gcp) setDates();
   updateTimeChoice();
   updateServices();
@@ -93,7 +97,7 @@ function modeChanged() {
 function buildRequest() {
   const gcp = $('mode').value === 'gcp';
   const now = new Date();
-  const custom = gcp && document.querySelector('input[name="time-mode"]:checked').value === 'custom';
+  const custom = gcp && $('time-mode').value === 'custom';
   const today = [now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
   const end = custom ? new Date(today + 'T' + $('end').value) : now;
   const start = custom ? new Date(today + 'T' + $('start').value) : new Date(end.getTime() - 10 * 60 * 1000);
@@ -163,7 +167,7 @@ async function submitAnalysis(event) {
     clearTimeout(timeout);
     analyzing = false;
     updateServices();
-    $('run').textContent = 'Analizar incidente →';
+    $('run').replaceChildren('Analizar incidente ', node('span','→'));
   }
 }
 
@@ -188,7 +192,7 @@ async function init() {
     $('objective').disabled = configuration.reasoning_mode === 'none';
     $('objective').placeholder = configuration.reasoning_mode === 'none' ? 'Activa un modelo para investigar un síntoma libre.' : 'La compra falla; investiga qué componente está implicado.';
     $('reasoning').textContent = configuration.reasoning_mode === 'none' ? 'Baseline por reglas' : configuration.model;
-    const gcpOption = new Option('Logs de GKE', 'gcp');
+    const gcpOption = new Option('Logs de GKE · reales', 'gcp');
     gcpOption.disabled = !configuration.gcp_enabled;
     $('mode').replaceChildren(new Option('Simulación local', 'mock'), gcpOption);
     // Respect the configured live source on reload; simulations remain explicitly selectable.
@@ -242,8 +246,9 @@ function navigateWorkspace() {
   $('context-view').hidden = !context;
   document.querySelector('.workspace').hidden = context || catalog || history;
   $('session-history').hidden = !history;
+  $('breadcrumb-current').textContent = context ? 'Context Lake' : catalog ? 'Catálogo' : history ? 'Historial' : 'Investigar';
   $('page-title').textContent = context ? 'Context Lake' : catalog ? 'Catálogo de servicios' : history ? 'Historial de investigaciones' : 'Centro de investigación';
-  $('page-description').textContent = context ? 'La documentación de tu plataforma, organizada en un solo lugar.' : catalog ? 'Revisa los servicios, sus relaciones y las fuentes que los documentan.' : history ? 'Consulta los análisis de esta sesión y vuelve a sus evidencias y decisiones.' : 'Del contexto a la evidencia, en un solo lugar.';
+  $('page-description').textContent = context ? 'La documentación de tu plataforma, organizada en un solo lugar.' : catalog ? 'Revisa los servicios, sus relaciones y las fuentes que los documentan.' : history ? 'Consulta los análisis de esta sesión y vuelve a sus evidencias y decisiones.' : 'Del síntoma a la evidencia, en un solo lugar.';
   document.querySelectorAll('.side-nav a').forEach(a => {
     const active = !catalog && a.hash === (context ? '#context-lake' : location.hash === '#session-history' ? '#session-history' : '#investigation');
     a.classList.toggle('selected', active);
@@ -254,6 +259,10 @@ function navigateWorkspace() {
 window.addEventListener('hashchange', navigateWorkspace);
 navigateWorkspace();
 
+function chevron() {
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('class','icon');svg.setAttribute('aria-hidden','true');
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','m6 9 6 6 6-6');svg.append(path);return svg;
+}
 function closeSourcePicker(focus = false) {
   $('mode-options').hidden = true;
   $('mode-trigger').setAttribute('aria-expanded', 'false');
@@ -261,7 +270,7 @@ function closeSourcePicker(focus = false) {
 }
 function renderSourcePicker() {
   const select = $('mode');
-  $('mode-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Fuente de evidencia'), node('span','⌄'));
+  $('mode-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Fuente de evidencia'), chevron());
   $('mode-options').replaceChildren(...[...select.options].map(option => {
     const button = node('button',option.textContent);
     button.type = 'button'; button.role = 'option'; button.disabled = option.disabled;
@@ -296,7 +305,7 @@ function closeServicePicker(focus = false) {
 function renderServicePicker() {
   const select = $('service');
   $('service-trigger').disabled = !select.options.length;
-  $('service-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Sin servicios disponibles'),node('span','⌄'));
+  $('service-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Sin servicios disponibles'),chevron());
   $('service-options').replaceChildren(...[...select.options].map(option=>{
     const button=node('button',option.textContent); button.type='button'; button.role='option';button.disabled=option.disabled;
     button.setAttribute('aria-selected',String(option.selected));
@@ -326,7 +335,7 @@ function closeScenarioPicker(focus = false) {
 function renderScenarioPicker() {
   const select = $('scenario');
   $('scenario-trigger').disabled = !select.options.length;
-  $('scenario-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Sin servicios disponibles'),node('span','⌄'));
+  $('scenario-trigger').replaceChildren(document.createTextNode(select.selectedOptions[0]?.textContent || 'Sin escenarios disponibles'),chevron());
   $('scenario-options').replaceChildren(...[...select.options].map(option=>{
     const button=node('button',option.textContent); button.type='button'; button.role='option';button.disabled=option.disabled;
     button.setAttribute('aria-selected',String(option.selected));
@@ -353,7 +362,7 @@ function updateScope() {
   const general = selectedScope() === 'general', gcp = $('mode').value === 'gcp';
   $('focused-fields').hidden = general;
   $('service').required = !general;
-  $('scope-note').textContent = general ? (gcp ? 'Busca fallos recientes en todos los servicios del catálogo confirmado y contrasta los candidatos. No necesitas conocer el componente. Las consultas tienen límites de tiempo y registros.' : 'Analiza todas las señales del escenario simulado seleccionado. No consulta el entorno real.') : `Comienza por ${$('service').value || 'el servicio elegido'} y contrasta sus dependencias. Si desconoces el componente, selecciona Análisis general.`;
+  $('scope-note').textContent = general ? (gcp ? 'Busca en todos los servicios del catálogo confirmado; no necesitas conocer el componente.' : 'Analiza todas las señales del escenario simulado.') : `Empieza por ${$('service').value || 'el servicio elegido'} y contrasta sus dependencias.`;
   const unavailable = gcp && configuration?.catalog_status !== 'confirmed';
   if(unavailable) $('scope-note').textContent = 'Confirma el catálogo antes de iniciar un análisis general con logs reales.';
   $('run').disabled = analyzing || unavailable || (!general && !$('service').options.length);
@@ -388,4 +397,5 @@ document.querySelectorAll('.side-nav a,.side-nav button').forEach(item=>{const l
 try { setSidebarCollapsed(localStorage.getItem('tider.sidebar.collapsed')==='true'); } catch {}
 $('sidebar-toggle').addEventListener('click',()=>{const collapsed=!document.body.classList.contains('sidebar-collapsed');setSidebarCollapsed(collapsed);try{localStorage.setItem('tider.sidebar.collapsed',String(collapsed));}catch{}});
 
-document.querySelectorAll('input[name="time-mode"]').forEach(input=>input.addEventListener('change',updateTimeChoice));
+$('time-mode').addEventListener('change',updateTimeChoice);
+$('objective-chips').addEventListener('click',event=>{const chip=event.target.closest('button');if(!chip||$('objective').disabled)return;$('objective').value=chip.textContent;$('objective').focus();});

@@ -25,6 +25,7 @@ async function refresh() {
   const confirmed = data.status === 'confirmed';
   const catalog = confirmed ? data.confirmed : data.proposal;
   el('architecture-status').textContent = count ? (confirmed ? 'Catálogo confirmado' : 'Propuesta · pendiente de revisión') : 'Sin contexto';
+  el('architecture-status').className = 'to-badge' + (confirmed ? ' to-badge--ok' : count ? ' to-badge--warning' : '');
   if (catalog.services.length) {
     renderCatalogMap(el('architecture-map'), catalog.services.map(s => ({...s, original:s.name, name:{value:s.name}, check:{checked:confirmed}})),
       catalog.relations.map(r => ({...r, source:{value:r.source},target:{value:r.target},label:{value:r.label},check:{checked:true}})),
@@ -151,6 +152,7 @@ function markDiagnosisV2(result) {
     result.aristas.map(a=>({source:{value:a.origen},target:{value:a.destino},label:{value:`${a.origen_dato} · ${a.estado.replace('_',' ')}`},check:{checked:true},estado:a.estado,origen_dato:a.origen_dato})),
     ()=>{}, {causeEdge: cause?.tipo === 'enlace' ? cause : null});
   el('architecture-status').textContent='Grafo del análisis · inventario de la plataforma';
+  el('architecture-status').className='to-badge to-badge--info';
   const note = el('architecture-diagnosis');
   note.hidden = false;
   const causa = cause ? (cause.tipo === 'enlace' ? `enlace ${cause.origen}→${cause.destino}` : cause.servicio) : null;

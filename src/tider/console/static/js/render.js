@@ -122,7 +122,7 @@ function renderEvidencePage() {
     const source = node('td');
     source.append(node('span', signal.source, 'source-tag'));
     const message = node('td', signal.message);
-    message.append(node('div', new Date(signal.timestamp).toLocaleString() + ' · ' + signal.severity, 'hint'));
+    message.append(node('div', new Intl.DateTimeFormat('es',{dateStyle:'short',timeStyle:'medium'}).format(new Date(signal.timestamp)) + ' · ' + signal.severity, 'hint'));
     row.append(node('td', signal.id), source, node('td', signal.service), message);
     return row;
   }));

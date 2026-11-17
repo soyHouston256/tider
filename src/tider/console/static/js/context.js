@@ -30,14 +30,20 @@ async function refresh() {
     for (const d of paths) { const path=document.createElementNS(ns,'path');path.setAttribute('d',d);svg.append(path); }
     icon.append(svg);
     const description = document.createElement('div'); description.className = 'document-description';
-    description.append(textNode('strong', doc.name), textNode('small', `${doc.chunks} fragmentos disponibles para búsqueda`));
-    const type = textNode('span', diagram ? 'draw.io · Diagrama' : 'Markdown · Documento'); type.className = 'document-type';
+    description.append(textNode('strong', doc.name), textNode('small', `${doc.chunks} ${doc.chunks === 1 ? 'fragmento disponible' : 'fragmentos disponibles'} para búsqueda`));
+    const type = textNode('span', diagram ? 'draw.io' : 'Markdown'); type.className = 'document-type';
     item.append(icon, description, type);
     const remove = textNode('button', 'Retirar');
     remove.type = 'button';
     remove.setAttribute('aria-label', `Retirar ${doc.name}`);
     remove.addEventListener('click', async () => {
       if (busy) return;
+      // Dos pasos: el primer clic pide confirmación en el mismo botón; se cancela al salir de él.
+      if (remove.dataset.confirm !== 'true') {
+        remove.dataset.confirm = 'true'; remove.textContent = 'Confirmar retiro'; remove.classList.add('danger');
+        remove.setAttribute('aria-label', `Confirmar el retiro de ${doc.name}`);
+        return;
+      }
       busy = true;
       try {
         await request(`/v1/context/documents/${doc.id}`, {method: 'DELETE'});
@@ -46,9 +52,11 @@ async function refresh() {
       } catch (error) { status(error.message); }
       finally { busy = false; }
     });
+    remove.addEventListener('blur', () => { remove.dataset.confirm = ''; remove.textContent = 'Retirar'; remove.classList.remove('danger'); remove.setAttribute('aria-label', `Retirar ${doc.name}`); });
     item.append(remove);
     el('context-documents').append(item);
   }
+  const count=document.getElementById('nav-count-lake'); if(count) count.textContent=data.documents.length?String(data.documents.length):'';
   document.dispatchEvent(new Event('context-documents-changed'));
   status(data.documents.length ? `${data.documents.length} documentos · ${data.chunks} fragmentos disponibles` : 'Sin documentos. Carga tu primer archivo.');
 }
