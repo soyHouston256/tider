@@ -85,8 +85,10 @@ class RecordingLLM:
         return out
 
 
-def evidence_ids(analysis: dict) -> dict:
+def evidence_ids(analysis: dict | None) -> dict:
     """Ids citados por la primera hipótesis y por las firmas CONFIRMADAS (para auditar sin el proveedor)."""
+    if not analysis:  # error técnico del pipeline: la corrida se guarda con su `error` y sin ids
+        return {"hipotesis_1": [], "confirmadas": []}
     hips = analysis.get("hipotesis") or []
     firmas = (analysis.get("investigation") or {}).get("firmas") or []
     return {"hipotesis_1": [c["id"] for c in (hips[0]["citas"] if hips else [])],

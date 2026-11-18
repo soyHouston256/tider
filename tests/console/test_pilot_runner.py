@@ -270,3 +270,36 @@ def test_tider_case_trace_has_hashes_and_no_ground_truth_in_llm_inputs(monkeypat
             assert marca not in c["input"].lower()
     assert EXP not in json.dumps(trace)
     assert "api_key" not in json.dumps(trace["settings"]).lower()
+
+
+def test_a_pipeline_crash_is_recorded_as_a_technical_error_not_a_lost_case(monkeypatch, tmp_path):
+    """Protocolo: un error técnico de Tider cuenta como fallo, no como exclusión. La traza debe escribirse."""
+    from tider.console import pipeline_v2
+
+    def roto(self, request):
+        raise RuntimeError("fallo interno de prueba")
+
+    monkeypatch.setattr(pipeline_v2.PipelineV2, "run", roto)
+    req = json.loads(request().model_dump_json())
+    req["incident_id"] = "E08"
+    spec = {"case_id": "E08", "request": req, "t0": "2026-11-09T18:38:54+00:00", "brazos": ["reglas"],
+            "repeticiones": {"n": 3, "cuando": "mas_de_una_firma_confirmada"}, "protocol_hash": "abc"}
+    trace = run_case(spec, settings=settings(), lake=FakeLake(), sweeper=pm04_sweeper(monkeypatch, tmp_path))
+    (corrida,) = trace["corridas"]
+    assert corrida["analysis"] is None and "fallo interno de prueba" in corrida["error"]
+    assert corrida["evidence_ids"] == {"hipotesis_1": [], "confirmadas": []}
+    assert trace["firmas_confirmadas_tienda"] == []
+
+
+def test_baseline_hypothesis_caps_citations_at_the_model_limit():
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+
+    from tider.console.models import Entidad
+    from tider.console.pipeline_v2 import MAX_CITAS, PipelineV2
+
+    veredicto = SimpleNamespace(entidad=Entidad.de_servicio("productcatalogservice"), firma_id="servicio-sin-instancias",
+                                t_inicio=datetime(2026, 11, 18, 23, 12, tzinfo=timezone.utc),
+                                evidencia_ids=[f"S{n:04}" for n in range(39)])
+    (hipotesis,) = PipelineV2._hipotesis_baseline([veredicto], SimpleNamespace(cambios=[]))
+    assert [c.id for c in hipotesis.citas] == veredicto.evidencia_ids[:MAX_CITAS]

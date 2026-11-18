@@ -98,6 +98,9 @@ TITLES = {
 }
 
 
+MAX_CITAS = 30  # límite de `Hipotesis.citas`
+
+
 class _HipotesisLLM(BaseModel):
     orden: int = Field(ge=1, le=20)
     entidad: str = Field(min_length=1, max_length=200)
@@ -222,7 +225,9 @@ class PipelineV2:
             ) if len(orden) > 1 else ""
             salida.append(Hipotesis(
                 orden=n, entidad=v.entidad, t_inicio=v.t_inicio, razon=v.firma_id, firma_id=v.firma_id,
-                rol="causa", citas=[Cita(id=i, clase="evidencia") for i in v.evidencia_ids],
+                # El veredicto conserva todos sus ids; la hipótesis cita como máximo los que admite el modelo.
+                # Con los logs completos una sola firma puede reunir más (39 en la validación V1 del 18/11).
+                rol="causa", citas=[Cita(id=i, clase="evidencia") for i in v.evidencia_ids[:MAX_CITAS]],
                 justificacion_orden=justificacion,
             ))
         return salida
