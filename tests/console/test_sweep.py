@@ -50,10 +50,12 @@ def test_sweep_covers_every_platform_workload_with_empty_lake(pm04):
         f.servicio for f in barrido.filas
     ] == STORE  # 12 servicios: inventario del registrador, no del Lake
     assert all(f.cobertura.fuentes_fallidas == [] for f in barrido.filas)
-    # Dos lecturas por servicio (WARNING+ e INFO), cada una filtrada por servicio y severidad.
-    assert len(pm04.logs.filters) == 2 * len(STORE)
+    # Tres lecturas por servicio: WARNING+, tráfico (< WARNING) y fallos escritos por debajo de WARNING.
+    assert len(pm04.logs.filters) == 3 * len(STORE)
     assert any("severity>=WARNING" in f for f in pm04.logs.filters)
-    assert any("severity<WARNING" in f for f in pm04.logs.filters)
+    trafico = [f for f in pm04.logs.filters if "severity<WARNING" in f and "jsonPayload.error:*" not in f]
+    errores_bajos = [f for f in pm04.logs.filters if "severity<WARNING" in f and "jsonPayload.error:*" in f]
+    assert len(trafico) == len(errores_bajos) == len(STORE)
     # Eventos del namespace sin regex de nombres.
     assert all("involvedObject.name=~" not in f for f in pm04.events.filters)
     assert barrido.evidencia.senales and all(s.instancia for s in barrido.evidencia.senales)
@@ -362,3 +364,85 @@ def test_wrong_port_keeps_redis_cart_healthy_correct_port_with_redis_down_does_n
     assert len(atribuidos) == 4
     resultado = sano_confirmado("redis-cart", down, k=3)
     assert resultado.sano is False and resultado.errores_atribuidos == atribuidos
+
+
+# --- Fallos escritos por debajo de WARNING y lecturas en paralelo -----------------------------------
+
+_REDIS_6380 = (
+    "Can't access cart storage. StackExchange.Redis.RedisConnectionException: It was not possible to "
+    "connect to the redis server(s). UnableToConnect on redis-cart:6380/Interactive"
+)
+
+
+def _cart_row(t, texto, severidad="INFO"):
+    return {
+        "timestamp": t.isoformat().replace("+00:00", "Z"),
+        "severity": severidad,
+        "labels": {"k8s-pod/app": "cartservice"},
+        "resource": {"labels": {"pod_name": "cartservice-pod", "namespace_name": "boutique"}},
+        "textPayload": texto,
+    }
+
+
+@pytest.fixture
+def carrito_info(monkeypatch, tmp_path):
+    """cartservice registra sus excepciones como INFO y luego escribe tráfico normal hasta el fin."""
+    rec = record(Recorder, tmp_path / "rec.db", FakeCluster(), utc(18, 31), END)
+    fallos = [_cart_row(T0 + timedelta(seconds=30 + i), _REDIS_6380) for i in range(5)]
+    trafico = [_cart_row(END - timedelta(seconds=60 - i), f"GetCartAsync called with userId={i}") for i in range(60)]
+    logs, events = install_logging(monkeypatch, fallos + trafico, [])
+    return SimpleNamespace(recorder=rec, logs=logs, events=events)
+
+
+def test_info_level_failures_inside_the_incident_survive_the_traffic_quota(carrito_info):
+    barrido = sweep(request(), settings(sweep_info_quota_per_service=10), t0=T0, recorder=carrito_info.recorder)
+    cart = [s for s in barrido.evidencia.senales if s.servicio == "cartservice"]
+    marcadas = [s for s in cart if s.error_por_contenido]
+    assert len(marcadas) == 5 and all("redis-cart:6380" in s.texto_original for s in marcadas)
+    # La severidad de la plataforma no se reescribe: la marca es un campo aparte.
+    assert {s.severidad for s in marcadas} == {"INFO"}
+    # La lectura de tráfico sigue acotada por su cuota y no marca líneas normales.
+    normales = [s for s in cart if not s.error_por_contenido]
+    assert len(normales) == 10 and all("GetCartAsync" in s.texto_original for s in normales)
+    assert len({(s.tiempo, s.texto_original) for s in cart}) == len(cart)  # sin duplicados entre lecturas
+
+
+def test_parallel_and_serial_sweeps_produce_the_same_evidence(pm04):
+    def huella(barrido):
+        ev = barrido.evidencia
+        return (
+            [(s.servicio, s.tiempo, s.severidad, s.texto_original, s.error_por_contenido) for s in ev.senales],
+            {k: v.model_dump() for k, v in ev.cobertura.items()},
+        )
+
+    serie = sweep(request(), settings(sweep_parallel_reads=1), t0=T0, recorder=pm04.recorder)
+    paralelo = sweep(request(), settings(sweep_parallel_reads=12), t0=T0, recorder=pm04.recorder)
+    assert huella(serie) == huella(paralelo)
+
+
+def test_parallel_reads_fit_a_budget_that_serial_reads_exceed(monkeypatch, pm04):
+    """36 lecturas de 50 ms: en serie no caben en 0,6 s; con 12 hilos sí."""
+    import time
+
+    from tider.console.evidence import gke
+
+    real = gke.gcp_signals
+
+    def lenta(*args, **kwargs):
+        time.sleep(0.05)
+        if time.monotonic() >= kwargs["deadline"]:
+            raise TimeoutError("Presupuesto de consulta agotado")
+        return real(*args, **kwargs)
+
+    def cobertura(hilos):
+        adapter = gke.GKEAdapter(
+            settings(sweep_parallel_reads=hilos), recorder=pm04.recorder, read_logs=lenta
+        )
+        monkeypatch.setattr(adapter.settings, "sweep_timeout_seconds", 0.6, raising=False)
+        from tider.console.evidence.model import Ventana as V
+
+        ev = adapter.collect(V(inicio=START, fin=END, t0=T0))
+        return sum("cloud_logging" in c.fuentes_fallidas for c in ev.cobertura.values())
+
+    assert cobertura(1) > 0
+    assert cobertura(12) == 0

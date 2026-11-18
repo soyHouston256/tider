@@ -110,6 +110,9 @@ class Senal(Observacion):
     clase: Literal["log", "metrica"] = "log"
     instancia: str | None = None
     severidad: str = "DEFAULT"
+    # La plataforma lo registró por debajo de WARNING, pero el texto es un fallo (excepción,
+    # timeout, conexión rechazada). La severidad original se conserva tal cual.
+    error_por_contenido: bool = False
     nombre: (
         Literal["latencia_p95", "latencia_dependencia_p95", "tasa_error", "cpu_throttling", "memoria_uso"]
         | None

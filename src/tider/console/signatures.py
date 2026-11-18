@@ -189,7 +189,7 @@ class Contexto:
             for s in self.evidencia.senales
             if s.servicio == servicio
             and s.clase == "log"
-            and at_least_warning(s.severidad)
+            and (at_least_warning(s.severidad) or s.error_por_contenido)
             and self.ventana.en_incidente(s.tiempo)
         ]
         return agrupar_eventos(senales)

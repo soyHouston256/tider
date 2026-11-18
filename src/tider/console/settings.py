@@ -38,7 +38,9 @@ class Settings(BaseSettings):
     # Barrido: dos lecturas por servicio (A14), cada una con su cuota; el presupuesto es por servicio.
     sweep_quota_per_service: int = Field(default=40, ge=1, le=500)  # lectura severity>=WARNING
     sweep_info_quota_per_service: int = Field(default=40, ge=1, le=500)  # lectura < WARNING, solo tráfico
+    sweep_error_info_quota_per_service: int = Field(default=40, ge=1, le=500)  # < WARNING con texto de error
     sweep_timeout_seconds: int = Field(default=30, ge=5, le=120)
+    sweep_parallel_reads: int = Field(default=12, ge=1, le=32)  # lecturas de logs simultáneas
     healthy_traffic_min_lines: int = Field(default=3, ge=1, le=100)  # K del predicado de sano
     # Función de anomalía (A03): cubetas de la línea base, mínimo de eventos y ruido de arranque.
     anomaly_bucket_seconds: int = Field(default=30, ge=5, le=600)
