@@ -16,12 +16,14 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from time import monotonic
 from typing import Callable
 
 from ..providers.cloud_logging import gcp_signals
+from ..providers.error_filter import is_error
 from ..providers.kubernetes_events import gcp_events
 from ..recorder import Instantanea, Recorder
 from .model import (
@@ -58,6 +60,7 @@ _EVENT_TYPES = {
 class Cuotas:
     advertencia: int = 40  # lectura severity>=WARNING por servicio
     info: int = 40  # lectura severity<WARNING por servicio (solo tráfico)
+    errores_info: int = 40  # lectura severity<WARNING filtrada por contenido de error
     eventos: int = 500  # eventos del namespace
 
 
@@ -243,7 +246,9 @@ class GKEAdapter:
         self, ventana: Ventana, inventario: list[str] | None = None, cuotas: Cuotas | None = None
     ) -> Evidencia:
         cuotas = cuotas or Cuotas(
-            self.settings.sweep_quota_per_service, self.settings.sweep_info_quota_per_service
+            self.settings.sweep_quota_per_service,
+            self.settings.sweep_info_quota_per_service,
+            self.settings.sweep_error_info_quota_per_service,
         )
         deadline = self.clock() + self.settings.sweep_timeout_seconds
         namespace = self.settings.gcp_namespace
@@ -289,25 +294,52 @@ class GKEAdapter:
         except Exception as exc:
             fallidas["k8s_events"] = f"lectura fallida: {type(exc).__name__}"
 
-        # 4. Logs: dos lecturas por servicio, cada una con su cuota (A14).
+        # 4. Logs: tres lecturas por servicio, cada una con su cuota (A14). La tercera recoge los
+        #    fallos que la aplicación escribe por debajo de WARNING (cartservice registra sus
+        #    excepciones como INFO): sin ella, la cuota de tráfico solo retiene las últimas líneas
+        #    de la ventana y los errores del incidente quedan fuera. Las lecturas son independientes
+        #    y se lanzan en paralelo; en serie no caben en el presupuesto compartido del barrido.
+        lecturas = (
+            (">=WARNING", cuotas.advertencia, False),
+            ("<WARNING", cuotas.errores_info, True),
+            ("<WARNING", cuotas.info, False),
+        )
+
+        def leer(tarea):
+            servicio, (severity, cuota, solo_errores) = tarea
+            try:
+                return self.read_logs(
+                    servicio,
+                    ventana.base_inicio,
+                    ventana.fin,
+                    self.settings,
+                    services=[servicio],
+                    max_records=cuota + 1,
+                    errors_only=solo_errores,
+                    deadline=deadline,
+                    severity=severity,
+                )
+            except Exception as exc:  # una lectura fallida no detiene a las demás
+                return exc
+
+        tareas = [(servicio, lectura) for servicio in inventory for lectura in lecturas]
+        hilos = max(1, min(self.settings.sweep_parallel_reads, len(tareas)))
+        if hilos == 1:
+            resultados = [leer(t) for t in tareas]
+        else:
+            with ThreadPoolExecutor(max_workers=hilos, thread_name_prefix="barrido") as pool:
+                resultados = list(pool.map(leer, tareas))  # conserva el orden de las tareas
+        leido = dict(zip(tareas, resultados))
+
         senales: list[Senal] = []
         cobertura: dict[str, CoberturaServicio] = {}
         for servicio in inventory:
             leidos, truncado, truncado_info, fallas = 0, False, False, []
-            for severity, cuota in ((">=WARNING", cuotas.advertencia), ("<WARNING", cuotas.info)):
-                try:
-                    rows = self.read_logs(
-                        servicio,
-                        ventana.base_inicio,
-                        ventana.fin,
-                        self.settings,
-                        services=[servicio],
-                        max_records=cuota + 1,
-                        errors_only=False,
-                        deadline=deadline,
-                        severity=severity,
-                    )
-                except Exception:
+            vistas: set[tuple] = set()
+            for lectura in lecturas:
+                severity, cuota, solo_errores = lectura
+                rows = leido[(servicio, lectura)]
+                if isinstance(rows, Exception):
                     fallas.append("cloud_logging")
                     continue
                 if getattr(rows, "incomplete", None):
@@ -315,23 +347,31 @@ class GKEAdapter:
                 rows = list(rows)
                 if len(rows) > cuota:
                     rows = sorted(rows, key=lambda s: s.timestamp)[-cuota:]
-                    if severity == ">=WARNING":
+                    if severity == ">=WARNING" or solo_errores:
                         truncado = True
                     else:
                         truncado_info = True
-                leidos += len(rows)
-                senales += [
-                    Senal(
-                        fuente="cloud_logging",
-                        tiempo=s.timestamp,
-                        servicio=s.service,
-                        instancia=getattr(s, "instance", None),
-                        severidad=s.severity.upper(),
-                        texto_original=s.message,
+                for s in rows:
+                    if not s.message:
+                        continue
+                    # La misma línea puede llegar por la lectura de errores y por la de tráfico.
+                    clave = (s.timestamp, getattr(s, "instance", None), s.message)
+                    if clave in vistas:
+                        continue
+                    vistas.add(clave)
+                    leidos += 1
+                    senales.append(
+                        Senal(
+                            fuente="cloud_logging",
+                            tiempo=s.timestamp,
+                            servicio=s.service,
+                            instancia=getattr(s, "instance", None),
+                            severidad=s.severity.upper(),
+                            texto_original=s.message,
+                            # Se comprueba también aquí: la marca no depende solo del filtro del servidor.
+                            error_por_contenido=solo_errores and is_error(s.message, s.severity.upper()),
+                        )
                     )
-                    for s in rows
-                    if s.message
-                ]
             if "recorder" in fallidas:
                 fallas.append("recorder")
             if "k8s_events" in fallidas:

@@ -277,6 +277,30 @@ def test_config_confirm_wrong_port():
     assert b.fila("redis-cart").errores_atribuidos == []
 
 
+def _wrong_port_info(marcadas):
+    """cartservice escribe la excepción con severidad INFO; el barrido la marca por su contenido."""
+    b, g = _wrong_port(errores=False)
+    servicios = [
+        *sanos("frontend", "redis-cart", "chaosforge-proxy", "cartservice", REDIS_ADDR="redis-cart:6379"),
+        estado("cartservice", at(5), REDIS_ADDR="redis-cart:6380"),
+    ]
+    cambios = [cambio("cartservice", at(5), REDIS_ADDR=["redis-cart:6379", "redis-cart:6380"])]
+    senales = [
+        log("cartservice", at(5.25 + i / 10), _WRONG, "INFO").model_copy(update={"error_por_contenido": marcadas})
+        for i in range(4)
+    ]
+    return escenario(servicios, cambios, senales)
+
+
+def test_config_confirm_wrong_port_when_the_failure_is_logged_at_info():
+    b, g = _wrong_port_info(marcadas=True)
+    v = veredicto(b, g, "configuracion-incorrecta", CART)
+    assert v.veredicto == "CONFIRMADA" and "errores_hacia_valor_nuevo" in v.cumplidos
+    # Sin la marca, una línea INFO sigue sin contar como error propio.
+    b, g = _wrong_port_info(marcadas=False)
+    assert veredicto(b, g, "configuracion-incorrecta", CART).veredicto != "CONFIRMADA"
+
+
 def test_config_discard_without_change_and_without_errors():
     b, g = escenario(sanos("frontend", "redis-cart", "cartservice", REDIS_ADDR="redis-cart:6379"))
     v = veredicto(b, g, "configuracion-incorrecta", CART)

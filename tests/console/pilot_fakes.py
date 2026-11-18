@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
+from tider.console.providers.error_filter import is_error
+
 FIXTURES = Path(__file__).parent / "fixtures" / "postmortems"
 NS = "boutique"
 
@@ -160,6 +162,12 @@ def _entry(raw):
     )
 
 
+def _texto(payload):
+    if isinstance(payload, dict):
+        return " ".join(str(payload.get(k) or "") for k in ("error", "message", "msg"))
+    return payload or ""
+
+
 _RANK = ["DEFAULT", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
 
 
@@ -182,6 +190,7 @@ class FakeLogging:
         end = ts(re.search(r'timestamp ?<= ?"([^"]+)"', filter_)[1])
         apps = re.findall(r'labels\."k8s-pod/app"="([^"]+)"', filter_)
         sev = re.search(r"severity(>=|<)([A-Z]+)", filter_)
+        solo_errores = "jsonPayload.error:*" in filter_  # cláusula propia de ERROR_FILTER
         out = []
         for raw in self.rows:
             entry = _entry(raw)
@@ -193,6 +202,8 @@ class FakeLogging:
                 rank, limit = _RANK.index(entry.severity), _RANK.index(sev[2])
                 if (sev[1] == ">=" and rank < limit) or (sev[1] == "<" and rank >= limit):
                     continue
+            if solo_errores and not is_error(_texto(entry.payload), entry.severity):
+                continue
             out.append(entry)
         out.sort(key=lambda e: e.timestamp, reverse="desc" in order_by)
         return iter(out[:max_results])
