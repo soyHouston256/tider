@@ -301,6 +301,26 @@ def test_config_confirm_wrong_port_when_the_failure_is_logged_at_info():
     assert veredicto(b, g, "configuracion-incorrecta", CART).veredicto != "CONFIRMADA"
 
 
+def test_config_confirm_wrong_port_when_the_window_includes_the_restore():
+    """En el piloto la ventana termina después de la restauración: 6380 -> 6379 queda dentro."""
+    servicios = [
+        *sanos("frontend", "redis-cart", "chaosforge-proxy", "cartservice", REDIS_ADDR="redis-cart:6379"),
+        estado("cartservice", at(5), REDIS_ADDR="redis-cart:6380"),
+        estado("cartservice", at(8), REDIS_ADDR="redis-cart:6379"),
+    ]
+    cambios = [
+        cambio("cartservice", at(5), REDIS_ADDR=["redis-cart:6379", "redis-cart:6380"]),
+        cambio("cartservice", at(8), REDIS_ADDR=["redis-cart:6380", "redis-cart:6379"]),
+    ]
+    senales = [log("cartservice", at(5.25 + i / 10), _WRONG) for i in range(4)]
+    b, g = escenario(servicios, cambios, senales)
+    v = veredicto(b, g, "configuracion-incorrecta", CART)
+    assert v.veredicto == "CONFIRMADA" and not v.conflicto
+    assert v.t_inicio == at(5)
+    # El descarte mira el valor nuevo del cambio previo (6380, sin Service), no el de la reversión.
+    assert next(r for r in v.descartes if r.id == "destino_nuevo_responde").cumple is False
+
+
 def test_config_discard_without_change_and_without_errors():
     b, g = escenario(sanos("frontend", "redis-cart", "cartservice", REDIS_ADDR="redis-cart:6379"))
     v = veredicto(b, g, "configuracion-incorrecta", CART)

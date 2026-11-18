@@ -268,6 +268,19 @@ def _cambios_direccion(ctx: Contexto, servicio: str) -> list[tuple[Cambio, str, 
     return salida
 
 
+def _cambios_direccion_previos(ctx: Contexto, servicio: str):
+    """Cambios de dirección hasta el primer síntoma propio: los que pueden explicarlo.
+
+    Dentro de la ventana también queda la reversión (el laboratorio restaura el valor original
+    al terminar la exposición). Ese cambio posterior no es «el valor nuevo» de la firma: su destino
+    es el original, que responde, y contarlo descartaba la firma con todos sus obligatorios cumplidos.
+    Sin síntoma propio no hay con qué ordenar y se devuelven todos.
+    """
+    cambios = _cambios_direccion(ctx, servicio)
+    limite = ctx.primer_sintoma(servicio)
+    return cambios if limite is None else [c for c in cambios if c[0].tiempo <= limite]
+
+
 def _nombra(ctx: Contexto, host: str, puerto: int, valor: str | None) -> bool:
     """¿El destino `host:puerto` de un error es el valor `host:puerto` de una variable?"""
     partes = separar_direccion(valor or "")
@@ -347,7 +360,7 @@ def _hacia_destino_cambiado(ctx: Contexto, e: Entidad) -> Medida | None:
     if not ctx.logs_ok(e.servicio):
         return None
     puntos = []
-    for cambio, _, _, nuevo in _cambios_direccion(ctx, e.servicio):
+    for cambio, _, _, nuevo in _cambios_direccion_previos(ctx, e.servicio):
         puntos += [Punto(ev.inicio, True, [ev.ids[0]]) for ev in _errores_hacia(ctx, e.servicio, nuevo)]
     v = ctx.ventana
     puntos += [
@@ -362,7 +375,7 @@ def _hacia_destino_cambiado(ctx: Contexto, e: Entidad) -> Medida | None:
 
 def _destino_original_sano(ctx: Contexto, e: Entidad) -> Medida | None:
     puntos = []
-    for cambio, _, antes, _ in _cambios_direccion(ctx, e.servicio):
+    for cambio, _, antes, _ in _cambios_direccion_previos(ctx, e.servicio):
         partes = separar_direccion(antes or "")
         destino = ctx.tabla.resolver_destino(*partes) if partes else None
         listo = _siempre_listo(ctx, destino) if destino else None
@@ -372,7 +385,7 @@ def _destino_original_sano(ctx: Contexto, e: Entidad) -> Medida | None:
 
 
 def _destino_cambiado_responde(ctx: Contexto, e: Entidad) -> Medida | None:
-    cambios = _cambios_direccion(ctx, e.servicio)
+    cambios = _cambios_direccion_previos(ctx, e.servicio)
     if not cambios or not ctx.evidencia.direcciones:
         return None  # sin cambio de dirección o sin tabla de Services: no se puede decir
     puntos = []
