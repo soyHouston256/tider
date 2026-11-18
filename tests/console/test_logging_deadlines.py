@@ -48,3 +48,40 @@ def test_partial_page_failure_keeps_rows_and_marks_incomplete(monkeypatch):
     assert result.incomplete['code'] == 'timeout'
     assert 'provider details' not in str(result.incomplete)
     fake.close.assert_called_once()
+
+
+def test_reads_share_one_client_and_never_close_it(monkeypatch):
+    """Un cliente por lectura lanzaba un subproceso de gcloud por hilo y congelaba gRPC."""
+    import sys
+    from concurrent.futures import ThreadPoolExecutor
+    from types import ModuleType
+
+    from tider.console.providers import logging_sdk
+
+    creados = []
+
+    class Cliente:
+        def __init__(self):
+            creados.append(self)
+            self.transport = Mock()
+
+    modulo = ModuleType('google.cloud.logging_v2.services.logging_service_v2')
+    modulo.LoggingServiceV2Client = Cliente
+    monkeypatch.setitem(sys.modules, 'google.cloud.logging_v2.services.logging_service_v2', modulo)
+    monkeypatch.setattr(logging_sdk, '_shared', None)
+
+    def leer(_):
+        reader = BoundedLoggingClient('test-project', float('inf'))
+        reader.close()
+        return reader.client
+
+    with ThreadPoolExecutor(12) as pool:
+        clientes = list(pool.map(leer, range(36)))
+    assert len(creados) == 1 and all(c is creados[0] for c in clientes)
+    creados[0].transport.close.assert_not_called()
+
+
+def test_a_client_passed_by_the_caller_is_still_closed():
+    propio = Mock()
+    BoundedLoggingClient('test-project', float('inf'), propio).close()
+    propio.transport.close.assert_called_once()
