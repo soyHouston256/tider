@@ -1,17 +1,43 @@
 """Read-only Cloud Logging pagination with an explicit timeout on every RPC."""
 
 from datetime import datetime
+from threading import Lock
 from time import monotonic
 from types import SimpleNamespace
+
+_lock = Lock()
+_shared = None
+
+
+def shared_client():
+    """Cliente gRPC único del proceso, seguro entre hilos.
+
+    Crear un `LoggingServiceV2Client` por lectura resuelve las credenciales cada vez, y con las
+    credenciales de usuario de gcloud eso lanza un subproceso (`gcloud config config-helper`) para
+    averiguar el proyecto. Hacerlo desde varios hilos mientras otros están dentro de una llamada gRPC
+    congela esas llamadas alrededor de un minuto (medido en el barrido: 504 Deadline Exceeded tras
+    65 s con un tiempo máximo de 10 s). Un solo cliente evita los subprocesos repetidos y reutiliza
+    el canal.
+
+    El candado serializa la creación: ningún hilo puede estar dentro de una llamada gRPC antes de que
+    el cliente exista, así que el subproceso nunca coincide con una llamada en curso.
+    """
+    global _shared
+    with _lock:
+        if _shared is None:
+            from google.cloud.logging_v2.services.logging_service_v2 import LoggingServiceV2Client
+
+            _shared = LoggingServiceV2Client()
+        return _shared
 
 
 class BoundedLoggingClient:
     def __init__(self, project, deadline, client=None):
-        from google.cloud.logging_v2.services.logging_service_v2 import LoggingServiceV2Client
-
         self.project = project
         self.deadline = min(deadline, monotonic() + 15)
-        self.client = client or LoggingServiceV2Client()
+        # Un cliente recibido es de quien lo pasa (y se cierra con `close`); el compartido no.
+        self._propio = client is not None
+        self.client = client if client is not None else shared_client()
 
     def list_entries(self, filter_, order_by, page_size, max_results):
         from google.cloud.logging_v2.types import LogEntry
@@ -46,4 +72,5 @@ class BoundedLoggingClient:
             seen.add(token)
 
     def close(self):
-        self.client.transport.close()
+        if self._propio:
+            self.client.transport.close()
