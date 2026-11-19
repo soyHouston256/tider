@@ -17,6 +17,7 @@ def clean_console_env(monkeypatch):
         "JUDGE_PROVIDER",
         "JUDGE_MODEL",
         "OPENAI_API_KEY",
+        "AGENT_OBSERVER_URL",
     ):
         monkeypatch.delenv(var, raising=False)
 

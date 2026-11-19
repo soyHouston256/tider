@@ -65,7 +65,12 @@ class FakeCluster:
                 "template": {
                     "spec": {
                         "containers": [
-                            {"name": "server", "image": o["image"], "env": o["env"], "resources": {}}
+                            {
+                                "name": "server",
+                                "image": o["image"],
+                                "env": o["env"],
+                                "resources": o.get("resources", {}),
+                            }
                         ]
                     }
                 },

@@ -56,3 +56,50 @@ def read_observations(url, service, start, end, timeout):
             "retained_since": data.get("retained_since"), "requested_start": start.isoformat(), "requested_end": end.isoformat(),
             "coverage": "observed_samples_only", "mode": data.get("mode"),
             "limitation": "Muestreo de una operación; no acredita todas las rutas ni causalidad por sí solo."}
+
+
+# --- Lectura para el barrido del pipeline v2 ------------------------------------------------------
+
+# Lo que mide el observador (ChaosForge `admin/observations.py`): un PING a Redis por el destino que
+# tiene configurado el servicio y un `GET /cart`. El destino de la dependencia es el almacén, aunque la
+# ruta configurada pase por un proxy del laboratorio.
+DEPENDENCY_TARGET = {"cartservice": "redis-cart"}
+MAX_WINDOW_SECONDS = 3600  # el observador rechaza ventanas de más de una hora
+MAX_PAGES = 8  # el observador entrega hasta 500 muestras por respuesta
+
+
+def read_samples(url, start, end, timeout):
+    """Muestras crudas del observador en `[start, end]`, en orden temporal y sin repetidas.
+
+    Parte la ventana en tramos de una hora y sigue leyendo cuando el observador trunca la respuesta.
+    Devuelve `{"samples": [...], "truncated": bool}`; `truncated` indica que quedó ventana sin leer.
+    """
+    endpoint = observer_url(url)
+    cursor, last = start.timestamp(), end.timestamp()
+    samples: dict[float, dict] = {}
+    for _ in range(MAX_PAGES):
+        if cursor >= last:
+            break
+        until = min(last, cursor + MAX_WINDOW_SECONDS)
+        response = httpx.get(
+            endpoint, params={"start": cursor, "end": until}, timeout=timeout, follow_redirects=False
+        )
+        response.raise_for_status()
+        if len(response.content) > 2_000_000:
+            raise ValueError("Respuesta del observador demasiado grande; acota la ventana.")
+        data = response.json()
+        rows = [
+            r
+            for r in data.get("observations", [])
+            if isinstance(r, dict) and isinstance(r.get("at"), (int, float)) and math.isfinite(r["at"])
+        ]
+        for row in rows:
+            samples.setdefault(row["at"], row)
+        if data.get("truncated") and rows:
+            siguiente = math.nextafter(max(r["at"] for r in rows), math.inf)
+            if siguiente <= cursor:
+                break
+            cursor = siguiente
+        else:
+            cursor = until
+    return {"samples": [samples[at] for at in sorted(samples)], "truncated": cursor < last}
