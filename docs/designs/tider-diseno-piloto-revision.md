@@ -3,6 +3,7 @@
 **Objetivo revisado:** `tider/docs/designs/tider-diseno-piloto.md` (líneas 1-727).
 **Informes consolidados:** Etapa 5 `zoom_out_report.md`, Etapa 6 `comprehension_report.md`, Etapa 7 `critic_report.md`, Etapa 8 `intermediate_zoom_out_report.md`, Etapa 9 `implementation_readiness_report.md`.
 **Restricción:** no se leyó nada bajo `ground_truth/` ni `ENTREGA_*`. El documento de diseño no se editó.
+**Nota del 19/11/2026:** este archivo era `docs/designs/revision/consolidated_review_report.md`. Los cinco informes de origen (etapas 5 a 9) se retiraron del repositorio; siguen en el historial de git, en el commit `5dbef82`, bajo `docs/designs/revision/`. Las acciones A01–A47 y las decisiones P1–P9 que citan el código y el protocolo se definen aquí.
 **Verificación propia:** las líneas citadas se contrastaron con el documento. También se comprobaron en el código y en el Lake V3:
 - `context_lake.py:144` usa `chromadb.EphemeralClient`, y los límites son las constantes `MAX_DOCUMENTS = 20` y `MAX_CHUNKS = 300` (`:23-24`);
 - `chaosforge/admin/tests/test_open_panel.py:55` y `scripts/verify-admin.sh:12-15` esperan el túnel único `8092:8080` / `18080:8080`;
