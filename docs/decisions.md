@@ -99,8 +99,8 @@ acceso real al laboratorio cuando se utilizan clientes y respuestas simulados.
 **Estado al 20/10/2026:** Anthropic permanece como integración opcional provisional.
 La elección del proveedor y del modelo definitivos sigue abierta. Cuando se
 confirme, se actualizarán conjuntamente implementación, configuración, pruebas,
-documentación y diagramas. El seguimiento está en
-[Pendiente: elección del proveedor LLM](roadmap.md#pendiente-elección-del-proveedor-llm).
+documentación y diagramas. El seguimiento se llevaba en `docs/roadmap.md`, retirado
+del repositorio en D08.
 
 ## D07 · Retiro del grafo del núcleo · 09/11/2026
 
@@ -127,8 +127,41 @@ Fuente: decisiones 6, 19 y 26 de `recomend/_auditoria_consolidada.md`.
 **Consecuencias:** `tider.tools.default_registry()` y `FixtureRegistry` sin `spec`
 lanzan un error explícito ("archivado"). `docs/runbooks/` se conserva porque es el
 corpus congelado de `eval/quality`. El diagrama vigente es
-`docs/designs/tider-blueprint.drawio`. Retomar la remediación es una decisión nueva:
-ver [el archivo](archive/remediacion/README.md).
+`docs/designs/tider-blueprint.drawio`. Retomar la remediación es una decisión nueva.
+El material archivado se retiró del repositorio en D08 y se recupera desde el historial
+de git.
+
+## D08 · Limpieza del repositorio · 19/11/2026
+
+**Problema:** el repositorio conservaba el motor anterior archivado, documentos de
+etapas ya cerradas y código que ningún punto de entrada usaba. Dificultaba ver qué
+forma parte del producto vigente.
+
+**Decisión:** se retira del árbol todo lo que no usan la consola, el registrador, las
+pruebas ni las evaluaciones, y la documentación que se conserva queda en `docs/`:
+
+- `archive/legacy_engine/`, `tests/_archivo/` y `docs/archive/` (grafo anterior, sus
+  pruebas, su arnés y el atlas de 13 vistas);
+- `docs/roadmap.md` (estado del 17/10/2026), `notes/` y la v1 de `tokens.json`;
+- los cinco informes de etapa de `docs/designs/revision/`; el informe consolidado, que
+  define las acciones A01–A47 y las decisiones P1–P9 citadas por el código y el
+  protocolo, pasa a `docs/designs/tider-diseno-piloto-revision.md`;
+- `src/tider/lake/store.py`, `embed.py` y `schema.sql`, el servicio Postgres de
+  `docker-compose.yml` y `console/resources/context/`, que ya no tenían quién los leyera;
+- `tider.tools.default_registry()`, `FixtureRegistry`, `Alert`, `IncidentState` y las
+  funciones de `tider/config.py` que solo leía el motor anterior;
+- `examples/analyze.json` pasa a `docs/examples/analyze.json`.
+
+Todo lo retirado sigue en el historial de git: el último commit que lo contiene es
+`5dbef82`.
+
+**Se conserva sin cambios:** `docs/runbooks/` y `eval/quality` (entradas congeladas del
+benchmark), `eval/e5` (evaluación sintética del entregable E5 y sus registros) y
+`src/tider/lake/ingest.py`, cuya huella figura en la captura de recuperación del
+benchmark.
+
+**Pendiente:** el extra opcional `pg` de `pyproject.toml` quedó sin código que lo use;
+quitarlo requiere regenerar `uv.lock`.
 
 ## Mapa de migración
 
@@ -140,7 +173,7 @@ ver [el archivo](archive/remediacion/README.md).
 | `app/engine.py` | `console/analysis.py` |
 | `app/rca.py` | `console/baseline.py` |
 | `app/evidence.py` | `console/providers/` + `resources/scenarios.json` |
-| `app/context/` | `console/resources/context/` |
+| `app/context/` | `console/resources/context/` (retirado en D08) |
 | `app/static/app.js` | `static/js/api.js`, `render.js`, `app.js` |
 | `agents/rca/tests/` | `tests/console/` |
 | Dos requirements y lock previo | `pyproject.toml` + `uv.lock` |

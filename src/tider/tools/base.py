@@ -3,10 +3,8 @@ Un fallo o una consulta vacía NO son evidencia: se marcan kind=error / kind=emp
 
 from __future__ import annotations
 
-import inspect
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Callable
 
 EMPTY = {"", "[]", "{}", "null"}
@@ -55,44 +53,3 @@ class ToolRegistry:
                 "error_type": type(e).__name__,
             }
         return to_result(out, t.kind, ref)
-
-
-class FixtureRegistry(ToolRegistry):
-    """Reproduce telemetría grabada (eval/fixtures/<escenario>.json) con las MISMAS herramientas que producción:
-    mismo describe(), mismos tipos y misma firma, así el prompt del eval es el de producción. Formato por herramienta:
-      "tool": "salida" | {...}                                       -> cualquier argumento
-      "tool": [{"match": {"arg": "subcadena" | [alternativas]}, "out": "salida" | {...}}, ...]  -> primera que coincida
-    Herramientas o argumentos sin grabación devuelven "sin resultados" (kind=empty), como una consulta vacía.
-    Se graban con scripts/record_fixture.py (archivado).
-
-    Sin `spec` usaba default_registry(), archivada con el grafo antiguo: hoy lanza
-    RuntimeError("archivado: ver docs/archive/remediacion"). Con `spec` sigue funcionando."""
-
-    def __init__(self, fixture_path: str | Path, spec: ToolRegistry | None = None):
-        if spec is None:
-            from . import ARCHIVED
-
-            raise RuntimeError(ARCHIVED)
-        super().__init__(list(spec._tools.values()))
-        self.data = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
-
-    def call(self, tool: str, /, **kwargs) -> dict:
-        if tool not in self._tools:
-            return {"summary": f"herramienta desconocida: {tool}", "kind": "error", "ref": None, "data": None}
-        t, ref = self._tools[tool], f"{tool}({json.dumps(kwargs, sort_keys=True)})"
-        try:
-            inspect.signature(t.fn).bind(**kwargs)  # args inválidos fallan igual que en producción
-        except TypeError as e:
-            return {"summary": f"ERROR TypeError: {e}", "kind": "error", "ref": ref, "data": None}
-        return to_result(self._lookup(self.data.get(tool), kwargs) or "", t.kind, ref)
-
-    @staticmethod
-    def _lookup(rec: Any, kwargs: dict) -> Any:
-        if rec is None or isinstance(rec, (str, dict)):
-            return rec
-
-        def hit(arg: str, want: Any) -> bool:
-            value = str(kwargs.get(arg, "")).lower()
-            return any(str(w).lower() in value for w in (want if isinstance(want, list) else [want]))
-
-        return next((e["out"] for e in rec if all(hit(a, w) for a, w in e.get("match", {}).items())), None)

@@ -355,6 +355,6 @@ Controles de 36px; chips de 28px con separación de 8px.
 3. Comprobar claro, oscuro y 390px antes de cerrar un cambio.
 
 ## Known Gaps
-- `tokens.json` de esta carpeta es la v1 (verde); la vigente es la v2 Cobalto de `tokens.css`.
+- Los valores vigentes son los de `tokens.css` (v2 Cobalto); el `tokens.json` de la v1 (verde) se retiró del repositorio.
 - Las clases `to-*` de `components.css` están cargadas pero la consola aún usa sus propios
   selectores; migrar pantalla por pantalla.

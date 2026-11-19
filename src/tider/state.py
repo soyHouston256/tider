@@ -1,24 +1,10 @@
-"""Estado compartido del grafo. Se guarda como dicts (serializables) y se valida con pydantic en los bordes."""
+"""Contratos compartidos del análisis: evidencia, hipótesis, veredicto y decisión, validados con pydantic."""
 
 from __future__ import annotations
 
-import operator
-from typing import Annotated, Any, TypedDict
+from typing import Any
 
 from pydantic import BaseModel, Field
-
-
-class Alert(BaseModel):
-    name: str
-    service: str | None = None
-    namespace: str = "otel-demo"
-    severity: str = "warning"
-    starts_at: str | None = None
-    fingerprint: str | None = (
-        None  # de Alertmanager: deduplicar y verificar ESTA alerta, no otra con el mismo nombre
-    )
-    labels: dict[str, str] = Field(default_factory=dict)
-    annotations: dict[str, str] = Field(default_factory=dict)
 
 
 class Evidence(BaseModel):
@@ -52,17 +38,3 @@ class Decision(BaseModel):
     action: str
     params: dict[str, Any] = Field(default_factory=dict)
     reason: str = ""
-
-
-class IncidentState(TypedDict, total=False):
-    alert: dict
-    handler: str
-    context: list[dict]
-    hypothesis: dict
-    verdict: dict
-    iterations: int
-    decision: dict
-    execution: dict
-    resolved: bool
-    report: str
-    audit: Annotated[list[dict], operator.add]

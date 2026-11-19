@@ -1,6 +1,6 @@
 # Pruebas del agente
 
-Ejecutar desde `project/code/tider`, después de `make setup`:
+Ejecutar desde la raíz del repositorio, después de `make setup`:
 
 ```bash
 make test
@@ -16,10 +16,13 @@ prueba se escriben en directorios temporales de pytest.
 | Grupo | Qué comprueba |
 |---|---|
 | `tests/test_shared_modules.py` | Ingesta Markdown/Mermaid y registro de herramientas compartidos |
-| `tests/_archivo/` | Tests del grafo antiguo archivado; excluidos de la suite (`addopts` en `pyproject.toml`) |
 | `tests/console/test_console.py` | Cuatro escenarios, HTTP, archivos estáticos, filtro GCP, errores y enmascarado |
 | `tests/console/test_rca.py` | Diagnóstico, servicio sin señales y ventana temporal |
 | `tests/console/test_service.py` | Historial aislado, concurrencia y referencias de decisiones |
+| `tests/console/test_sweep.py`, `test_signatures.py`, `test_estado.py`, `test_pipeline_v2.py` | Pipeline v2: barrido, firmas, estado, roles y juez, con Kubernetes y Cloud Logging simulados |
+| `tests/console/test_recorder.py` | Registrador de estado y RBAC de solo lectura (`deploy/reader-rbac.yaml`) |
+| `tests/console/test_pilot_runner.py`, `test_pilot_score.py` | Orquestador y puntuación del piloto (`eval/pilot`) |
+| `tests/console/test_quality_benchmark.py`, `test_e5_replay.py` | Puntuación del benchmark de `eval/quality` y reproducción de E5 |
 
 ## Comprobación manual en la consola
 
@@ -45,17 +48,20 @@ Con el servidor abierto:
 curl -fsS http://localhost:8080/health
 curl -fsS http://localhost:8080/v1/lab/config
 curl -fsS -H 'Content-Type: application/json' \
-  --data-binary @examples/analyze.json http://localhost:8080/v1/incidents/analyze
+  --data-binary @docs/examples/analyze.json http://localhost:8080/v1/incidents/analyze
 ```
 
 El ejemplo tiene fechas fijas adecuadas para la simulación. Para GCP deben usarse
 fechas del experimento y habilitar la fuente en el servidor.
 
-## Evaluación del motor
+## Evaluación
 
-La evaluación del grafo antiguo (`eval/mock_local.py`, `eval/harness.py`) está
-archivada en `archive/legacy_engine/eval/`. Ver
-[docs/archive/remediacion/README.md](archive/remediacion/README.md) y [roadmap.md](roadmap.md).
+- `eval/quality`: recuperación y diagnóstico sobre entradas congeladas; se vuelve a puntuar sin
+  proveedor con `.venv/bin/python -m eval.quality --verify`. Ver [su guía](../eval/quality/README.md).
+- `eval/e5`: evaluación sintética E5; `uv run python eval/course_e5.py --replay` reproduce los
+  registros. Ver [su guía](../eval/e5/README.md).
+- `eval/pilot`: validación de firmas y campaña del piloto contra el laboratorio; el protocolo
+  prerregistrado está en `eval/pilot/protocol.yaml`.
 
 ## Distribución
 
@@ -63,23 +69,6 @@ archivada en `archive/legacy_engine/eval/`. Ver
 usa la misma configuración y lock. `docker compose --profile console config --quiet`
 valida la configuración; para verificar la imagen y su arranque se necesita ejecutar
 el build y comprobar `/health` en el contenedor.
-
-## Verificación de la reorganización · 17/10/2026
-
-Registro histórico, anterior al archivado del grafo (09/11/2026). Hoy el modo por
-reglas registra 4 pasos (investigador, juez, decisor, reporte).
-
-- 63 pruebas de pytest aprobadas; lint y formato de 57 archivos Python correctos.
-- 30/30 controles del arnés local aprobados; 0 acciones reales y 0 intentos externos.
-- Paquete wheel probado fuera del repositorio: grafo, política, contexto, escenarios
-  y archivos de la consola disponibles sin rutas al workspace.
-- Imagen Docker construida; servidor, endpoint de análisis y recursos estáticos
-  comprobados en un contenedor temporal con usuario sin privilegios.
-- Cuatro escenarios comprobados en el navegador; 8 pasos en los casos con causa
-  y 10 al requerir una segunda ronda. Historial y presentación sin errores de consola.
-
-Estas comprobaciones se ejecutaron con evidencia y respuestas locales. Las pruebas
-con telemetría del laboratorio y un modelo externo se describen en el roadmap.
 
 ## Context Lake · primera etapa
 
