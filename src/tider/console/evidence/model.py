@@ -140,6 +140,8 @@ class CoberturaServicio(_Strict):
     truncado: bool = False  # la lectura WARNING+ llenó su cuota: nunca puede quedar sano
     truncado_info: bool = False  # la lectura de tráfico llenó su cuota (no impide el sano)
     fuentes_fallidas: list[Fuente] = Field(default_factory=list)
+    # Qué lectura falló y con qué tipo de error (sin el texto del proveedor): para auditar la traza.
+    motivos_fallo: list[str] = Field(default_factory=list)
 
 
 class Ventana(_Strict):

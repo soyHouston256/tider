@@ -446,3 +446,47 @@ def test_parallel_reads_fit_a_budget_that_serial_reads_exceed(monkeypatch, pm04)
 
     assert cobertura(1) > 0
     assert cobertura(12) == 0
+
+
+def _adaptador_con_fallos(pm04, fallar):
+    """`fallar(n_llamada, servicio, kwargs) -> bool`: qué llamadas lanzan TimeoutError."""
+    from tider.console.evidence import gke
+
+    real, llamadas = gke.gcp_signals, []
+
+    def lectura(servicio, *args, **kwargs):
+        llamadas.append(servicio)
+        if fallar(llamadas.count(servicio), servicio, kwargs):
+            raise TimeoutError("Tiempo de consulta agotado")
+        return real(servicio, *args, **kwargs)
+
+    return gke.GKEAdapter(settings(sweep_parallel_reads=1), recorder=pm04.recorder, read_logs=lectura), llamadas
+
+
+def test_a_transient_read_failure_is_retried_once(pm04):
+    # La primera lectura de frontend falla; su reintento funciona.
+    adapter, llamadas = _adaptador_con_fallos(pm04, lambda n, servicio, k: servicio == "frontend" and n == 1)
+    ev = adapter.collect(Ventana(inicio=START, fin=END, t0=T0))
+    assert ev.cobertura["frontend"].fuentes_fallidas == [] and ev.cobertura["frontend"].motivos_fallo == []
+    assert llamadas.count("frontend") == 4  # tres lecturas más un reintento
+    assert llamadas.count("cartservice") == 3
+
+
+def test_a_persistent_read_failure_is_reported_with_its_reason(pm04):
+    adapter, llamadas = _adaptador_con_fallos(
+        pm04, lambda n, servicio, k: servicio == "frontend" and k["severity"] == ">=WARNING"
+    )
+    ev = adapter.collect(Ventana(inicio=START, fin=END, t0=T0))
+    cobertura = ev.cobertura["frontend"]
+    assert cobertura.fuentes_fallidas == ["cloud_logging"]
+    assert cobertura.motivos_fallo == ["warning: TimeoutError"]
+    assert "agotado" not in str(cobertura.model_dump())  # sin el texto del proveedor
+    assert llamadas.count("frontend") == 4  # dos intentos de la que falla y una de cada una de las otras
+
+
+def test_no_retry_when_the_sweep_budget_is_nearly_spent(monkeypatch, pm04):
+    adapter, llamadas = _adaptador_con_fallos(pm04, lambda n, servicio, k: servicio == "frontend")
+    monkeypatch.setattr(adapter.settings, "sweep_timeout_seconds", 5, raising=False)
+    ev = adapter.collect(Ventana(inicio=START, fin=END, t0=T0))
+    assert llamadas.count("frontend") == 3  # sin margen: un solo intento por lectura
+    assert ev.cobertura["frontend"].fuentes_fallidas == ["cloud_logging"]
