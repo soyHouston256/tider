@@ -4,8 +4,10 @@ Ejecutar desde la raíz del repositorio, después de `make setup`:
 
 ```bash
 make test
-make lint
 ```
+
+`make lint` revisa el estilo con ruff; hoy reporta avisos de formato pendientes en archivos
+anteriores, que no afectan la ejecución ni las pruebas.
 
 La suite usa herramientas, clientes y respuestas simulados. No requiere GCP, AWS,
 Kubernetes, claves de modelos ni un navegador abierto. Las salidas operativas de
