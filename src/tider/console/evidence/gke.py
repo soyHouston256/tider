@@ -1,4 +1,4 @@
-"""Adaptador GKE: traduce Cloud Logging, el log de eventos y el registrador al modelo común.
+"""Adaptador GKE: traduce Cloud Logging, el log de eventos, el registrador y el observador al modelo común.
 
 Módulo concreto, sin interfaz nueva (A36). Reutiliza `gcp_signals` y `gcp_events`.
 
@@ -6,7 +6,12 @@ Procedencia de `texto_original`:
 * logs: el mensaje que reconstruye `gcp_signals` (campos `error | message | msg` o `textPayload`),
   enmascarado y truncado a 600 caracteres por `providers.redaction.sanitize`;
 * eventos: `message` del evento, enmascarado y truncado a 800 caracteres por `event_from_entry`;
-* registrador: un resumen JSON compacto de la instantánea (no el objeto completo de Kubernetes).
+* registrador: un resumen JSON compacto de la instantánea (no el objeto completo de Kubernetes);
+* observador: una frase con la operación medida, el valor y cuántas muestras resume la cubeta.
+
+Métricas: salen del observador de ChaosForge (`AGENT_OBSERVER_URL`), la única fuente de latencia del
+laboratorio. Sin observador configurado no hay métricas y las firmas que las exigen quedan SIN_DATOS.
+La lectura directa de Cloud Monitoring (CPU de cualquier servicio) no está implementada.
 
 `sweep_timeout_seconds` se traduce en un único deadline monotónico compartido por todas las lecturas;
 cada RPC de `BoundedLoggingClient` usa lo que queda de él.
@@ -15,16 +20,19 @@ cada RPC de `BoundedLoggingClient` usa lo que queda de él.
 from __future__ import annotations
 
 import json
+import math
 import re
+import statistics
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from time import monotonic
 from typing import Callable
 
 from ..providers.cloud_logging import gcp_signals
 from ..providers.error_filter import is_error
 from ..providers.kubernetes_events import gcp_events
+from ..providers.operational_observer import DEPENDENCY_TARGET, read_samples
 from ..recorder import Instantanea, Recorder
 from .model import (
     Cambio,
@@ -229,7 +237,113 @@ def from_event(event: dict) -> Evento | Cambio | None:
     )
 
 
+def _finito(valor) -> bool:
+    return isinstance(valor, (int, float)) and not isinstance(valor, bool) and math.isfinite(valor)
+
+
+def _dict(valor) -> dict:
+    return valor if isinstance(valor, dict) else {}
+
+
+def _lista(valor) -> list[dict]:
+    return [x for x in valor if isinstance(x, dict)] if isinstance(valor, list) else []
+
+
+def from_observer(samples: list[dict], ventana: Ventana, cubeta_s: int) -> list[Senal]:
+    """Proyecta las muestras del observador a métricas por cubeta de `cubeta_s` segundos.
+
+    Las cubetas se alinean a `t0`, así ninguna mezcla línea base e incidente. Por servicio y cubeta:
+
+    * `latencia_dependencia_p95`: latencia del PING a Redis, solo de las muestras en que respondió. Un
+      destino que no responde no tiene latencia: ese caso lo cubren las firmas de conexión;
+    * `latencia_p95`: latencia de `GET /cart`, solo de las respuestas 200;
+    * `cpu_throttling`: el máximo, entre pods y muestras, de la fracción de periodos limitados, cuando
+      el observador la trae completa.
+
+    **El valor de las dos latencias es la mediana de la cubeta, no un p95.** El observador toma una
+    muestra cada ~3 s: con unas 9 muestras por cubeta, el p95 es el máximo. En el laboratorio, cerca
+    del 3 % de las muestras sin falla son picos aislados de 150 a 700 ms, y con el máximo esos picos
+    cumplían solos la persistencia de 60 s de las firmas. La mediana ignora los picos y conserva la
+    inyección, que sube todas las muestras. Los nombres son los del modelo común; el texto de cada
+    señal dice qué se calculó.
+    """
+    ancho = timedelta(seconds=cubeta_s)
+    grupos: dict[tuple[str, str, int], list[float]] = {}
+    destinos: dict[tuple[str, int], str] = {}
+    for row in samples:
+        if not isinstance(row, dict):
+            continue
+        servicio, at = row.get("service"), row.get("at")
+        if not isinstance(servicio, str) or not servicio or not _finito(at):
+            continue
+        try:
+            t = datetime.fromtimestamp(at, tz=timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            continue
+        if not ventana.base_inicio <= t <= ventana.fin:
+            continue
+        k = math.floor((t - ventana.t0) / ancho)
+        dependencia = _dict(row.get("dependency"))
+        if (
+            servicio in DEPENDENCY_TARGET
+            and dependencia.get("success") is True
+            and _finito(dependencia.get("elapsed_ms"))
+        ):
+            grupos.setdefault((servicio, "latencia_dependencia_p95", k), []).append(dependencia["elapsed_ms"])
+            direccion = _dict(row.get("configuration")).get("redis_address")
+            if isinstance(direccion, str) and direccion:
+                destinos[(servicio, k)] = direccion
+        for sonda in _lista(row.get("http")):
+            if (
+                sonda.get("path") == "/cart"
+                and sonda.get("status") == 200
+                and _finito(sonda.get("elapsed_ms"))
+            ):
+                grupos.setdefault((servicio, "latencia_p95", k), []).append(sonda["elapsed_ms"])
+        cpu = _dict(row.get("cpu_throttling"))
+        if cpu.get("coverage") == "complete":
+            fracciones = [x.get("ratio") for x in _lista(cpu.get("series"))]
+            fracciones = [x for x in fracciones if _finito(x) and 0 <= x <= 1]
+            if fracciones:
+                grupos.setdefault((servicio, "cpu_throttling", k), []).append(max(fracciones))
+
+    senales = []
+    for (servicio, nombre, k), valores in sorted(grupos.items()):
+        tiempo = max(ventana.t0 + k * ancho, ventana.base_inicio)
+        n = len(valores)
+        if nombre == "cpu_throttling":
+            valor = round(max(valores), 4)
+            texto = (
+                f"Observador (Managed Prometheus): fracción de periodos de CPU limitados {valor:.2f}, "
+                f"máximo entre pods en {n} muestras de {cubeta_s} s"
+            )
+        elif nombre == "latencia_dependencia_p95":
+            valor = round(statistics.median(valores), 2)
+            direccion = destinos.get((servicio, k), "destino no informado")
+            texto = (
+                f"Observador: PING a Redis por el destino configurado ({direccion}); "
+                f"mediana {valor:.1f} ms en {n} muestras de {cubeta_s} s"
+            )
+        else:
+            valor = round(statistics.median(valores), 2)
+            texto = f"Observador: GET /cart; mediana {valor:.1f} ms en {n} respuestas 200 de {cubeta_s} s"
+        senales.append(
+            Senal(
+                fuente="observer",
+                clase="metrica",
+                tiempo=tiempo,
+                servicio=servicio,
+                nombre=nombre,
+                destino=DEPENDENCY_TARGET[servicio] if nombre == "latencia_dependencia_p95" else None,
+                valor=valor,
+                texto_original=texto,
+            )
+        )
+    return senales
+
+
 MARGEN_REINTENTO_S = 20  # presupuesto mínimo restante para reintentar una lectura fallida
+TIEMPO_OBSERVADOR_S = 10  # tope de una lectura al observador (túnel local)
 
 
 class GKEAdapter:
@@ -240,10 +354,12 @@ class GKEAdapter:
         recorder: Recorder | None = None,
         read_logs: Callable = gcp_signals,
         read_events: Callable = gcp_events,
+        read_observer: Callable = read_samples,
         clock: Callable[[], float] = monotonic,
     ):
         self.settings, self.recorder = settings, recorder
         self.read_logs, self.read_events, self.clock = read_logs, read_events, clock
+        self.read_observer = read_observer
 
     def collect(
         self, ventana: Ventana, inventario: list[str] | None = None, cuotas: Cuotas | None = None
@@ -296,6 +412,26 @@ class GKEAdapter:
                 fallidas["k8s_events"] = "lectura parcial de eventos"
         except Exception as exc:
             fallidas["k8s_events"] = f"lectura fallida: {type(exc).__name__}"
+
+        # 3b. Métricas del observador, si está configurado: latencia de la dependencia, latencia de la
+        #     operación y CPU. Una fuente configurada que no entrega datos se informa como fallida.
+        metricas: list[Senal] = []
+        if self.settings.agent_observer_url:
+            try:
+                data = self.read_observer(
+                    self.settings.agent_observer_url,
+                    ventana.base_inicio,
+                    ventana.fin,
+                    max(1.0, min(TIEMPO_OBSERVADOR_S, deadline - self.clock())),
+                )
+                muestras = data.get("samples") or []
+                metricas = from_observer(muestras, ventana, self.settings.anomaly_bucket_seconds)
+                if data.get("truncated"):
+                    fallidas["observer"] = "lectura parcial del observador"
+                elif not muestras:
+                    fallidas["observer"] = "sin observaciones en la ventana"
+            except Exception as exc:
+                fallidas["observer"] = f"lectura fallida: {type(exc).__name__}"
 
         # 4. Logs: tres lecturas por servicio, cada una con su cuota (A14). La tercera recoge los
         #    fallos que la aplicación escribe por debajo de WARNING (cartservice registra sus
@@ -404,6 +540,8 @@ class GKEAdapter:
                 fuentes_fallidas=sorted(set(fallas)),
                 motivos_fallo=motivos,
             )
+
+        senales.extend(m for m in metricas if m.servicio in inventory)
 
         evidencia = Evidencia(
             ventana=ventana,

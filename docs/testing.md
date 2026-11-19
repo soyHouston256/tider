@@ -21,6 +21,7 @@ prueba se escriben en directorios temporales de pytest.
 | `tests/console/test_service.py` | Historial aislado, concurrencia y referencias de decisiones |
 | `tests/console/test_sweep.py`, `test_signatures.py`, `test_estado.py`, `test_pipeline_v2.py` | Pipeline v2: barrido, firmas, estado, roles y juez, con Kubernetes y Cloud Logging simulados |
 | `tests/console/test_recorder.py` | Registrador de estado y RBAC de solo lectura (`deploy/reader-rbac.yaml`) |
+| `tests/console/test_observer_metrics.py` | Métricas del observador en el barrido: lectura por tramos, cubetas alineadas a `t0` y firmas de latencia y CPU |
 | `tests/console/test_pilot_runner.py`, `test_pilot_score.py` | Orquestador y puntuación del piloto (`eval/pilot`) |
 | `tests/console/test_quality_benchmark.py`, `test_e5_replay.py` | Puntuación del benchmark de `eval/quality` y reproducción de E5 |
 

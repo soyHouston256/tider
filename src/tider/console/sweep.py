@@ -89,7 +89,11 @@ class Barrido(BaseModel):
 
 def _fila(servicio: str, evidencia: Evidencia, atribuidos: list[str], settings) -> FilaServicio:
     ventana = evidencia.ventana
-    propias = [s for s in evidencia.senales if s.servicio == servicio and ventana.en_incidente(s.tiempo)]
+    propias = [
+        s
+        for s in evidencia.senales
+        if s.clase == "log" and s.servicio == servicio and ventana.en_incidente(s.tiempo)
+    ]
     severidades: dict[str, int] = {}
     for s in propias:
         severidades[s.severidad] = severidades.get(s.severidad, 0) + 1
