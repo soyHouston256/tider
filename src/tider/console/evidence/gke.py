@@ -229,6 +229,9 @@ def from_event(event: dict) -> Evento | Cambio | None:
     )
 
 
+MARGEN_REINTENTO_S = 20  # presupuesto mínimo restante para reintentar una lectura fallida
+
+
 class GKEAdapter:
     def __init__(
         self,
@@ -306,21 +309,34 @@ class GKEAdapter:
         )
 
         def leer(tarea):
+            """Una lectura con un reintento. Devuelve las filas o la excepción del último intento.
+
+            Un fallo transitorio (una RPC que agota su tiempo) no debe dejar al servicio sin logs: se
+            reintenta una vez mientras quede presupuesto del barrido para otra lectura completa.
+            """
             servicio, (severity, cuota, solo_errores) = tarea
-            try:
-                return self.read_logs(
-                    servicio,
-                    ventana.base_inicio,
-                    ventana.fin,
-                    self.settings,
-                    services=[servicio],
-                    max_records=cuota + 1,
-                    errors_only=solo_errores,
-                    deadline=deadline,
-                    severity=severity,
-                )
-            except Exception as exc:  # una lectura fallida no detiene a las demás
-                return exc
+            resultado = None
+            for intento in (1, 2):
+                if intento == 2 and deadline - self.clock() < MARGEN_REINTENTO_S:
+                    break
+                try:
+                    resultado = self.read_logs(
+                        servicio,
+                        ventana.base_inicio,
+                        ventana.fin,
+                        self.settings,
+                        services=[servicio],
+                        max_records=cuota + 1,
+                        errors_only=solo_errores,
+                        deadline=deadline,
+                        severity=severity,
+                    )
+                except Exception as exc:  # una lectura fallida no detiene a las demás
+                    resultado = exc
+                    continue
+                if not getattr(resultado, "incomplete", None):
+                    break  # lectura completa; una parcial se reintenta y, si no mejora, se conserva
+            return resultado
 
         tareas = [(servicio, lectura) for servicio in inventory for lectura in lecturas]
         hilos = max(1, min(self.settings.sweep_parallel_reads, len(tareas)))
@@ -335,15 +351,19 @@ class GKEAdapter:
         cobertura: dict[str, CoberturaServicio] = {}
         for servicio in inventory:
             leidos, truncado, truncado_info, fallas = 0, False, False, []
+            motivos: list[str] = []
             vistas: set[tuple] = set()
             for lectura in lecturas:
                 severity, cuota, solo_errores = lectura
                 rows = leido[(servicio, lectura)]
+                tipo = "errores_info" if solo_errores else ("trafico" if severity == "<WARNING" else "warning")
                 if isinstance(rows, Exception):
                     fallas.append("cloud_logging")
+                    motivos.append(f"{tipo}: {type(rows).__name__}")
                     continue
                 if getattr(rows, "incomplete", None):
                     fallas.append("cloud_logging")
+                    motivos.append(f"{tipo}: lectura parcial")
                 rows = list(rows)
                 if len(rows) > cuota:
                     rows = sorted(rows, key=lambda s: s.timestamp)[-cuota:]
@@ -382,6 +402,7 @@ class GKEAdapter:
                 truncado=truncado,
                 truncado_info=truncado_info,
                 fuentes_fallidas=sorted(set(fallas)),
+                motivos_fallo=motivos,
             )
 
         evidencia = Evidencia(
