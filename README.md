@@ -8,7 +8,93 @@ pipeline v1, predeterminado) y el pipeline v2 del piloto
 por reglas, sin LLM, como línea base. **Todo el código del agente y su consola está
 en este proyecto.** ChaosForge administra el laboratorio donde se inyectan los fallos.
 
-## E5 y taller del 31 de octubre
+## Ejecutar el prototipo
+
+Requisitos: `git`, `make` y [`uv`](https://docs.astral.sh/uv/getting-started/installation/).
+No hace falta tener Python instalado: `uv` descarga la versión 3.12. Este modo no usa nube,
+claves ni Kubernetes. Probado en macOS y Linux.
+
+```bash
+git clone https://github.com/soyHouston256/tider.git
+cd tider
+make setup    # crea .venv con las versiones exactas de uv.lock
+make run      # consola en http://localhost:8080
+```
+
+1. Abrir **http://localhost:8080**.
+2. Elegir el escenario **Redis no disponible** y pulsar **Analizar incidente**.
+3. La consola identifica `redis-cart`, muestra las cuatro señales que lo sustentan, cada decisión
+   con su motivo y una propuesta para revisión humana. Nada se ejecuta sobre ningún sistema.
+
+Los otros tres escenarios dan: **Cart Service sin endpoints** → `cartservice` (tres señales);
+**Operación normal** y **Sin telemetría** → ninguna causa raíz, porque la evidencia no alcanza.
+
+Swagger está en **http://localhost:8080/docs**. Detener el servidor con Ctrl+C. Para otro
+puerto: `make run PORT=8088`. Para comprobar la instalación: `make test` (285 pruebas, menos
+de un minuto, sin red).
+
+`make setup` crea o sincroniza `.venv` con `uv.lock`; no hace falta configurar `PYTHONPATH`.
+Sin `make`, lo mismo se hace con
+`uv sync --frozen --extra dev --extra gcp --extra llm --python 3.12` y
+`.venv/bin/python -m tider.console`.
+`make run` lee un archivo `.env` si existe (`cp .env.example .env`); sin él usa los valores
+predeterminados, que son los de este modo.
+
+El modo predeterminado usa cuatro escenarios sintéticos y reglas deterministas, sin acceso
+a servicios externos. Los resultados incluyen señales `S01…`, decisiones con su motivo,
+rondas de investigación, JSON descargable e historial de 50 análisis en memoria.
+
+## Piloto en el laboratorio (pipeline v2)
+
+El piloto corre contra Online Boutique en GKE, con fallas inyectadas por ChaosForge.
+Requiere credenciales ADC, el panel de ChaosForge abierto y un `.env` con
+`EVIDENCE_MODE=gcp`, `TIDER_PIPELINE=v2`, `RECORDER_DB_PATH`, `LAKE_V3_PATH` y
+`AGENT_OBSERVER_URL` (`.env.example` lista todas las variables). Del observador de
+ChaosForge salen las medidas de latencia y de CPU; sin él, las firmas que las usan
+quedan sin datos.
+
+```bash
+uv run python -m tider.console.recorder --env-file .env   # registrador de estado; se deja corriendo
+set -a; source .env; set +a                               # el orquestador lee el entorno del shell
+uv run python -m eval.pilot.runner --validate-signatures --dry-run   # imprime el plan sin llamar a nada
+uv run python -m eval.pilot.runner --validate-signatures --out out/runs/<carpeta>
+```
+
+`--validate-signatures` inyecta cada mecanismo una vez y escribe `gate.json`; `--campaign`
+exige ese `gate.json` con `go = true`. El [diseño del piloto](docs/designs/tider-diseno-piloto.md)
+describe el pipeline y la evaluación; el protocolo prerregistrado está en
+`eval/pilot/protocol.yaml`.
+
+Para analizar un caso real desde la consola, con el registrador corriendo:
+
+```bash
+set -a; source .env; set +a
+TIDER_PIPELINE=v2 LLM_PROVIDER=none make run
+```
+
+En la consola: **Revisar catálogo** → seleccionar todo → **Confirmar catálogo**; elegir
+**Logs de GKE · reales** y la ventana del incidente (**Últimos 10 minutos** o **Elegir horas
+de hoy**); pulsar **Analizar incidente**. El inicio de la ventana se toma como inicio del
+incidente, y el tramo anterior de la misma duración, como línea base.
+
+### Estado y límites al 19/11/2026
+
+- En ensayos con fallas reales inyectadas, el pipeline v2 en modo reglas confirmó la firma
+  esperada, y ninguna otra, para servicio sin instancias (`scale_zero`), configuración
+  incorrecta (`wrong_port`) y dependencia lenta (`latency`). En el control sin falla no
+  confirmó ninguna.
+- Saturación de CPU (`cpu_limit`): Tider la detectó en un ensayo, pero ChaosForge no acreditó
+  la inyección porque su plazo de preparación venció antes de poder medir el efecto. No se
+  cuenta como validada.
+- La campaña de 70 casos del protocolo todavía no se ejecutó: no hay métricas de exactitud
+  del piloto.
+- En el laboratorio se probó el modo por reglas. El Investigador y el Juez con modelo del
+  pipeline v2 solo se ejercitaron con clientes simulados, en las pruebas automáticas.
+- La latencia y la CPU salen del observador de ChaosForge, que solo mide `cartservice` y su
+  dependencia de Redis. La latencia es la mediana por tramos de 30 s (ver
+  `src/tider/console/evidence/gke.py`).
+
+## Evaluación E5 (sintética, 31 de octubre)
 
 La [guía de evaluación](eval/e5/README.md) contiene los datos sintéticos congelados,
 semillas y comandos de reproducción. El [notebook ejecutado](eval/e5/E5_Equipo04.ipynb)
@@ -29,48 +115,6 @@ actual, que cambió después. `--summarize` recalcula las métricas desde los re
 La demo por reglas funciona sin API; una investigación nueva con LLM requiere
 Internet y credenciales locales. El ZIP de E5 conserva la versión exacta del
 código y los registros cuando los cambios todavía no están publicados.
-
-## Ejecutar
-
-Desde este directorio, con Python 3.12 y `uv`:
-
-```bash
-make setup
-make run
-```
-
-Abrir **http://localhost:8080**. Elegir un escenario y pulsar **Analizar incidente**.
-Swagger está en **http://localhost:8080/docs**. Detener el servidor con Ctrl+C.
-Para otro puerto: `make run PORT=8088`.
-
-El entorno actual ya está instalado. `make setup` crea o sincroniza `.venv` con
-`uv.lock`; no hace falta configurar `PYTHONPATH` ni instalar desde otra carpeta.
-También se puede ejecutar `.venv/bin/python -m tider.console` o `.venv/bin/tider-console`.
-Para cargar configuración local explícita: `cp .env.example .env`; `make run` la lee.
-
-El inicio utiliza cuatro escenarios sintéticos y reglas deterministas, sin acceso
-a servicios externos. La consola analiza y propone; todas sus ejecuciones son de
-observación. Los resultados incluyen señales `S01…`, decisiones con su motivo,
-rondas de investigación, JSON descargable e historial de 50 análisis en memoria.
-
-## Piloto en el laboratorio (pipeline v2)
-
-El piloto corre contra Online Boutique en GKE, con fallas inyectadas por ChaosForge.
-Requiere credenciales ADC, el panel de ChaosForge abierto y un `.env` con
-`EVIDENCE_MODE=gcp`, `TIDER_PIPELINE=v2`, `RECORDER_DB_PATH` y `LAKE_V3_PATH`
-(`.env.example` lista todas las variables).
-
-```bash
-uv run python -m tider.console.recorder --env-file .env   # registrador de estado; se deja corriendo
-set -a; source .env; set +a                               # el orquestador lee el entorno del shell
-uv run python -m eval.pilot.runner --validate-signatures --dry-run   # imprime el plan sin llamar a nada
-uv run python -m eval.pilot.runner --validate-signatures --out out/runs/<carpeta>
-```
-
-`--validate-signatures` inyecta cada mecanismo una vez y escribe `gate.json`; `--campaign`
-exige ese `gate.json` con `go = true`. El [diseño del piloto](docs/designs/tider-diseno-piloto.md)
-describe el pipeline y la evaluación; el protocolo prerregistrado está en
-`eval/pilot/protocol.yaml`.
 
 ## Dónde está cada cosa
 
@@ -167,5 +211,7 @@ La evaluación local mide por separado los fragmentos que encuentra el RAG, los 
 
 ```bash
 make test
-make lint
 ```
+
+`make lint` revisa el estilo con ruff. Hoy reporta avisos de formato pendientes en archivos
+anteriores; no afectan la ejecución ni las pruebas.
