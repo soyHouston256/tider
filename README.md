@@ -82,7 +82,8 @@ incidente, y el tramo anterior de la misma duración, como línea base.
 - En ensayos con fallas reales inyectadas, el pipeline v2 en modo reglas confirmó la firma
   esperada, y ninguna otra, para servicio sin instancias (`scale_zero`), configuración
   incorrecta (`wrong_port`) y dependencia lenta (`latency`). En el control sin falla no
-  confirmó ninguna.
+  confirmó ninguna. Las trazas y el detalle están en
+  [`eval/pilot/results/`](eval/pilot/results/README.md).
 - Saturación de CPU (`cpu_limit`): Tider la detectó en un ensayo, pero ChaosForge no acreditó
   la inyección porque su plazo de preparación venció antes de poder medir el efecto. No se
   cuenta como validada.
@@ -139,7 +140,7 @@ tider/
 │       └── static/           # HTML, CSS, JavaScript y fuentes de la consola
 ├── tests/                    # Pruebas del núcleo y de la consola
 ├── eval/
-│   ├── pilot/                # Protocolo, corridas y puntuación del piloto
+│   ├── pilot/                # Protocolo, orquestador, puntuación y resultados del piloto
 │   ├── quality/              # Benchmark de recuperación y diagnóstico (entradas congeladas)
 │   └── e5/                   # Evaluación sintética E5 y sus registros
 ├── docs/                     # Diseño, decisiones, guías, runbooks y solicitud de ejemplo

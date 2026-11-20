@@ -1,0 +1,66 @@
+{
+ "go": false,
+ "faltan": [
+  "V4"
+ ],
+ "catalogo_hash": "7dae684ccc8263041106cb6c18cd9a63a2f36b9abaec622dd366b089e3269df4",
+ "protocol_hash": "5942d7601bf125fc72c3778190f6ea0eb11ec80680297ee7431b66248f48a52f",
+ "matriz": {
+  "servicio-sin-instancias": {
+   "servicio-sin-instancias": 1
+  },
+  "configuracion-incorrecta": {
+   "configuracion-incorrecta": 1
+  },
+  "dependencia-lenta": {
+   "dependencia-lenta": 1
+  },
+  "ninguna": {
+   "ninguna": 1
+  }
+ },
+ "corridas": [
+  {
+   "case_id": "V1",
+   "verdad": "servicio-sin-instancias",
+   "entidad_esperada": "productcatalogservice",
+   "confirmadas": [
+    "servicio-sin-instancias@productcatalogservice"
+   ],
+   "estado": "corrido",
+   "motivo": null,
+   "ok": true
+  },
+  {
+   "case_id": "V2",
+   "verdad": "configuracion-incorrecta",
+   "entidad_esperada": "cartservice",
+   "confirmadas": [
+    "configuracion-incorrecta@cartservice"
+   ],
+   "estado": "corrido",
+   "motivo": null,
+   "ok": true
+  },
+  {
+   "case_id": "V3",
+   "verdad": "dependencia-lenta",
+   "entidad_esperada": "cartservice->redis-cart",
+   "confirmadas": [
+    "dependencia-lenta@cartservice->redis-cart"
+   ],
+   "estado": "corrido",
+   "motivo": null,
+   "ok": true
+  },
+  {
+   "case_id": "V5",
+   "verdad": "ninguna",
+   "entidad_esperada": "ninguna",
+   "confirmadas": [],
+   "estado": "corrido",
+   "motivo": null,
+   "ok": true
+  }
+ ]
+}

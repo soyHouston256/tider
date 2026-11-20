@@ -1,0 +1,29 @@
+{
+ "go": false,
+ "faltan": [
+  "V1",
+  "V2",
+  "V3",
+  "V5"
+ ],
+ "catalogo_hash": "7dae684ccc8263041106cb6c18cd9a63a2f36b9abaec622dd366b089e3269df4",
+ "protocol_hash": "5942d7601bf125fc72c3778190f6ea0eb11ec80680297ee7431b66248f48a52f",
+ "matriz": {
+  "saturacion-cpu": {
+   "saturacion-cpu": 1
+  }
+ },
+ "corridas": [
+  {
+   "case_id": "V4",
+   "verdad": "saturacion-cpu",
+   "entidad_esperada": "cartservice",
+   "confirmadas": [
+    "saturacion-cpu@cartservice"
+   ],
+   "estado": "excluido",
+   "motivo": "inyeccion_no_acreditada",
+   "ok": false
+  }
+ ]
+}

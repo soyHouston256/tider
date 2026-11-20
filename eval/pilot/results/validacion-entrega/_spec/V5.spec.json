@@ -1,0 +1,20 @@
+{
+ "case_id": "V5",
+ "request": {
+  "incident_id": "V5",
+  "objective": "Alerta de la tienda: errores o degradación reportados por usuarios. Investiga la causa.",
+  "scope": "general",
+  "start": "2026-11-20T00:56:01.359062+00:00",
+  "end": "2026-11-20T01:08:01.364275+00:00",
+  "mode": "gcp"
+ },
+ "t0": "2026-11-20T01:01:01.359062+00:00",
+ "brazos": [
+  "reglas"
+ ],
+ "repeticiones": {
+  "n": 3,
+  "cuando": "mas_de_una_firma_confirmada"
+ },
+ "protocol_hash": "5942d7601bf125fc72c3778190f6ea0eb11ec80680297ee7431b66248f48a52f"
+}
