@@ -75,6 +75,19 @@ def test_console_assets_and_host_boundary(app):
         assert c.get("/", headers={"host": "attacker.example"}).status_code == 400
 
 
+def test_lab_config_reports_the_sources_each_pipeline_reads(settings):
+    def config(**changes):
+        with TestClient(create_app(settings.model_copy(update=changes))) as c:
+            return c.get("/v1/lab/config").json()
+
+    observer = "http://127.0.0.1:8092"
+    assert (config()["pipeline"], config()["metrics_enabled"]) == ("v1", False)
+    assert config(agent_observer_url=observer)["metrics_enabled"] is False
+    assert config(pipeline="v2")["metrics_enabled"] is False
+    v2 = config(pipeline="v2", agent_observer_url=observer)
+    assert (v2["pipeline"], v2["metrics_enabled"]) == ("v2", True)
+
+
 def test_diagnosis_uses_evidence_not_scenario_label(monkeypatch, app):
     sample = [
         Signal(

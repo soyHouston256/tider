@@ -9,8 +9,9 @@ son los que escribió el orquestador en `out/runs/`, copiados sin editar.
 | `validacion-entrega/` | V1, V2, V3 y V5, seguidos | 19/11/2026, 19:19–20:10 | `772b496` |
 | `ensayo-validacion-8/` | V4 (saturación de CPU) | 19/11/2026, 18:32–18:45 | `b01d73f` |
 
-Entre `b01d73f` y `772b496` solo cambia documentación. Las horas de las trazas están en UTC, por
-eso llevan fecha 20/11.
+Entre `b01d73f` y `772b496` solo cambia documentación. Después de `772b496` el código cambió en un
+solo punto, la nota de fuentes de la consola (`api.py` y `app.js`); el pipeline es el mismo. Las
+horas de las trazas están en UTC, por eso llevan fecha 20/11.
 
 ## Resultado
 

@@ -87,7 +87,9 @@ function modeChanged() {
   $('scenario-fields').hidden = gcp;
   $('time-fields').hidden = !gcp;
   $('mode-note').textContent = gcp
-    ? (configuration.gcp_sources?.includes('event') ? 'Cloud Logging y eventos de Kubernetes del entorno configurado.' : 'Cloud Logging del entorno configurado. Métricas y trazas aún no conectadas.')
+    ? (configuration.pipeline === 'v2'
+        ? (configuration.metrics_enabled ? 'Cloud Logging, estado y eventos de Kubernetes, y métricas del observador (latencia y CPU).' : 'Cloud Logging y estado y eventos de Kubernetes. Métricas sin conectar: falta configurar el observador.')
+        : (configuration.gcp_sources?.includes('event') ? 'Cloud Logging y eventos de Kubernetes del entorno configurado.' : 'Cloud Logging del entorno configurado. Métricas y trazas aún no conectadas.'))
     : 'Señales sintéticas; no consulta GCP.';
   if (gcp) setDates();
   updateTimeChoice();

@@ -30,7 +30,7 @@ Los otros tres escenarios dan: **Cart Service sin endpoints** → `cartservice` 
 **Operación normal** y **Sin telemetría** → ninguna causa raíz, porque la evidencia no alcanza.
 
 Swagger está en **http://localhost:8080/docs**. Detener el servidor con Ctrl+C. Para otro
-puerto: `make run PORT=8088`. Para comprobar la instalación: `make test` (285 pruebas, menos
+puerto: `make run PORT=8088`. Para comprobar la instalación: `make test` (286 pruebas, menos
 de un minuto, sin red).
 
 `make setup` crea o sincroniza `.venv` con `uv.lock`; no hace falta configurar `PYTHONPATH`.
